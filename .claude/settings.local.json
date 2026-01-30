@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc:*)",
+      "Bash(xargs:*)",
+      "Bash(grep:*)",
+      "Bash(git -C /Users/timrozday/Documents/ena-submission-dataharmonizer log --oneline)",
+      "WebSearch",
+      "WebFetch(domain:linkml.io)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(python3:*)",
+      "Bash(pip3 install:*)",
+      "Bash(source:*)",
+      "Bash(pip install:*)"
+    ]
+  }
+}
