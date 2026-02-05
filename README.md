@@ -50,3 +50,73 @@ The script has three main stages: parse XML, convert to LinkML, and write YAML. 
   4. CLI (main)
 
   Uses argparse to accept either explicit file paths or scan a directory for *.xml files. For each input file it runs the parse → convert → write pipeline, then prints a summary of field/enum counts.
+
+## `scripts/merge_linkml.py`
+
+Merges two or more DataHarmonizer LinkML YAML schema files into a single combined schema. Input files are listed as positional arguments in **priority order** (first = highest priority). When identically named slots, enums, or slot_usage entries appear in multiple inputs, the definition from the highest-priority file is kept.
+
+Slots from all inputs are included in the output. Ordering is determined by walking inputs from highest to lowest priority and appending each slot the first time it is seen, so the highest-priority file's column order is preserved and fields unique to lower-priority files follow. Ranks are renumbered sequentially.
+
+**Usage:**
+
+```bash
+python scripts/merge_linkml.py <input1.yaml> <input2.yaml> [input3.yaml ...] -o <output.yaml>
+
+# Example:
+python scripts/merge_linkml.py schemas/ERC000015.yaml schemas/ERC000025.yaml \
+    -o schemas/merged.yaml \
+    --name MergedChecklist \
+    --title "Merged ENA checklist"
+```
+
+**Options:**
+
+| Flag | Description |
+|---|---|
+| `-o, --output` | Output file path (required) |
+| `--name` | Schema name (default: from highest-priority input) |
+| `--title` | Schema title (default: from highest-priority input) |
+| `--description` | Schema description (default: from highest-priority input) |
+| `--base-uri` | Base URI for the schema id (default: derived from highest-priority input) |
+
+### Implementation details
+
+**1. YAML helpers (lines 31–48)**
+
+A custom _LinkMLDumper class extends yaml.SafeDumper with two custom representers, identical to the ones in ena_to_linkml.py:
+- Booleans are emitted as lowercase true/false (LinkML convention, vs PyYAML's default True/False)
+- Strings containing newlines use YAML literal block style (|)
+
+**2. Loading and extraction (lines 55–78)**
+
+- load_schema() reads a YAML file via yaml.safe_load and returns the parsed dict.
+- _get_main_class() finds the DataHarmonizer main class by scanning the classes section for the entry with is_a: dh_interface. Returns its name and dict.
+- _ordered_slot_names() returns the slot name list from that main class, preserving the original ordering.
+
+**3. Merging (lines 85–220)**
+
+This is split into two functions:
+
+merge_schemas(schemas) (line 85) takes a list of parsed schema dicts, highest priority first. It iterates through each schema in priority order and collects three things using a first-seen-wins strategy:
+
+- Slots: For each schema, walks the main class's slot list via _ordered_slot_names(). The first time a slot name is encountered, its definition from the slots section and its slot_usage entry (rank, slot_group) are recorded. Later schemas with the same slot name are ignored. A second pass (line 122) catches any
+orphan slot definitions that exist in a slots section but weren't referenced in any main class's slot list.
+- Enums: Same first-seen-wins approach — iterates enums from each schema and keeps only the first definition of each enum name.
+- Ordering: Slot names are appended to seen_slot_order the first time they appear, so the highest-priority file's column order is preserved and fields unique to lower-priority files are appended after.
+
+Finally, ranks are renumbered sequentially (line 129) so the merged output has contiguous ranks 1, 2, 3, ... regardless of gaps caused by merging.
+
+build_merged_schema() (line 143) assembles the final LinkML schema dict from the merge results plus metadata. It:
+- Defaults name, title, description, and base_uri from the highest-priority input if the caller didn't supply them
+- Merges prefixes from all inputs (iterating in reverse so higher-priority values overwrite lower)
+- Constructs the standard DataHarmonizer class structure: a dh_interface base class and a main class that inherits from it, with the merged slot list and renumbered slot_usage
+- Includes the merged enums section if any enums exist
+
+**4. CLI (lines 246–325)**
+
+main() uses argparse to accept:
+- One or more positional input files (priority order: first = highest)
+- -o for the required output path
+- Optional --name, --title, --description, --base-uri to override merged schema metadata
+
+It validates that all input files exist, loads them, calls merge_schemas() then build_merged_schema(), writes the result via write_yaml(), and prints a summary of slot/enum counts.
