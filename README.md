@@ -165,3 +165,50 @@ main() wires it together with argparse:
 
 - Positional input_file, required -o/--output, optional --include and --exclude (at least one required, enforced by parser.error at line 251).
 - Validates the input file exists, loads everything, calls filter_schema, writes output, then prints a summary line showing original count, filtered count, removed count, required count, and enum count.
+
+## `scripts/build_linkml.py`
+
+The script is an orchestrator that chains the three existing sibling scripts into a single pipeline. Here's how it works:
+
+**Import strategy (lines 25–30)**
+
+Line 26 prepends the script's own directory to sys.path so it can import from the three sibling modules by name. It then pulls in exactly the functions it needs:
+
+- ena_to_linkml — XML parsing (parse_checklist_xml) and LinkML conversion (convert_to_linkml)
+- merge_linkml — YAML loading (load_schema), merging (merge_schemas, build_merged_schema), and output (write_yaml)
+- filter_linkml — field list loading (load_field_list) and slot filtering (filter_schema)
+
+No YAML dumper or helper code is defined locally — write_yaml from merge_linkml brings its own.
+
+**CLI (lines 33–91)**
+
+Argparse defines two input groups (--xsd, --linkml), each accepting one or more files via nargs="+". The output (-o) is required. Optional arguments include --include/--exclude filter files, and metadata overrides (--name, --title, --description, --base-uri).
+
+**Validation (lines 93–107)**
+
+Two checks happen before any processing:
+
+1. At least one input source (line 94) — parser.error() if neither --xsd nor --linkml is provided.
+2. All files exist (lines 98–107) — builds a flat list of every file path (inputs + filter lists), checks each with os.path.isfile, and exits early with an error message if any are missing. This fails fast rather than erroring midway through processing.
+
+Pipeline steps
+
+**Step 1 — XSD conversion (lines 109–117):** For each --xsd file, calls parse_checklist_xml to get a structured dict from the ENA XML, then convert_to_linkml to produce an in-memory LinkML schema dict. These stay in a list, never written to disk.
+
+**Step 2 — LinkML loading (lines 119–125):** For each --linkml file, calls load_schema (which is just yaml.safe_load) to parse the YAML into a dict.
+
+**Step 3 — Merge (lines 127–139)**: Concatenates the two lists as linkml_schemas + xsd_schemas. This ordering is significant — merge_schemas treats earlier entries as higher priority, so LinkML files always override XSD files for identically named slots/enums. merge_schemas returns a flat result with deduplicated
+slots, enums, and renumbered ranks. build_merged_schema then wraps that into a complete LinkML schema dict, using the caller's metadata overrides or falling back to the highest-priority input's values.
+
+**Step 4 — Filter (lines 141–151):** Only runs if --include or --exclude was provided. Loads the field name lists via load_field_list (which strips whitespace, skips blank/comment lines), then calls filter_schema. That function removes slots from the class, slot_usage, and top-level slots dict, prunes enums no longer
+referenced by any remaining slot's range, and renumbers ranks contiguously.
+
+**Step 5 — Write (lines 153–155):** write_yaml dumps the final schema dict to YAML using the custom _LinkMLDumper (lowercase booleans, literal blocks for multiline strings), creating parent directories if needed.
+
+**Summary (lines 157–162):** Prints slot count, required count, and enum count so the user can sanity-check the output without opening the file.
+
+Design notes
+
+- A single XSD input with no filtering works fine — the merge step passes through a single schema unchanged.
+- The filtering step is skipped entirely when no filter flags are given, so there's no overhead or behavioral change.
+- The --base-uri default is hardcoded to the project's GitHub URL, matching ena_to_linkml.py's default. For XSD conversion this is used directly; for merge it's passed to build_merged_schema which uses it to construct the output schema's id field.

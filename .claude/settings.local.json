@@ -16,7 +16,8 @@
       "Bash(conda info:*)",
       "Bash(printf:*)",
       "Bash(python:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(ls:*)"
     ]
   }
 }
