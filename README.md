@@ -120,3 +120,48 @@ main() uses argparse to accept:
 - Optional --name, --title, --description, --base-uri to override merged schema metadata
 
 It validates that all input files exist, loads them, calls merge_schemas() then build_merged_schema(), writes the result via write_yaml(), and prints a summary of slot/enum counts.
+
+## `scripts/filter_linkml.py`
+
+Here's how filter_linkml.py works, section by section:
+
+**YAML helpers (lines 33–50)**
+
+Reuses the same custom dumper pattern from ena_to_linkml.py and merge_linkml.py. _LinkMLDumper extends yaml.SafeDumper with two custom representers:
+
+- _bool_representer — emits true/false (lowercase) instead of Python's default True/False, matching LinkML conventions.
+- _str_representer — uses YAML literal block style (|) for multi-line strings, plain style otherwise.
+
+**Loading (lines 57–74)**
+
+- load_schema — standard yaml.safe_load from file.
+- load_field_list — reads a text file line-by-line, stripping whitespace, skipping blanks and #-prefixed comment lines. Returns a plain list of field name strings.
+
+**Schema helpers (lines 81–96)**
+
+- _get_main_class — iterates the classes dict to find the one with is_a: dh_interface. This is the DataHarmonizer convention: each schema has a dh_interface base class and one concrete class that extends it. Returns (name, class_dict).
+- _referenced_enums — collects the set of all range values from a slots dict. Used later to determine which enums are still needed after filtering.
+
+Core filtering logic (lines 103–196)
+
+filter_schema(schema, include, exclude) does the work:
+
+1. Resolve the main class and get its full slot list (all_slot_names). Early-returns the schema unchanged if no main class is found.
+2. Warn on unknown fields (lines 128–138) — any names in the include or exclude lists that aren't in the schema's slot list get reported to stderr.
+3. Determine which slots to keep (lines 140–150):
+  - If include is provided, filter all_slot_names to only those in the include set. The original schema order is preserved (not the order of the include file).
+  - If exclude is provided, remove those from whatever list remains.
+  - This means with both flags, include narrows first, then exclude removes from that subset.
+4. Build the filtered schema (lines 152–196):
+  - Copies all top-level keys except classes, slots, and enums as-is (lines 153–157).
+  - Rebuilds slot_usage (lines 160–165): iterates kept slots with enumerate(..., start=1) to assign contiguous ranks. Copies the original slot_usage entry for each kept slot, overwriting only rank.
+  - Rebuilds the main class (lines 167–181): iterates the original main class dict key-by-key, substituting slots and slot_usage with the filtered versions, preserving all other keys (name, title, description, is_a). Non-main classes (like dh_interface) pass through untouched.
+  - Filters top-level slots (lines 184–186): dict comprehension keeping only entries whose name is in kept.
+  - Prunes enums (lines 189–194): calls _referenced_enums on the surviving slots to get the set of enum names still used as a range. Only those enums are kept. If none remain, the enums key is omitted entirely.
+
+**CLI (lines 222–291)**
+
+main() wires it together with argparse:
+
+- Positional input_file, required -o/--output, optional --include and --exclude (at least one required, enforced by parser.error at line 251).
+- Validates the input file exists, loads everything, calls filter_schema, writes output, then prints a summary line showing original count, filtered count, removed count, required count, and enum count.

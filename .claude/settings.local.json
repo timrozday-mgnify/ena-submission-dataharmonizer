@@ -13,7 +13,10 @@
       "Bash(pip3 install:*)",
       "Bash(source:*)",
       "Bash(pip install:*)",
-      "Bash(conda info:*)"
+      "Bash(conda info:*)",
+      "Bash(printf:*)",
+      "Bash(python:*)",
+      "Bash(echo:*)"
     ]
   }
 }
