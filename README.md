@@ -212,3 +212,157 @@ Design notes
 - A single XSD input with no filtering works fine — the merge step passes through a single schema unchanged.
 - The filtering step is skipped entirely when no filter flags are given, so there's no overhead or behavioral change.
 - The --base-uri default is hardcoded to the project's GitHub URL, matching ena_to_linkml.py's default. For XSD conversion this is used directly; for merge it's passed to build_merged_schema which uses it to construct the output schema's id field.
+
+
+## `scripts/xsd_to_linkml.py`
+
+The script converts ENA/SRA XSD schema files to DataHarmonizer-compatible LinkML YAML. It uses a recursive depth-first walker to extract flat fields from deeply nested XSD complex types.
+
+Architecture
+
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  parse_xsd()    │────▶│   XSDWalker     │────▶│ convert_xsd_to_ │
+│  Extract named  │     │   Recursive     │     │ linkml()        │
+│  types into     │     │   tree walker   │     │ Build schema    │
+│  lookup dicts   │     │                 │     │ dict            │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+
+---
+1. YAML Helpers (lines 25-42)
+
+_LinkMLDumper ensures LinkML-compatible output:
+- Lowercase booleans: true/false instead of Python's True/False
+- Block style for multiline strings: Uses | style for descriptions with newlines
+
+---
+2. Constants (lines 45-80)
+
+Skip patterns (line 53-64):
+SKIP_ELEMENT_PATTERNS = r"^(.*_LINKS|.*_ATTRIBUTES|RELATED_.*)$"
+SKIP_COM_TYPES = {"com:LinkType", "com:AttributeType", ...}
+These filter out ENA metadata containers that aren't useful as DataHarmonizer fields.
+
+Type mapping (lines 67-80):
+XSD_TO_LINKML_TYPE = {
+    "xs:string": "string",
+    "xs:int": "integer",
+    "xs:dateTime": "datetime",
+    ...
+}
+
+---
+3. Parsing Functions (lines 83-160)
+
+_get_doc(elem) - Extracts documentation from xs:annotation/xs:documentation
+
+_extract_inline_enum(simple_type_elem) - Extracts enumeration values from a xs:restriction with xs:enumeration children
+
+parse_xsd(filepath) - Parses the XSD and builds lookup dictionaries:
+complex_types = {"StudyType": <Element>, "OrganismType": <Element>, ...}
+simple_types = {"typeLibraryStrategy": <Element>, ...}
+
+_find_main_type() - Maps filename to entry point:
+- SRA.study.xsd → StudyType
+- ENA.project.xsd → ProjectType
+- etc.
+
+---
+ XSDWalker Class (lines 193-477)
+
+The core recursive walker with these key methods:
+
+State Management
+
+self.slots = {}       # Accumulated LinkML slots
+self.enums = {}       # Accumulated LinkML enums
+self.seen_names = set()  # Deduplication (first-seen-wins)
+
+walk_complex_type(ct_elem, force_optional) (lines 343-369)
+
+Entry point for walking a complexType. Handles:
+1. Extension bases: If <xs:complexContent><xs:extension base="...">, recurse into base type first
+2. Direct attributes: Process any xs:attribute children
+3. Child containers: Find and walk all xs:sequence, xs:all, xs:choice
+
+_process_element(elem, force_optional) (lines 385-447)
+
+Processes a single xs:element. Decision tree:
+
+┌─ type="typeLibraryStrategy" (named simpleType with enum)
+│  └─▶ Create slot + enum (e.g., LIBRARY_STRATEGY → LibraryStrategyMenu)
+│
+├─ type="xs:string" (primitive)
+│  └─▶ Create slot with range "string"
+│
+├─ type="OrganismType" (named complexType)
+│  └─▶ Recurse into that complexType
+│
+├─ type="com:RefObjectType" (external reference)
+│  └─▶ Create string slot (reference field)
+│
+├─ Inline <xs:complexType> child
+│  └─▶ _process_inline_complex_type()
+│
+├─ Inline <xs:simpleType> child with enums
+│  └─▶ Create slot + enum
+│
+└─ No type specified
+   └─▶ Create string slot
+
+_process_inline_complex_type() (lines 449-477)
+
+Handles inline complex types. Key pattern: choice-as-enum
+
+For LIBRARY_LAYOUT which contains:
+<xs:choice>
+  <xs:element name="SINGLE">...</xs:element>
+  <xs:element name="PAIRED">...</xs:element>
+</xs:choice>
+
+Creates:
+- Slot LIBRARY_LAYOUT with range LibraryLayoutMenu
+- Enum with values SINGLE, PAIRED
+- Also extracts attributes from choice children (like NOMINAL_LENGTH from PAIRED)
+
+rocess_choice_as_enum() (lines 300-341)
+
+Converts xs:choice children into enum values. If choice options have attributes (like PAIRED has NOMINAL_LENGTH), those are also extracted as optional slots.
+
+---
+5. Schema Assembly (lines 484-566)
+
+convert_xsd_to_linkml() orchestrates the conversion:
+
+1. Parse XSD → get type lookups
+2. Find main type (e.g., StudyType)
+3. Create walker and walk the type tree
+4. Build schema dict matching existing format:
+
+schema = {
+    "id": "https://github.com/.../SRA_study",
+    "name": "SRA_study",
+    "classes": {
+        "dh_interface": {...},
+        "SRA_study": {
+            "slots": [...],
+            "slot_usage": {"STUDY_TITLE": {"rank": 1}, ...}
+        }
+    },
+    "slots": {...},
+    "enums": {...}
+}
+
+---
+6. CLI (lines 593-656)
+
+Standard argparse CLI matching ena_to_linkml.py:
+- Default: process all *.xsd except SRA.common.xsd
+- Supports -i input dir, -o output dir, --base-uri
+
+---
+Key Design Decisions
+
+1. First-seen-wins deduplication: When the same field appears multiple times (e.g., ORGANISM in both SUBMISSION_PROJECT and UMBRELLA_PROJECT), only the first is kept
+2. Optionality propagation: Children of xs:choice or elements with minOccurs="0" are marked optional
+3. Flat output: Nested structures are flattened - only leaf fields become slots
+4. Choice-as-enum: xs:choice with element children becomes an enum, not multiple exclusive fields

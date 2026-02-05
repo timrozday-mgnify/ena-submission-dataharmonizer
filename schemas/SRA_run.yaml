@@ -1,0 +1,318 @@
+id: https://github.com/timrozday/ena-submission-dataharmonizer/SRA_run
+name: SRA_run
+title: Run
+description: A run contains a group of reads generated for a particular experiment.
+version: 1.0.0
+imports:
+- linkml:types
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ENA: https://www.ebi.ac.uk/ena/browser/view/
+default_range: string
+classes:
+  dh_interface:
+    name: dh_interface
+    description: A DataHarmonizer interface
+    from_schema: https://github.com/timrozday/ena-submission-dataharmonizer/SRA_run
+  SRA_run:
+    name: SRA_run
+    title: Run
+    description: A run contains a group of reads generated for a particular experiment.
+    is_a: dh_interface
+    slots:
+    - run_date
+    - run_center
+    - TITLE
+    - EXPERIMENT_REF
+    - RUN_TYPE
+    - member_name
+    - filename
+    - filetype
+    - quality_scoring_system
+    - quality_encoding
+    - ascii_offset
+    - checksum_method
+    - checksum
+    - unencrypted_checksum
+    - READ_LABEL
+    - READ_TYPE
+    slot_usage:
+      run_date:
+        rank: 1
+      run_center:
+        rank: 2
+      TITLE:
+        rank: 3
+      EXPERIMENT_REF:
+        rank: 4
+      RUN_TYPE:
+        rank: 5
+      member_name:
+        rank: 6
+      filename:
+        rank: 7
+      filetype:
+        rank: 8
+      quality_scoring_system:
+        rank: 9
+      quality_encoding:
+        rank: 10
+      ascii_offset:
+        rank: 11
+      checksum_method:
+        rank: 12
+      checksum:
+        rank: 13
+      unencrypted_checksum:
+        rank: 14
+      READ_LABEL:
+        rank: 15
+      READ_TYPE:
+        rank: 16
+slots:
+  run_date:
+    name: run_date
+    description: ISO date when the run took place.
+    range: datetime
+  run_center:
+    name: run_center
+    description: 'If applicable, the name of the contract sequencing center that executed the run. Example: 454MSC.'
+    range: string
+  TITLE:
+    name: TITLE
+    description: Short text that can be used to define submissions in searches or in displays.
+    range: string
+  EXPERIMENT_REF:
+    name: EXPERIMENT_REF
+    description: Identifies the parent experiment.
+    range: string
+    required: true
+  RUN_TYPE:
+    name: RUN_TYPE
+    description: The type of the run.
+    range: RunTypeMenu
+  member_name:
+    name: member_name
+    description: Allow for an individual DATA_BLOCK to be associated with a member of a sample pool.
+    range: string
+  filename:
+    name: filename
+    description: The name or relative pathname of a run data file.
+    range: string
+  filetype:
+    name: filetype
+    description: The run data file model.
+    range: FiletypeMenu
+  quality_scoring_system:
+    name: quality_scoring_system
+    description: How the input data are scored for quality.
+    range: QualityScoringSystemMenu
+  quality_encoding:
+    name: quality_encoding
+    description: Character used in representing the minimum quality value. Helps specify how to decode text rendering of quality
+      data.
+    range: QualityEncodingMenu
+  ascii_offset:
+    name: ascii_offset
+    description: Character used in representing the minimum quality value. Helps specify how to decode text rendering of quality
+      data.
+    range: AsciiOffsetMenu
+  checksum_method:
+    name: checksum_method
+    description: Checksum method used.
+    range: ChecksumMethodMenu
+  checksum:
+    name: checksum
+    description: Checksum of uncompressed file.
+    range: string
+  unencrypted_checksum:
+    name: unencrypted_checksum
+    description: Checksum of unenrypted file(used in conjunction with checksum of encrypted file).
+    range: string
+  READ_LABEL:
+    name: READ_LABEL
+    description: The READ_LABEL can associate a certain file to a certain read_label defined in the SPOT_DESCRIPTOR.
+    range: string
+  READ_TYPE:
+    name: READ_TYPE
+    description: The READ_TYPE field.
+    range: ReadTypeMenu
+enums:
+  RunTypeMenu:
+    name: RunTypeMenu
+    description: The type of the run.
+    permissible_values:
+      REFERENCE_ALIGNMENT:
+        text: REFERENCE_ALIGNMENT
+  FiletypeMenu:
+    name: FiletypeMenu
+    description: The run data file model.
+    permissible_values:
+      sra:
+        text: sra
+        description: Sequence Read Archives native format in serialized (single file) form.
+      srf:
+        text: srf
+        description: Standard Short Read Format file (.srf), all platforms
+      sff:
+        text: sff
+        description: 454 Standard Flowgram Format file (.sff)
+      fastq:
+        text: fastq
+        description: Combined nucleotide/qualities sequence file in .fastq form. Please see SRA File Formats Guide for definitions
+          of the definition and restrictions on this form.
+      fasta:
+        text: fasta
+        description: Please see SRA File Formats Guide for definitions of these file formats, and the SRA Submission Guidelines
+          document for data series that are appropriate for your study. Sequence and qualities are minimally required.
+      tab:
+        text: tab
+        description: Tab delimited text file used to deliver certain auxiliary data along with sequencing submissions (only
+          needed for certain use cases). The first line is devoted to column headers. Each column is dedicated to an INDSC
+          data series type. Please see SRA File Formats Guide for definitions of the definition and restrictions on this form.
+      454_native:
+        text: 454_native
+        description: A combination of 454 primary analysis output files, including seq qual Please see SRA File Formats Guide
+          for definitions of these file formats, and the SRA Submission Guidelines document for data series that are appropriate
+          for your study. Sequence and qualities are minimally required.
+      454_native_seq:
+        text: 454_native_seq
+        description: 454 base calls (for example .seq or .fna). Please see SRA File Formats Guide for definitions of these
+          file formats, and the SRA Submission Guidelines document for data series that are appropriate for your study. Sequence
+          and qualities are minimally required.
+      454_native_qual:
+        text: 454_native_qual
+        description: 454 quality scores (for example .qual). Please see SRA File Formats Guide for definitions of these file
+          formats, and the SRA Submission Guidelines document for data series that are appropriate for your study. Sequence
+          and qualities are minimally required.
+      Helicos_native:
+        text: Helicos_native
+        description: A kind of fastq format specific to the Helicos platform. Please see SRA File Formats Guide for definitions
+          of these file formats, and the SRA Submission Guidelines document for data series that are appropriate for your
+          study. Sequence and qualities are minimally required.
+      Illumina_native:
+        text: Illumina_native
+        description: Please see SRA File Formats Guide for definitions of these file formats, and the SRA Submission Guidelines
+          document for data series that are appropriate for your study. Sequence and qualities are minimally required.
+      Illumina_native_seq:
+        text: Illumina_native_seq
+        description: Please see SRA File Formats Guide for definitions of these file formats, and the SRA Submission Guidelines
+          document for data series that are appropriate for your study. Sequence and qualities are minimally required.
+      Illumina_native_prb:
+        text: Illumina_native_prb
+        description: Please see SRA File Formats Guide for definitions of these file formats, and the SRA Submission Guidelines
+          document for data series that are appropriate for your study. Sequence and qualities are minimally required.
+      Illumina_native_int:
+        text: Illumina_native_int
+        description: Please see SRA File Formats Guide for definitions of these file formats, and the SRA Submission Guidelines
+          document for data series that are appropriate for your study. Sequence and qualities are minimally required.
+      Illumina_native_qseq:
+        text: Illumina_native_qseq
+        description: Please see SRA File Formats Guide for definitions of these file formats, and the SRA Submission Guidelines
+          document for data series that are appropriate for your study. Sequence and qualities are minimally required.
+      Illumina_native_scarf:
+        text: Illumina_native_scarf
+        description: Please see SRA File Formats Guide for definitions of these file formats, and the SRA Submission Guidelines
+          document for data series that are appropriate for your study. Sequence and qualities are minimally required.
+      SOLiD_native:
+        text: SOLiD_native
+        description: 'A combination of SOLiD primary analysis output files, including: csfasta _QV.qual _intensity.ScaledCY3.fasta
+          _intensity.ScaledCY5.fasta _intensity.ScaledFTC.fasta _intensity.ScaledTXR.fasta Please see SRA File Formats Guide
+          for definitions of these file formats, and the SRA Submission Guidelines document for data series that are appropriate
+          for your study. Sequence and qualities are minimally required.'
+      SOLiD_native_csfasta:
+        text: SOLiD_native_csfasta
+        description: Colorspace calls (for example .csfasta) Please see SRA File Formats Guide for definitions of these file
+          formats, and the SRA Submission Guidelines document for data series that are appropriate for your study. Sequence
+          and qualities are minimally required.
+      SOLiD_native_qual:
+        text: SOLiD_native_qual
+        description: Colorspace quality scores (for example .qual) Please see SRA File Formats Guide for definitions of these
+          file formats, and the SRA Submission Guidelines document for data series that are appropriate for your study. Sequence
+          and qualities are minimally required.
+      PacBio_HDF5:
+        text: PacBio_HDF5
+        description: Pacific Biosciences Hierarchical Data Format. Please see SRA File Formats Guide for definitions of these
+          file formats.
+      bam:
+        text: bam
+        description: Binary SAM format that combines alignment and sequencing data. Please see SRA File Formats Guide for
+          definitions of these file formats, and the SRA Submission Guidelines document for data series that are appropriate
+          for your study. Sequence and qualities are minimally required.
+      cram:
+        text: cram
+        description: Binary CRAM format that combines alignment and sequencing data. Please see SRA File Formats Guide for
+          definitions of these file formats, and the SRA Submission Guidelines document for data series that are appropriate
+          for your study. Sequence and qualities are minimally required.
+      CompleteGenomics_native:
+        text: CompleteGenomics_native
+        description: Please see SRA File Formats Guide for definitions of these file formats, and the SRA Submission Guidelines
+          document for data series that are appropriate for your study. Sequence and qualities are minimally required.
+      OxfordNanopore_native:
+        text: OxfordNanopore_native
+        description: Oxford Nanopore data format.
+  QualityScoringSystemMenu:
+    name: QualityScoringSystemMenu
+    description: How the input data are scored for quality.
+    permissible_values:
+      phred:
+        text: phred
+        description: 'The quality score is expressed as a probability of error in log form: -10 log(1/p) where p is the probability
+          of error, with value range 0..63, 0 meaning no base call.'
+      log-odds:
+        text: log-odds
+        description: 'The quality score is expressed as the ratio of error to non-error in log form: -10 log(p/(1-p)) where
+          p is the probability of error, with value range -40..40. The SRA will convert these into phred scale during loadtime.'
+  QualityEncodingMenu:
+    name: QualityEncodingMenu
+    description: Character used in representing the minimum quality value. Helps specify how to decode text rendering of quality
+      data.
+    permissible_values:
+      ascii:
+        text: ascii
+        description: ASCII character based encoding.
+      decimal:
+        text: decimal
+        description: Single decimal value per quality score.
+      hexadecimal:
+        text: hexadecimal
+        description: Single hexadecimal value per quality score.
+  AsciiOffsetMenu:
+    name: AsciiOffsetMenu
+    description: Character used in representing the minimum quality value. Helps specify how to decode text rendering of quality
+      data.
+    permissible_values:
+      '!':
+        text: '!'
+        description: ASCII value 33. Typically used for range 0..63.
+      '@':
+        text: '@'
+        description: ASCII value 64. Typically used for range 0..60.
+  ChecksumMethodMenu:
+    name: ChecksumMethodMenu
+    description: Checksum method used.
+    permissible_values:
+      MD5:
+        text: MD5
+        description: Checksum generated by the MD5 method (md5sum in unix).
+      SHA-256:
+        text: SHA-256
+        description: Checksum generated by the SHA-256 method .
+  ReadTypeMenu:
+    name: ReadTypeMenu
+    description: ''
+    permissible_values:
+      single:
+        text: single
+      paired:
+        text: paired
+      cell_barcode:
+        text: cell_barcode
+      umi_barcode:
+        text: umi_barcode
+      feature_barcode:
+        text: feature_barcode
+      sample_barcode:
+        text: sample_barcode
+      spatial_barcode:
+        text: spatial_barcode

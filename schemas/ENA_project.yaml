@@ -1,0 +1,123 @@
+id: https://github.com/timrozday/ena-submission-dataharmonizer/ENA_project
+name: ENA_project
+title: Project
+description: Schema derived from ENA.project.xsd
+version: 1.0.0
+imports:
+- linkml:types
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ENA: https://www.ebi.ac.uk/ena/browser/view/
+default_range: string
+classes:
+  dh_interface:
+    name: dh_interface
+    description: A DataHarmonizer interface
+    from_schema: https://github.com/timrozday/ena-submission-dataharmonizer/ENA_project
+  ENA_project:
+    name: ENA_project
+    title: Project
+    description: Schema derived from ENA.project.xsd
+    is_a: dh_interface
+    slots:
+    - first_public
+    - NAME
+    - TITLE
+    - DESCRIPTION
+    - COLLABORATOR
+    - LOCUS_TAG_PREFIX
+    - TAXON_ID
+    - SCIENTIFIC_NAME
+    - COMMON_NAME
+    - STRAIN
+    - BREED
+    - CULTIVAR
+    - ISOLATE
+    - accession
+    slot_usage:
+      first_public:
+        rank: 1
+      NAME:
+        rank: 2
+      TITLE:
+        rank: 3
+      DESCRIPTION:
+        rank: 4
+      COLLABORATOR:
+        rank: 5
+      LOCUS_TAG_PREFIX:
+        rank: 6
+      TAXON_ID:
+        rank: 7
+      SCIENTIFIC_NAME:
+        rank: 8
+      COMMON_NAME:
+        rank: 9
+      STRAIN:
+        rank: 10
+      BREED:
+        rank: 11
+      CULTIVAR:
+        rank: 12
+      ISOLATE:
+        rank: 13
+      accession:
+        rank: 14
+slots:
+  first_public:
+    name: first_public
+    description: The first_public field.
+    range: date
+  NAME:
+    name: NAME
+    description: A short name of the project.
+    range: string
+  TITLE:
+    name: TITLE
+    description: A short descriptive title for the project.
+    range: string
+    required: true
+  DESCRIPTION:
+    name: DESCRIPTION
+    description: A long description of the scope of the project.
+    range: string
+  COLLABORATOR:
+    name: COLLABORATOR
+    description: The COLLABORATOR field.
+    range: string
+  LOCUS_TAG_PREFIX:
+    name: LOCUS_TAG_PREFIX
+    description: The LOCUS_TAG_PREFIX field.
+    range: string
+  TAXON_ID:
+    name: TAXON_ID
+    description: The TAXON_ID field.
+    range: integer
+  SCIENTIFIC_NAME:
+    name: SCIENTIFIC_NAME
+    description: The SCIENTIFIC_NAME field.
+    range: string
+  COMMON_NAME:
+    name: COMMON_NAME
+    description: The COMMON_NAME field.
+    range: string
+  STRAIN:
+    name: STRAIN
+    description: The STRAIN field.
+    range: string
+  BREED:
+    name: BREED
+    description: The BREED field.
+    range: string
+  CULTIVAR:
+    name: CULTIVAR
+    description: The CULTIVAR field.
+    range: string
+  ISOLATE:
+    name: ISOLATE
+    description: The ISOLATE field.
+    range: string
+  accession:
+    name: accession
+    description: Identifies the project using an accession number.
+    range: string
