@@ -695,8 +695,10 @@ def merge_schemas(schemas, source_names=None):
         Parsed schema dicts, highest priority first.
     source_names : list[str] or None
         Optional source names (one per schema) used to prefix slot_group
-        values as ``source_name:slot_group``.  When *None*, slot_group
-        values are left unchanged.
+        values as ``source_name:slot_group`` and to set a ``source``
+        attribute on each slot indicating which input file it came from.
+        When *None*, slot_group values are left unchanged and no source
+        attribute is added.
     """
     if not schemas:
         return {}
@@ -715,7 +717,10 @@ def merge_schemas(schemas, source_names=None):
 
             slots = schema.get("slots", {})
             if slot_name not in merged_slots and slot_name in slots:
-                merged_slots[slot_name] = slots[slot_name]
+                slot_def = dict(slots[slot_name])
+                if source_prefix:
+                    slot_def["source"] = source_prefix
+                merged_slots[slot_name] = slot_def
 
             _, main_cls = _get_main_class(schema)
             if main_cls and slot_name not in merged_slot_usage:
@@ -730,9 +735,13 @@ def merge_schemas(schemas, source_names=None):
             if enum_name not in merged_enums:
                 merged_enums[enum_name] = enum_def
 
-    for schema in schemas:
+    for idx, schema in enumerate(schemas):
+        source_prefix = source_names[idx] if source_names and idx < len(source_names) else None
         for slot_name, slot_def in schema.get("slots", {}).items():
             if slot_name not in merged_slots:
+                slot_def = dict(slot_def)
+                if source_prefix:
+                    slot_def["source"] = source_prefix
                 merged_slots[slot_name] = slot_def
                 seen_slot_order.append(slot_name)
 
