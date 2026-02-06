@@ -29,7 +29,7 @@ Hotkeys:
     [ - Move field up (decrease rank)
     ] - Move field down (increase rank)
     shift+up/down - Range-select fields
-    ctrl+up/down - Toggle-select individual fields
+    space - Toggle selection of current row
     escape - Clear selection
     s - Save/Export schema
     o - Open schema file
@@ -45,6 +45,7 @@ from pathlib import Path
 from typing import Optional
 
 import yaml
+from rich.text import Text
 
 from textual import on
 from textual.app import App, ComposeResult
@@ -87,6 +88,8 @@ def _str_representer(dumper, data):
 
 _LinkMLDumper.add_representer(bool, _bool_representer)
 _LinkMLDumper.add_representer(str, _str_representer)
+
+_SELECTED_STYLE = "on dark_blue"
 
 
 def load_schema(filepath: str) -> dict:
@@ -642,8 +645,7 @@ class LinkMLEditor(App):
         Binding("]", "rank_down", "Rank Down"),
         Binding("shift+up", "select_extend_up", "Select Up", show=False),
         Binding("shift+down", "select_extend_down", "Select Down", show=False),
-        Binding("ctrl+up", "toggle_select_up", show=False),
-        Binding("ctrl+down", "toggle_select_down", show=False),
+        Binding("space", "toggle_select", "Toggle Select", show=False),
         Binding("escape", "clear_selection", "Clear Selection", show=False),
         Binding("s", "save_schema", "Save"),
         Binding("o", "open_schema", "Open"),
@@ -673,7 +675,6 @@ class LinkMLEditor(App):
         # Multi-select state for fields view
         self._selected_fields: set[str] = set()
         self._selection_anchor: Optional[str] = None
-        self._sel_col_key = None  # ColumnKey, set in on_mount
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -698,11 +699,10 @@ class LinkMLEditor(App):
         fields_table = self.query_one("#fields-table", DataTable)
         fields_table.cursor_type = "row"
         col_keys = fields_table.add_columns(
-            " ", " ", "rank", "slot_group", "required", "name", "title",
+            " ", "rank", "slot_group", "required", "name", "title",
             "description", "range", "pattern", "comments",
         )
-        self._sel_col_key = col_keys[0]
-        self._grp_col_key = col_keys[1]
+        self._grp_col_key = col_keys[0]
 
         # Setup enums table
         enums_table = self.query_one("#enums-table", DataTable)
@@ -785,13 +785,14 @@ class LinkMLEditor(App):
                     continue
                 seen_groups.add(group)
                 name = field.get("name", "")
-                sel = "▶" if name in self._selected_fields else ""
                 count = group_counts.get(group, 0)
-                table.add_row(
-                    sel, "▶", "", f"{group} ({count} fields)",
-                    "", "", "", "", "", "", "",
-                    key=name,
-                )
+                cells = [
+                    "▶", "", f"{group} ({count} fields)",
+                    "", "", "", "", "", "",
+                ]
+                if name in self._selected_fields:
+                    cells = [Text(str(c), style=_SELECTED_STYLE) for c in cells]
+                table.add_row(*cells, key=name)
                 continue
 
             # --- required filter (only for non-collapsed groups) ---------
@@ -804,10 +805,8 @@ class LinkMLEditor(App):
                 seen_groups.add(group)
 
             name = field.get("name", "")
-            sel = "▶" if name in self._selected_fields else ""
             grp_indicator = "▼" if is_first_visible and group else ""
-            table.add_row(
-                sel,
+            cells = [
                 grp_indicator,
                 str(field.get("rank", 0)),
                 group,
@@ -818,8 +817,10 @@ class LinkMLEditor(App):
                 field.get("range", "string"),
                 field.get("pattern", ""),
                 self._truncate(field.get("comments", ""), 30),
-                key=name,
-            )
+            ]
+            if name in self._selected_fields:
+                cells = [Text(str(c), style=_SELECTED_STYLE) for c in cells]
+            table.add_row(*cells, key=name)
 
     def refresh_enums_table(self) -> None:
         """Refresh the enums table with current data."""
@@ -1177,15 +1178,14 @@ class LinkMLEditor(App):
     # ------------------------------------------------------------------
 
     def _update_selection_indicators(self) -> None:
-        """Update the selection marker column without rebuilding the table."""
-        if self.current_view != "fields" or self._sel_col_key is None:
+        """Refresh the fields table to reflect current selection highlighting."""
+        if self.current_view != "fields":
             return
         table = self.query_one("#fields-table", DataTable)
-        for row_idx in range(table.row_count):
-            key = self._get_row_key_at(table, row_idx)
-            if key is not None:
-                marker = "▶" if key in self._selected_fields else ""
-                table.update_cell(key, self._sel_col_key, marker)
+        cursor_key = self._get_row_key_at(table, table.cursor_row) if table.cursor_row is not None else None
+        cursor_idx = table.cursor_row
+        self.refresh_fields_table()
+        self._restore_cursor(table, cursor_key, cursor_idx)
 
     def _update_range_selection(self, table: DataTable) -> None:
         """Select all visible rows between the anchor and the cursor."""
@@ -1236,8 +1236,8 @@ class LinkMLEditor(App):
         table.move_cursor(row=new_row)
         self._update_range_selection(table)
 
-    def action_toggle_select_up(self) -> None:
-        """Toggle selection of current row and move up (ctrl+up)."""
+    def action_toggle_select(self) -> None:
+        """Toggle selection of current row (space)."""
         if self.current_view != "fields":
             return
         table = self.query_one("#fields-table", DataTable)
@@ -1246,25 +1246,8 @@ class LinkMLEditor(App):
         current_key = self._get_row_key_at(table, table.cursor_row)
         if current_key:
             self._selected_fields.symmetric_difference_update({current_key})
-        new_row = max(0, table.cursor_row - 1)
-        table.move_cursor(row=new_row)
-        self._selection_anchor = None
-        self._update_selection_indicators()
-
-    def action_toggle_select_down(self) -> None:
-        """Toggle selection of current row and move down (ctrl+down)."""
-        if self.current_view != "fields":
-            return
-        table = self.query_one("#fields-table", DataTable)
-        if table.row_count == 0 or table.cursor_row is None:
-            return
-        current_key = self._get_row_key_at(table, table.cursor_row)
-        if current_key:
-            self._selected_fields.symmetric_difference_update({current_key})
-        new_row = min(table.row_count - 1, table.cursor_row + 1)
-        table.move_cursor(row=new_row)
-        self._selection_anchor = None
-        self._update_selection_indicators()
+            self._selection_anchor = None
+            self._update_selection_indicators()
 
     def action_clear_selection(self) -> None:
         """Clear all selected fields."""
@@ -1404,7 +1387,7 @@ class LinkMLEditor(App):
         """Edit the selected cell."""
         if self.current_view == "fields":
             table = self.query_one("#fields-table", DataTable)
-            columns = [None, "_grp", "rank", "slot_group", "required", "name", "title", "description", "range", "pattern", "comments"]
+            columns = ["_grp", "rank", "slot_group", "required", "name", "title", "description", "range", "pattern", "comments"]
         else:
             table = self.query_one("#enums-table", DataTable)
             columns = ["enum_name", "value", "text", "description"]
@@ -1417,8 +1400,6 @@ class LinkMLEditor(App):
             return
 
         column = columns[col_idx]
-        if column is None:
-            return  # selection indicator column
         row_key = self._get_row_key_at(table, table.cursor_row)
 
         if not row_key:
