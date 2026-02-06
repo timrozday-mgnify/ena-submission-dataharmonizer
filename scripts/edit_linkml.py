@@ -989,7 +989,11 @@ class LinkMLEditor(App):
             self.notify(f"Added enum value: {enum_row['value']}")
 
     def action_delete_row(self) -> None:
-        """Delete the selected row."""
+        """Delete the selected row.
+
+        Deletes immediately unless the field is required, in which case
+        a confirmation prompt warns the user first.
+        """
         if self.current_view == "fields":
             table = self.query_one("#fields-table", DataTable)
         else:
@@ -998,32 +1002,46 @@ class LinkMLEditor(App):
         if table.cursor_row is None or table.row_count == 0:
             return
 
-        self.push_screen(
-            ConfirmScreen("Delete this row?"),
-            self._on_delete_confirm
-        )
+        # Only confirm deletion for required fields
+        if self.current_view == "fields":
+            row_key = self._get_row_key_at(table, table.cursor_row)
+            if row_key:
+                field = next((f for f in self.fields if f["name"] == row_key), None)
+                if field and field.get("required"):
+                    self.push_screen(
+                        ConfirmScreen(f"'{row_key}' is a required field. Delete anyway?"),
+                        self._on_delete_confirm,
+                    )
+                    return
+
+        self._do_delete()
 
     def _on_delete_confirm(self, confirmed: bool) -> None:
-        """Handle delete confirmation."""
-        if not confirmed:
-            return
+        """Handle delete confirmation for required fields."""
+        if confirmed:
+            self._do_delete()
 
+    def _do_delete(self) -> None:
+        """Perform the row deletion and keep cursor at the same position."""
         if self.current_view == "fields":
             table = self.query_one("#fields-table", DataTable)
             if table.cursor_row is not None and table.row_count > 0:
-                row_key = self._get_row_key_at(table, table.cursor_row)
+                cursor_pos = table.cursor_row
+                row_key = self._get_row_key_at(table, cursor_pos)
                 if row_key:
-                    # Find and remove field by name
                     self._save_state()
                     self.fields = [f for f in self.fields if f["name"] != row_key]
                     self.modified = True
                     self.refresh_fields_table()
                     self.update_status()
+                    if table.row_count > 0:
+                        table.move_cursor(row=min(cursor_pos, table.row_count - 1))
                     self.notify(f"Deleted field: {row_key}")
         else:
             table = self.query_one("#enums-table", DataTable)
             if table.cursor_row is not None and table.row_count > 0:
-                row_key = self._get_row_key_at(table, table.cursor_row)
+                cursor_pos = table.cursor_row
+                row_key = self._get_row_key_at(table, cursor_pos)
                 if row_key:
                     # Parse the key to find the enum row (format: "EnumName_index")
                     parts = row_key.rsplit("_", 1)
@@ -1036,6 +1054,8 @@ class LinkMLEditor(App):
                                 self.modified = True
                                 self.refresh_enums_table()
                                 self.update_status()
+                                if table.row_count > 0:
+                                    table.move_cursor(row=min(cursor_pos, table.row_count - 1))
                                 self.notify(f"Deleted enum value: {removed.get('value', '')}")
                         except (ValueError, IndexError):
                             pass
