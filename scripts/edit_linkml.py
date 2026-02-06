@@ -744,7 +744,7 @@ class LinkMLEditor(App):
             VerticalScroll(
                 DataTable(id="fields-table"),
                 DataTable(id="enums-table", classes="hidden"),
-                Vertical(
+                VerticalScroll(
                     Label("", id="detail-header"),
                     Label("Name", classes="detail-label"),
                     _DetailTextArea(id="detail-attr-name", soft_wrap=True),
@@ -753,7 +753,7 @@ class LinkMLEditor(App):
                     Label("Slot Group", classes="detail-label"),
                     _DetailTextArea(id="detail-attr-slot_group", soft_wrap=True),
                     Label("Rank", classes="detail-label"),
-                    _DetailTextArea(id="detail-attr-rank", soft_wrap=True),
+                    _DetailTextArea(id="detail-attr-rank", soft_wrap=True, disabled=True),
                     Label("Required", classes="detail-label"),
                     _DetailTextArea(id="detail-attr-required", soft_wrap=True),
                     Label("Range", classes="detail-label"),
