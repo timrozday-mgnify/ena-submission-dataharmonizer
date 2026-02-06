@@ -189,331 +189,331 @@ classes:
     slot_usage:
       trophic_level:
         rank: 1
-        slot_group: 'Organism characteristics: ecosystem'
+        slot_group: 'ERC000022:Organism characteristics: ecosystem'
       observed_biotic_relationship:
         rank: 2
-        slot_group: 'Organism characteristics: ecosystem'
+        slot_group: 'ERC000022:Organism characteristics: ecosystem'
       known_pathogenicity:
         rank: 3
-        slot_group: 'Organism characteristics: ecosystem'
+        slot_group: 'ERC000022:Organism characteristics: ecosystem'
       relationship_to_oxygen:
         rank: 4
-        slot_group: 'Organism characteristics: ecosystem'
+        slot_group: 'ERC000022:Organism characteristics: ecosystem'
       propagation:
         rank: 5
-        slot_group: 'Organism characteristics: ecosystem'
+        slot_group: 'ERC000022:Organism characteristics: ecosystem'
       sample_collection_device:
         rank: 6
-        slot_group: 'sample collection: methods, storage and transport'
+        slot_group: 'ERC000022:sample collection: methods, storage and transport'
       sample_collection_method:
         rank: 7
-        slot_group: 'sample collection: methods, storage and transport'
+        slot_group: 'ERC000022:sample collection: methods, storage and transport'
       sample_storage_conditions:
         rank: 8
-        slot_group: 'sample collection: methods, storage and transport'
+        slot_group: 'ERC000022:sample collection: methods, storage and transport'
       soil_taxonomicfao_classification:
         rank: 9
-        slot_group: 'local environment conditions: soil'
+        slot_group: 'ERC000022:local environment conditions: soil'
       soil_taxonomiclocal_classification:
         rank: 10
-        slot_group: 'local environment conditions: soil'
+        slot_group: 'ERC000022:local environment conditions: soil'
       soil_taxonomiclocal_classification_method:
         rank: 11
-        slot_group: 'local environment conditions: soil'
+        slot_group: 'ERC000022:local environment conditions: soil'
       soil_type:
         rank: 12
-        slot_group: 'local environment conditions: soil'
+        slot_group: 'ERC000022:local environment conditions: soil'
       soil_type_method:
         rank: 13
-        slot_group: 'local environment conditions: soil'
+        slot_group: 'ERC000022:local environment conditions: soil'
       soil_texture_measurement:
         rank: 14
-        slot_group: 'local environment conditions: soil'
+        slot_group: 'ERC000022:local environment conditions: soil'
       soil_texture_method:
         rank: 15
-        slot_group: 'local environment conditions: soil'
+        slot_group: 'ERC000022:local environment conditions: soil'
       microbial_biomass:
         rank: 16
-        slot_group: 'sample collection: core sample properties'
+        slot_group: 'ERC000022:sample collection: core sample properties'
       project_name:
         rank: 17
-        slot_group: 'non-sample terms: study or project'
+        slot_group: 'ERC000022:non-sample terms: study or project'
       ploidy:
         rank: 18
-        slot_group: non-sample terms
+        slot_group: ERC000022:non-sample terms
       number_of_replicons:
         rank: 19
-        slot_group: non-sample terms
+        slot_group: ERC000022:non-sample terms
       extrachromosomal_elements:
         rank: 20
-        slot_group: non-sample terms
+        slot_group: ERC000022:non-sample terms
       estimated_size:
         rank: 21
-        slot_group: non-sample terms
+        slot_group: ERC000022:non-sample terms
       target_gene:
         rank: 22
-        slot_group: non-sample terms
+        slot_group: ERC000022:non-sample terms
       target_subfragment:
         rank: 23
-        slot_group: non-sample terms
+        slot_group: ERC000022:non-sample terms
       multiplex_identifiers:
         rank: 24
-        slot_group: non-sample terms
+        slot_group: ERC000022:non-sample terms
       sequence_quality_check:
         rank: 25
-        slot_group: non-sample terms
+        slot_group: ERC000022:non-sample terms
       chimera_check_software:
         rank: 26
-        slot_group: non-sample terms
+        slot_group: ERC000022:non-sample terms
       relevant_electronic_resources:
         rank: 27
-        slot_group: non-sample terms
+        slot_group: ERC000022:non-sample terms
       relevant_standard_operating_procedures:
         rank: 28
-        slot_group: non-sample terms
+        slot_group: ERC000022:non-sample terms
       collection_date:
         rank: 29
-        slot_group: Collection event information
+        slot_group: ERC000022:Collection event information
       altitude:
         rank: 30
-        slot_group: Collection event information
+        slot_group: ERC000022:Collection event information
       geographic_location_latitude:
         rank: 31
-        slot_group: Collection event information
+        slot_group: ERC000022:Collection event information
       geographic_location_longitude:
         rank: 32
-        slot_group: Collection event information
+        slot_group: ERC000022:Collection event information
       geographic_location_region_and_locality:
         rank: 33
-        slot_group: Collection event information
+        slot_group: ERC000022:Collection event information
       broadscale_environmental_context:
         rank: 34
-        slot_group: Collection event information
+        slot_group: ERC000022:Collection event information
       local_environmental_context:
         rank: 35
-        slot_group: Collection event information
+        slot_group: ERC000022:Collection event information
       environmental_medium:
         rank: 36
-        slot_group: Collection event information
+        slot_group: ERC000022:Collection event information
       elevation:
         rank: 37
-        slot_group: Collection event information
+        slot_group: ERC000022:Collection event information
       amount_or_size_of_sample_collected:
         rank: 38
-        slot_group: sample collection
+        slot_group: ERC000022:sample collection
       sieving:
         rank: 39
-        slot_group: sample collection
+        slot_group: ERC000022:sample collection
       microbial_biomass_method:
         rank: 40
-        slot_group: sample collection
+        slot_group: ERC000022:sample collection
       horizon_method:
         rank: 41
-        slot_group: sample collection
+        slot_group: ERC000022:sample collection
       extreme_unusual_propertiesheavy_metals:
         rank: 42
-        slot_group: unusual properties
+        slot_group: ERC000022:unusual properties
       extreme_unusual_propertiesheavy_metals_method:
         rank: 43
-        slot_group: unusual properties
+        slot_group: ERC000022:unusual properties
       extreme_unusual_propertiesal_saturation:
         rank: 44
-        slot_group: unusual properties
+        slot_group: ERC000022:unusual properties
       extreme_unusual_propertiesal_saturation_method:
         rank: 45
-        slot_group: unusual properties
+        slot_group: ERC000022:unusual properties
       geographic_location_country_andor_sea:
         rank: 46
-        slot_group: Organism characteristics
+        slot_group: ERC000022:Organism characteristics
       host_disease_status:
         rank: 47
-        slot_group: host disorder
+        slot_group: ERC000022:host disorder
       host_scientific_name:
         rank: 48
-        slot_group: host description
+        slot_group: ERC000022:host description
       link_to_climate_information:
         rank: 49
-        slot_group: link
+        slot_group: ERC000022:link
       link_to_classification_information:
         rank: 50
-        slot_group: link
+        slot_group: ERC000022:link
       links_to_additional_analysis:
         rank: 51
-        slot_group: link
+        slot_group: ERC000022:link
       current_land_use:
         rank: 52
-        slot_group: local environment conditions
+        slot_group: ERC000022:local environment conditions
       current_vegetation:
         rank: 53
-        slot_group: local environment conditions
+        slot_group: ERC000022:local environment conditions
       current_vegetation_method:
         rank: 54
-        slot_group: local environment conditions
+        slot_group: ERC000022:local environment conditions
       soil_horizon:
         rank: 55
-        slot_group: local environment conditions
+        slot_group: ERC000022:local environment conditions
       drainage_classification:
         rank: 56
-        slot_group: local environment conditions
+        slot_group: ERC000022:local environment conditions
       temperature:
         rank: 57
-        slot_group: local environment conditions
+        slot_group: ERC000022:local environment conditions
       ph:
         rank: 58
-        slot_group: local environment conditions
+        slot_group: ERC000022:local environment conditions
       ph_method:
         rank: 59
-        slot_group: local environment conditions
+        slot_group: ERC000022:local environment conditions
       water_content:
         rank: 60
-        slot_group: local environment conditions
+        slot_group: ERC000022:local environment conditions
       slope_gradient:
         rank: 61
-        slot_group: local environment conditions
+        slot_group: ERC000022:local environment conditions
       slope_aspect:
         rank: 62
-        slot_group: local environment conditions
+        slot_group: ERC000022:local environment conditions
       profile_position:
         rank: 63
-        slot_group: local environment conditions
+        slot_group: ERC000022:local environment conditions
       water_content_method:
         rank: 64
-        slot_group: concentration measurement
+        slot_group: ERC000022:concentration measurement
       total_organic_carbon_method:
         rank: 65
-        slot_group: concentration measurement
+        slot_group: ERC000022:concentration measurement
       total_nitrogen_content_method:
         rank: 66
-        slot_group: concentration measurement
+        slot_group: ERC000022:concentration measurement
       organic_matter:
         rank: 67
-        slot_group: concentration measurement
+        slot_group: ERC000022:concentration measurement
       organic_nitrogen:
         rank: 68
-        slot_group: concentration measurement
+        slot_group: ERC000022:concentration measurement
       total_organic_carbon:
         rank: 69
-        slot_group: concentration measurement
+        slot_group: ERC000022:concentration measurement
       total_nitrogen_content:
         rank: 70
-        slot_group: concentration measurement
+        slot_group: ERC000022:concentration measurement
       salinity_method:
         rank: 71
-        slot_group: concentration measurement
+        slot_group: ERC000022:concentration measurement
       source_material_identifiers:
         rank: 72
-        slot_group: Pointer to physical material
+        slot_group: ERC000022:Pointer to physical material
       historyprevious_land_use:
         rank: 73
-        slot_group: local environment history
+        slot_group: ERC000022:local environment history
       previous_land_use_method:
         rank: 74
-        slot_group: local environment history
+        slot_group: ERC000022:local environment history
       historycrop_rotation:
         rank: 75
-        slot_group: local environment history
+        slot_group: ERC000022:local environment history
       historyagrochemical_additions:
         rank: 76
-        slot_group: local environment history
+        slot_group: ERC000022:local environment history
       historytillage:
         rank: 77
-        slot_group: local environment history
+        slot_group: ERC000022:local environment history
       historyfire:
         rank: 78
-        slot_group: local environment history
+        slot_group: ERC000022:local environment history
       historyflooding:
         rank: 79
-        slot_group: local environment history
+        slot_group: ERC000022:local environment history
       historyextreme_events:
         rank: 80
-        slot_group: local environment history
+        slot_group: ERC000022:local environment history
       mean_seasonal_temperature:
         rank: 81
-        slot_group: local environment history
+        slot_group: ERC000022:local environment history
       mean_seasonal_precipitation:
         rank: 82
-        slot_group: local environment history
+        slot_group: ERC000022:local environment history
       mean_annual_precipitation:
         rank: 83
-        slot_group: local environment history
+        slot_group: ERC000022:local environment history
       mean_annual_temperature:
         rank: 84
-        slot_group: local environment history
+        slot_group: ERC000022:local environment history
       host_specificity_or_range:
         rank: 85
-        slot_group: host details
+        slot_group: ERC000022:host details
       perturbation:
         rank: 86
-        slot_group: treatment
+        slot_group: ERC000022:treatment
       negative_control_type:
         rank: 87
-        slot_group: experimental factor and block
+        slot_group: ERC000022:experimental factor and block
       positive_control_type:
         rank: 88
-        slot_group: experimental factor and block
+        slot_group: ERC000022:experimental factor and block
       experimental_factor:
         rank: 89
-        slot_group: experimental factor and block
+        slot_group: ERC000022:experimental factor and block
       encoded_traits:
         rank: 90
-        slot_group: 'Organism characteristics: genetic'
+        slot_group: 'ERC000022:Organism characteristics: genetic'
       subspecific_genetic_lineage:
         rank: 91
-        slot_group: 'Organism characteristics: genetic'
+        slot_group: 'ERC000022:Organism characteristics: genetic'
       taxonomic_classification:
         rank: 92
-        slot_group: 'Organism characteristics: genetic'
+        slot_group: 'ERC000022:Organism characteristics: genetic'
       isolation_and_growth_condition:
         rank: 93
-        slot_group: Reference
+        slot_group: ERC000022:Reference
       annotation_source:
         rank: 94
-        slot_group: Reference
+        slot_group: ERC000022:Reference
       reference_for_biomaterial:
         rank: 95
-        slot_group: Reference
+        slot_group: ERC000022:Reference
       sample_pooling:
         rank: 96
-        slot_group: sample processing
+        slot_group: ERC000022:sample processing
       sample_material_processing:
         rank: 97
-        slot_group: sample processing
+        slot_group: ERC000022:sample processing
       sample_volume_or_weight_for_dna_extraction:
         rank: 98
-        slot_group: sample processing
+        slot_group: ERC000022:sample processing
       nucleic_acid_extraction:
         rank: 99
-        slot_group: sample processing
+        slot_group: ERC000022:sample processing
       nucleic_acid_amplification:
         rank: 100
-        slot_group: sample processing
+        slot_group: ERC000022:sample processing
       library_size:
         rank: 101
-        slot_group: sample processing
+        slot_group: ERC000022:sample processing
       library_reads_sequenced:
         rank: 102
-        slot_group: sample processing
+        slot_group: ERC000022:sample processing
       library_construction_method:
         rank: 103
-        slot_group: sample processing
+        slot_group: ERC000022:sample processing
       library_vector:
         rank: 104
-        slot_group: sample processing
+        slot_group: ERC000022:sample processing
       library_screening_strategy:
         rank: 105
-        slot_group: sample processing
+        slot_group: ERC000022:sample processing
       pcr_conditions:
         rank: 106
-        slot_group: sample processing
+        slot_group: ERC000022:sample processing
       pcr_primers:
         rank: 107
-        slot_group: sample processing
+        slot_group: ERC000022:sample processing
       adapters:
         rank: 108
-        slot_group: sample processing
+        slot_group: ERC000022:sample processing
       depth:
         rank: 109
-        slot_group: Environmental information
+        slot_group: ERC000022:Environmental information
       TITLE:
         rank: 110
       STUDY_REF:

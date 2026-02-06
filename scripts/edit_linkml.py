@@ -31,6 +31,8 @@ Hotkeys:
     shift+up/down - Range-select fields
     space - Toggle selection of current row
     escape - Clear selection
+    v - View field details
+    ctrl+s - Save field detail changes
     s - Save/Export schema
     o - Open schema file
     ctrl+z - Undo
@@ -541,6 +543,28 @@ class ConfirmScreen(ModalScreen[bool]):
 
 
 # ---------------------------------------------------------------------------
+# Field detail view helpers
+# ---------------------------------------------------------------------------
+
+_DETAIL_ATTRS = [
+    ("name", "Name"),
+    ("title", "Title"),
+    ("slot_group", "Slot Group"),
+    ("rank", "Rank"),
+    ("required", "Required"),
+    ("range", "Range"),
+    ("pattern", "Pattern"),
+    ("description", "Description"),
+    ("comments", "Comments"),
+]
+
+
+class _DetailTextArea(TextArea):
+    """TextArea that does not handle undo/redo, allowing app-level handling."""
+    BINDINGS = []
+
+
+# ---------------------------------------------------------------------------
 # Main Application
 # ---------------------------------------------------------------------------
 
@@ -629,6 +653,34 @@ class LinkMLEditor(App):
     .hidden {
         display: none;
     }
+
+    #field-detail-container {
+        padding: 0 2;
+    }
+
+    .detail-label {
+        text-style: bold;
+        margin-top: 1;
+    }
+
+    #field-detail-container TextArea {
+        height: 3;
+    }
+
+    #field-detail-container .detail-large {
+        height: 8;
+    }
+
+    #detail-header {
+        text-style: bold;
+        text-align: center;
+        margin: 1 0;
+    }
+
+    #detail-buttons {
+        margin-top: 1;
+        align: center middle;
+    }
     """
 
     BINDINGS = [
@@ -647,6 +699,8 @@ class LinkMLEditor(App):
         Binding("shift+down", "select_extend_down", "Select Down", show=False),
         Binding("space", "toggle_select", "Toggle Select", show=False),
         Binding("escape", "clear_selection", "Clear Selection", show=False),
+        Binding("v", "view_field", "View Field"),
+        Binding("ctrl+s", "save_field_detail", "Save Field", show=False),
         Binding("s", "save_schema", "Save"),
         Binding("o", "open_schema", "Open"),
         Binding("ctrl+z", "undo", "Undo"),
@@ -675,6 +729,8 @@ class LinkMLEditor(App):
         # Multi-select state for fields view
         self._selected_fields: set[str] = set()
         self._selection_anchor: Optional[str] = None
+        # Field detail view state
+        self._detail_field_name: Optional[str] = None
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -688,6 +744,34 @@ class LinkMLEditor(App):
             VerticalScroll(
                 DataTable(id="fields-table"),
                 DataTable(id="enums-table", classes="hidden"),
+                Vertical(
+                    Label("", id="detail-header"),
+                    Label("Name", classes="detail-label"),
+                    _DetailTextArea(id="detail-attr-name", soft_wrap=True),
+                    Label("Title", classes="detail-label"),
+                    _DetailTextArea(id="detail-attr-title", soft_wrap=True),
+                    Label("Slot Group", classes="detail-label"),
+                    _DetailTextArea(id="detail-attr-slot_group", soft_wrap=True),
+                    Label("Rank", classes="detail-label"),
+                    _DetailTextArea(id="detail-attr-rank", soft_wrap=True),
+                    Label("Required", classes="detail-label"),
+                    _DetailTextArea(id="detail-attr-required", soft_wrap=True),
+                    Label("Range", classes="detail-label"),
+                    _DetailTextArea(id="detail-attr-range", soft_wrap=True),
+                    Label("Pattern", classes="detail-label"),
+                    _DetailTextArea(id="detail-attr-pattern", soft_wrap=True),
+                    Label("Description", classes="detail-label"),
+                    _DetailTextArea(id="detail-attr-description", soft_wrap=True, classes="detail-large"),
+                    Label("Comments", classes="detail-label"),
+                    _DetailTextArea(id="detail-attr-comments", soft_wrap=True, classes="detail-large"),
+                    Horizontal(
+                        Button("Save (Ctrl+S)", id="detail-save-btn", variant="primary"),
+                        Button("Discard (Esc)", id="detail-discard-btn", variant="default"),
+                        id="detail-buttons",
+                    ),
+                    id="field-detail-container",
+                    classes="hidden",
+                ),
                 id="table-container",
             ),
             id="main-container",
@@ -733,6 +817,7 @@ class LinkMLEditor(App):
             self._last_enums_row_key = None
             self._selected_fields.clear()
             self._selection_anchor = None
+            self._detail_field_name = None
 
             self.refresh_fields_table()
             self.refresh_enums_table()
@@ -875,7 +960,10 @@ class LinkMLEditor(App):
         modified = " *" if self.modified else ""
         file_label.update(f"File: {filename}{modified}")
 
-        view_label.update(f"View: {self.current_view.title()}")
+        if self.current_view == "field_detail":
+            view_label.update(f"View: Field Detail ({self._detail_field_name or ''})")
+        else:
+            view_label.update(f"View: {self.current_view.title()}")
 
         filters = []
         if self.filter_required:
@@ -912,12 +1000,12 @@ class LinkMLEditor(App):
             return
 
         # Remember cursor position in the active table.
-        if self.current_view == "fields":
-            table = self.query_one("#fields-table", DataTable)
-        else:
-            table = self.query_one("#enums-table", DataTable)
-        row_key = self._get_row_key_at(table, table.cursor_row) if table.cursor_row is not None else None
-        row_idx = table.cursor_row
+        row_key = None
+        row_idx = None
+        if self.current_view in ("fields", "enums"):
+            table = self.query_one(f"#{self.current_view}-table", DataTable)
+            row_key = self._get_row_key_at(table, table.cursor_row) if table.cursor_row is not None else None
+            row_idx = table.cursor_row
 
         # Save current state to redo stack
         current_state = (
@@ -932,7 +1020,12 @@ class LinkMLEditor(App):
         self.refresh_fields_table()
         self.refresh_enums_table()
         self.update_status()
-        self._restore_cursor(table, row_key, row_idx)
+        if self.current_view == "field_detail" and self._detail_field_name:
+            if not self._populate_detail_view(self._detail_field_name):
+                self._switch_to_fields_from_detail()
+        elif self.current_view in ("fields", "enums"):
+            table = self.query_one(f"#{self.current_view}-table", DataTable)
+            self._restore_cursor(table, row_key, row_idx)
         self.notify("Undo")
 
     def action_redo(self) -> None:
@@ -942,12 +1035,12 @@ class LinkMLEditor(App):
             return
 
         # Remember cursor position in the active table.
-        if self.current_view == "fields":
-            table = self.query_one("#fields-table", DataTable)
-        else:
-            table = self.query_one("#enums-table", DataTable)
-        row_key = self._get_row_key_at(table, table.cursor_row) if table.cursor_row is not None else None
-        row_idx = table.cursor_row
+        row_key = None
+        row_idx = None
+        if self.current_view in ("fields", "enums"):
+            table = self.query_one(f"#{self.current_view}-table", DataTable)
+            row_key = self._get_row_key_at(table, table.cursor_row) if table.cursor_row is not None else None
+            row_idx = table.cursor_row
 
         # Save current state to undo stack
         current_state = (
@@ -962,11 +1055,19 @@ class LinkMLEditor(App):
         self.refresh_fields_table()
         self.refresh_enums_table()
         self.update_status()
-        self._restore_cursor(table, row_key, row_idx)
+        if self.current_view == "field_detail" and self._detail_field_name:
+            if not self._populate_detail_view(self._detail_field_name):
+                self._switch_to_fields_from_detail()
+        elif self.current_view in ("fields", "enums"):
+            table = self.query_one(f"#{self.current_view}-table", DataTable)
+            self._restore_cursor(table, row_key, row_idx)
         self.notify("Redo")
 
     def action_show_fields(self) -> None:
         """Switch to fields view, restoring last cursor position."""
+        if self.current_view == "field_detail":
+            self._switch_to_fields_from_detail()
+            return
         # Save current enums cursor position
         if self.current_view == "enums":
             enums_table = self.query_one("#enums-table", DataTable)
@@ -1250,11 +1351,109 @@ class LinkMLEditor(App):
             self._update_selection_indicators()
 
     def action_clear_selection(self) -> None:
-        """Clear all selected fields."""
+        """Clear all selected fields, or leave detail view."""
+        if self.current_view == "field_detail":
+            self._switch_to_fields_from_detail()
+            return
         if self._selected_fields:
             self._selected_fields.clear()
             self._selection_anchor = None
             self._update_selection_indicators()
+
+    # ------------------------------------------------------------------
+    # Field detail view
+    # ------------------------------------------------------------------
+
+    def _populate_detail_view(self, field_name: str) -> bool:
+        """Populate detail view widgets from field data. Returns False if not found."""
+        field = next((f for f in self.fields if f["name"] == field_name), None)
+        if field is None:
+            return False
+        self._detail_field_name = field_name
+        self.query_one("#detail-header", Label).update(f"Field: {field_name}")
+        for attr, _label in _DETAIL_ATTRS:
+            widget = self.query_one(f"#detail-attr-{attr}", _DetailTextArea)
+            if attr == "required":
+                value = "Yes" if field.get("required") else "No"
+            else:
+                value = str(field.get(attr, ""))
+            widget.load_text(value)
+        return True
+
+    def action_view_field(self) -> None:
+        """Open the single field detail view for the cursor field."""
+        if self.current_view != "fields":
+            return
+        table = self.query_one("#fields-table", DataTable)
+        if table.cursor_row is None or table.row_count == 0:
+            return
+        row_key = self._get_row_key_at(table, table.cursor_row)
+        if not row_key:
+            return
+        field = next((f for f in self.fields if f["name"] == row_key), None)
+        if not field:
+            return
+        if field.get("slot_group", "") in self.collapsed_groups:
+            return
+        self._last_fields_row_key = row_key
+        if self._populate_detail_view(row_key):
+            self.current_view = "field_detail"
+            self.query_one("#fields-table").add_class("hidden")
+            self.query_one("#field-detail-container").remove_class("hidden")
+            self.update_status()
+            self.query_one("#detail-attr-name").focus()
+
+    def action_save_field_detail(self) -> None:
+        """Save changes from the detail view and return to the fields table."""
+        if self.current_view != "field_detail" or not self._detail_field_name:
+            return
+        field = next((f for f in self.fields if f["name"] == self._detail_field_name), None)
+        if not field:
+            self._switch_to_fields_from_detail()
+            return
+        new_values = {}
+        for attr, _label in _DETAIL_ATTRS:
+            widget = self.query_one(f"#detail-attr-{attr}", _DetailTextArea)
+            value = widget.text.strip()
+            if attr == "required":
+                new_values[attr] = value.lower() in ("yes", "true", "1")
+            elif attr == "rank":
+                try:
+                    new_values[attr] = int(value)
+                except ValueError:
+                    new_values[attr] = field.get("rank", 0)
+            else:
+                new_values[attr] = value
+        changed = any(field.get(attr) != new_values[attr] for attr, _ in _DETAIL_ATTRS)
+        if changed:
+            self._save_state()
+            for attr, _label in _DETAIL_ATTRS:
+                field[attr] = new_values[attr]
+            self._detail_field_name = new_values.get("name", self._detail_field_name)
+            self.modified = True
+            self.notify("Field updated")
+        self._switch_to_fields_from_detail()
+
+    def _switch_to_fields_from_detail(self) -> None:
+        """Leave the detail view and return to the fields table."""
+        field_name = self._detail_field_name
+        self.current_view = "fields"
+        self.query_one("#field-detail-container").add_class("hidden")
+        self.query_one("#fields-table").remove_class("hidden")
+        self.refresh_fields_table()
+        self.update_status()
+        if field_name:
+            table = self.query_one("#fields-table", DataTable)
+            self._move_cursor_to_key(table, field_name)
+        self._detail_field_name = None
+
+    @on(Button.Pressed, "#detail-save-btn")
+    def _on_detail_save(self) -> None:
+        self.action_save_field_detail()
+
+    @on(Button.Pressed, "#detail-discard-btn")
+    def _on_detail_discard(self) -> None:
+        self._switch_to_fields_from_detail()
 
     def action_insert_row(self) -> None:
         """Insert a new row."""
@@ -1385,6 +1584,8 @@ class LinkMLEditor(App):
 
     def action_edit_cell(self) -> None:
         """Edit the selected cell."""
+        if self.current_view == "field_detail":
+            return
         if self.current_view == "fields":
             table = self.query_one("#fields-table", DataTable)
             columns = ["_grp", "rank", "slot_group", "required", "name", "title", "description", "range", "pattern", "comments"]
