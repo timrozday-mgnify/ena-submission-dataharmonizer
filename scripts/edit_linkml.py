@@ -26,6 +26,9 @@ Hotkeys:
     Enter - Edit selected cell
     [ - Move field up (decrease rank)
     ] - Move field down (increase rank)
+    shift+up/down - Range-select fields
+    ctrl+up/down - Toggle-select individual fields
+    escape - Clear selection
     s - Save/Export schema
     o - Open schema file
     ctrl+z - Undo
@@ -633,6 +636,11 @@ class LinkMLEditor(App):
         Binding("enter", "edit_cell", "Edit"),
         Binding("[", "rank_up", "Rank Up"),
         Binding("]", "rank_down", "Rank Down"),
+        Binding("shift+up", "select_extend_up", "Select Up", show=False),
+        Binding("shift+down", "select_extend_down", "Select Down", show=False),
+        Binding("ctrl+up", "toggle_select_up", show=False),
+        Binding("ctrl+down", "toggle_select_down", show=False),
+        Binding("escape", "clear_selection", "Clear Selection", show=False),
         Binding("s", "save_schema", "Save"),
         Binding("o", "open_schema", "Open"),
         Binding("ctrl+z", "undo", "Undo"),
@@ -658,6 +666,10 @@ class LinkMLEditor(App):
         # Track last cursor positions for view switching
         self._last_fields_row_key: Optional[str] = None
         self._last_enums_row_key: Optional[str] = None
+        # Multi-select state for fields view
+        self._selected_fields: set[str] = set()
+        self._selection_anchor: Optional[str] = None
+        self._sel_col_key = None  # ColumnKey, set in on_mount
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -681,9 +693,11 @@ class LinkMLEditor(App):
         # Setup fields table
         fields_table = self.query_one("#fields-table", DataTable)
         fields_table.cursor_type = "row"
-        fields_table.add_columns(
-            "rank", "slot_group", "required", "name", "title", "description", "range", "pattern", "comments"
+        col_keys = fields_table.add_columns(
+            " ", "rank", "slot_group", "required", "name", "title",
+            "description", "range", "pattern", "comments",
         )
+        self._sel_col_key = col_keys[0]
 
         # Setup enums table
         enums_table = self.query_one("#enums-table", DataTable)
@@ -712,6 +726,8 @@ class LinkMLEditor(App):
             # Clear saved cursor positions
             self._last_fields_row_key = None
             self._last_enums_row_key = None
+            self._selected_fields.clear()
+            self._selection_anchor = None
 
             self.refresh_fields_table()
             self.refresh_enums_table()
@@ -761,17 +777,19 @@ class LinkMLEditor(App):
                 if first_in_group and first_in_group["name"] != field["name"]:
                     continue
 
+            name = field.get("name", "")
             table.add_row(
+                "▶" if name in self._selected_fields else "",
                 str(field.get("rank", 0)),
                 field.get("slot_group", ""),
                 "Yes" if field.get("required") else "No",
-                field.get("name", ""),
+                name,
                 field.get("title", ""),
                 self._truncate(field.get("description", ""), 50),
                 field.get("range", "string"),
                 field.get("pattern", ""),
                 self._truncate(field.get("comments", ""), 30),
-                key=field.get("name"),
+                key=name,
             )
 
     def refresh_enums_table(self) -> None:
@@ -985,9 +1003,11 @@ class LinkMLEditor(App):
         self.update_status()
 
     def _swap_rank(self, direction: int) -> None:
-        """Swap the selected field's rank with its neighbour.
+        """Swap rank(s) for selected or cursor field(s).
 
         *direction* is -1 (move up / lower rank) or +1 (move down / higher rank).
+        When multiple fields are selected they are processed so that each one
+        swaps with the nearest non-selected neighbour in the given direction.
         """
         if self.current_view != "fields":
             return
@@ -996,49 +1016,167 @@ class LinkMLEditor(App):
         if table.cursor_row is None or table.row_count == 0:
             return
 
-        row_key = self._get_row_key_at(table, table.cursor_row)
-        if not row_key:
+        # Determine target fields
+        if self._selected_fields:
+            target_names = set(self._selected_fields)
+        else:
+            row_key = self._get_row_key_at(table, table.cursor_row)
+            if not row_key:
+                return
+            target_names = {row_key}
+
+        target_fields = [f for f in self.fields if f["name"] in target_names]
+        if not target_fields:
             return
 
-        field = next((f for f in self.fields if f["name"] == row_key), None)
-        if not field:
-            return
+        # Process from the leading edge: ascending rank for up, descending for down.
+        target_fields.sort(key=lambda f: f.get("rank", 0), reverse=(direction == 1))
 
-        current_rank = field.get("rank", 0)
-
-        # Find the neighbour with the next lower (direction=-1) or higher
-        # (direction=+1) rank value.
-        neighbour = None
-        best_rank = None
-        for f in self.fields:
-            r = f.get("rank", 0)
-            if direction == -1 and r < current_rank:
-                if best_rank is None or r > best_rank:
-                    neighbour = f
-                    best_rank = r
-            elif direction == 1 and r > current_rank:
-                if best_rank is None or r < best_rank:
-                    neighbour = f
-                    best_rank = r
-
-        if neighbour is None:
-            return
+        cursor_key = self._get_row_key_at(table, table.cursor_row)
 
         self._save_state()
-        field["rank"] = best_rank
-        neighbour["rank"] = current_rank
+        moved = False
+
+        for field in target_fields:
+            current_rank = field.get("rank", 0)
+            neighbour = None
+            best_rank = None
+            for f in self.fields:
+                if f["name"] in target_names:
+                    continue
+                r = f.get("rank", 0)
+                if direction == -1 and r < current_rank:
+                    if best_rank is None or r > best_rank:
+                        neighbour = f
+                        best_rank = r
+                elif direction == 1 and r > current_rank:
+                    if best_rank is None or r < best_rank:
+                        neighbour = f
+                        best_rank = r
+
+            if neighbour is not None:
+                field["rank"] = best_rank
+                neighbour["rank"] = current_rank
+                moved = True
+
+        if not moved:
+            self._undo_stack.pop()
+            return
+
         self.modified = True
         self.refresh_fields_table()
         self.update_status()
-        self._move_cursor_to_key(table, row_key)
+        if cursor_key:
+            self._move_cursor_to_key(table, cursor_key)
 
     def action_rank_up(self) -> None:
-        """Move the selected field up (decrease rank number)."""
+        """Move the selected field(s) up (decrease rank number)."""
         self._swap_rank(-1)
 
     def action_rank_down(self) -> None:
-        """Move the selected field down (increase rank number)."""
+        """Move the selected field(s) down (increase rank number)."""
         self._swap_rank(1)
+
+    # ------------------------------------------------------------------
+    # Multi-select helpers
+    # ------------------------------------------------------------------
+
+    def _update_selection_indicators(self) -> None:
+        """Update the selection marker column without rebuilding the table."""
+        if self.current_view != "fields" or self._sel_col_key is None:
+            return
+        table = self.query_one("#fields-table", DataTable)
+        for row_idx in range(table.row_count):
+            key = self._get_row_key_at(table, row_idx)
+            if key is not None:
+                marker = "▶" if key in self._selected_fields else ""
+                table.update_cell(key, self._sel_col_key, marker)
+
+    def _update_range_selection(self, table: DataTable) -> None:
+        """Select all visible rows between the anchor and the cursor."""
+        if self._selection_anchor is None or table.cursor_row is None:
+            return
+
+        anchor_idx = None
+        for i in range(table.row_count):
+            if self._get_row_key_at(table, i) == self._selection_anchor:
+                anchor_idx = i
+                break
+        if anchor_idx is None:
+            return
+
+        start = min(anchor_idx, table.cursor_row)
+        end = max(anchor_idx, table.cursor_row)
+
+        self._selected_fields.clear()
+        for i in range(start, end + 1):
+            key = self._get_row_key_at(table, i)
+            if key:
+                self._selected_fields.add(key)
+        self._update_selection_indicators()
+
+    def action_select_extend_up(self) -> None:
+        """Extend range selection upward (shift+up)."""
+        if self.current_view != "fields":
+            return
+        table = self.query_one("#fields-table", DataTable)
+        if table.row_count == 0 or table.cursor_row is None:
+            return
+        if self._selection_anchor is None:
+            self._selection_anchor = self._get_row_key_at(table, table.cursor_row)
+        new_row = max(0, table.cursor_row - 1)
+        table.move_cursor(row=new_row)
+        self._update_range_selection(table)
+
+    def action_select_extend_down(self) -> None:
+        """Extend range selection downward (shift+down)."""
+        if self.current_view != "fields":
+            return
+        table = self.query_one("#fields-table", DataTable)
+        if table.row_count == 0 or table.cursor_row is None:
+            return
+        if self._selection_anchor is None:
+            self._selection_anchor = self._get_row_key_at(table, table.cursor_row)
+        new_row = min(table.row_count - 1, table.cursor_row + 1)
+        table.move_cursor(row=new_row)
+        self._update_range_selection(table)
+
+    def action_toggle_select_up(self) -> None:
+        """Toggle selection of current row and move up (ctrl+up)."""
+        if self.current_view != "fields":
+            return
+        table = self.query_one("#fields-table", DataTable)
+        if table.row_count == 0 or table.cursor_row is None:
+            return
+        current_key = self._get_row_key_at(table, table.cursor_row)
+        if current_key:
+            self._selected_fields.symmetric_difference_update({current_key})
+        new_row = max(0, table.cursor_row - 1)
+        table.move_cursor(row=new_row)
+        self._selection_anchor = None
+        self._update_selection_indicators()
+
+    def action_toggle_select_down(self) -> None:
+        """Toggle selection of current row and move down (ctrl+down)."""
+        if self.current_view != "fields":
+            return
+        table = self.query_one("#fields-table", DataTable)
+        if table.row_count == 0 or table.cursor_row is None:
+            return
+        current_key = self._get_row_key_at(table, table.cursor_row)
+        if current_key:
+            self._selected_fields.symmetric_difference_update({current_key})
+        new_row = min(table.row_count - 1, table.cursor_row + 1)
+        table.move_cursor(row=new_row)
+        self._selection_anchor = None
+        self._update_selection_indicators()
+
+    def action_clear_selection(self) -> None:
+        """Clear all selected fields."""
+        if self._selected_fields:
+            self._selected_fields.clear()
+            self._selection_anchor = None
+            self._update_selection_indicators()
 
     def action_insert_row(self) -> None:
         """Insert a new row."""
@@ -1070,32 +1208,48 @@ class LinkMLEditor(App):
             self.notify(f"Added enum value: {enum_row['value']}")
 
     def action_delete_row(self) -> None:
-        """Delete the selected row.
+        """Delete selected fields (or cursor row).
 
-        Deletes immediately unless the field is required, in which case
-        a confirmation prompt warns the user first.
+        Deletes immediately unless any target field is required, in which
+        case a confirmation prompt warns the user first.
         """
         if self.current_view == "fields":
             table = self.query_one("#fields-table", DataTable)
+            if table.cursor_row is None or table.row_count == 0:
+                return
+
+            # Determine targets
+            if self._selected_fields:
+                target_names = set(self._selected_fields)
+            else:
+                row_key = self._get_row_key_at(table, table.cursor_row)
+                if not row_key:
+                    return
+                target_names = {row_key}
+
+            # Check for required fields among targets
+            required_names = sorted(
+                name for name in target_names
+                if any(f["name"] == name and f.get("required") for f in self.fields)
+            )
+
+            if required_names:
+                if len(target_names) == 1:
+                    msg = f"'{required_names[0]}' is a required field. Delete anyway?"
+                else:
+                    msg = (
+                        f"{len(required_names)} of {len(target_names)} selected "
+                        f"fields are required. Delete anyway?"
+                    )
+                self.push_screen(ConfirmScreen(msg), self._on_delete_confirm)
+                return
+
+            self._do_delete()
         else:
             table = self.query_one("#enums-table", DataTable)
-
-        if table.cursor_row is None or table.row_count == 0:
-            return
-
-        # Only confirm deletion for required fields
-        if self.current_view == "fields":
-            row_key = self._get_row_key_at(table, table.cursor_row)
-            if row_key:
-                field = next((f for f in self.fields if f["name"] == row_key), None)
-                if field and field.get("required"):
-                    self.push_screen(
-                        ConfirmScreen(f"'{row_key}' is a required field. Delete anyway?"),
-                        self._on_delete_confirm,
-                    )
-                    return
-
-        self._do_delete()
+            if table.cursor_row is None or table.row_count == 0:
+                return
+            self._do_delete()
 
     def _on_delete_confirm(self, confirmed: bool) -> None:
         """Handle delete confirmation for required fields."""
@@ -1108,16 +1262,26 @@ class LinkMLEditor(App):
             table = self.query_one("#fields-table", DataTable)
             if table.cursor_row is not None and table.row_count > 0:
                 cursor_pos = table.cursor_row
-                row_key = self._get_row_key_at(table, cursor_pos)
-                if row_key:
-                    self._save_state()
-                    self.fields = [f for f in self.fields if f["name"] != row_key]
-                    self.modified = True
-                    self.refresh_fields_table()
-                    self.update_status()
-                    if table.row_count > 0:
-                        table.move_cursor(row=min(cursor_pos, table.row_count - 1))
-                    self.notify(f"Deleted field: {row_key}")
+
+                if self._selected_fields:
+                    target_names = set(self._selected_fields)
+                else:
+                    row_key = self._get_row_key_at(table, cursor_pos)
+                    if not row_key:
+                        return
+                    target_names = {row_key}
+
+                self._save_state()
+                deleted_count = len(target_names)
+                self.fields = [f for f in self.fields if f["name"] not in target_names]
+                self._selected_fields.clear()
+                self._selection_anchor = None
+                self.modified = True
+                self.refresh_fields_table()
+                self.update_status()
+                if table.row_count > 0:
+                    table.move_cursor(row=min(cursor_pos, table.row_count - 1))
+                self.notify(f"Deleted {deleted_count} field(s)")
         else:
             table = self.query_one("#enums-table", DataTable)
             if table.cursor_row is not None and table.row_count > 0:
@@ -1145,7 +1309,7 @@ class LinkMLEditor(App):
         """Edit the selected cell."""
         if self.current_view == "fields":
             table = self.query_one("#fields-table", DataTable)
-            columns = ["rank", "slot_group", "required", "name", "title", "description", "range", "pattern", "comments"]
+            columns = [None, "rank", "slot_group", "required", "name", "title", "description", "range", "pattern", "comments"]
         else:
             table = self.query_one("#enums-table", DataTable)
             columns = ["enum_name", "value", "text", "description"]
@@ -1158,6 +1322,8 @@ class LinkMLEditor(App):
             return
 
         column = columns[col_idx]
+        if column is None:
+            return  # selection indicator column
         row_key = self._get_row_key_at(table, table.cursor_row)
 
         if not row_key:
