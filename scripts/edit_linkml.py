@@ -897,11 +897,26 @@ class LinkMLEditor(App):
         # Clear redo stack on new action
         self._redo_stack.clear()
 
+    def _restore_cursor(self, table: DataTable, row_key: Optional[str], row_idx: Optional[int]) -> None:
+        """Try to place the cursor on *row_key*; fall back to *row_idx*."""
+        if row_key and self._move_cursor_to_key(table, row_key):
+            return
+        if row_idx is not None and table.row_count > 0:
+            table.move_cursor(row=min(row_idx, table.row_count - 1))
+
     def action_undo(self) -> None:
         """Undo the last edit."""
         if not self._undo_stack:
             self.notify("Nothing to undo")
             return
+
+        # Remember cursor position in the active table.
+        if self.current_view == "fields":
+            table = self.query_one("#fields-table", DataTable)
+        else:
+            table = self.query_one("#enums-table", DataTable)
+        row_key = self._get_row_key_at(table, table.cursor_row) if table.cursor_row is not None else None
+        row_idx = table.cursor_row
 
         # Save current state to redo stack
         current_state = (
@@ -916,6 +931,7 @@ class LinkMLEditor(App):
         self.refresh_fields_table()
         self.refresh_enums_table()
         self.update_status()
+        self._restore_cursor(table, row_key, row_idx)
         self.notify("Undo")
 
     def action_redo(self) -> None:
@@ -923,6 +939,14 @@ class LinkMLEditor(App):
         if not self._redo_stack:
             self.notify("Nothing to redo")
             return
+
+        # Remember cursor position in the active table.
+        if self.current_view == "fields":
+            table = self.query_one("#fields-table", DataTable)
+        else:
+            table = self.query_one("#enums-table", DataTable)
+        row_key = self._get_row_key_at(table, table.cursor_row) if table.cursor_row is not None else None
+        row_idx = table.cursor_row
 
         # Save current state to undo stack
         current_state = (
@@ -937,6 +961,7 @@ class LinkMLEditor(App):
         self.refresh_fields_table()
         self.refresh_enums_table()
         self.update_status()
+        self._restore_cursor(table, row_key, row_idx)
         self.notify("Redo")
 
     def action_show_fields(self) -> None:
