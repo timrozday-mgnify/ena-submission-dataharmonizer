@@ -82,8 +82,17 @@ def _ordered_slot_names(schema):
 # Merging
 # ---------------------------------------------------------------------------
 
-def merge_schemas(schemas):
+def merge_schemas(schemas, source_names=None):
     """Merge a list of parsed schema dicts (highest priority first).
+
+    Parameters
+    ----------
+    schemas : list[dict]
+        Parsed schema dicts, highest priority first.
+    source_names : list[str] or None
+        Optional source names (one per schema) used to prefix slot_group
+        values as ``source_name:slot_group``.  When *None*, slot_group
+        values are left unchanged.
 
     Returns a merged schema dict ready for YAML serialisation.
     """
@@ -97,7 +106,9 @@ def merge_schemas(schemas):
     merged_slot_usage = {}
     seen_slot_order = []  # ordered unique slot names
 
-    for schema in schemas:
+    for idx, schema in enumerate(schemas):
+        source_prefix = source_names[idx] if source_names and idx < len(source_names) else None
+
         for slot_name in _ordered_slot_names(schema):
             if slot_name not in merged_slots:
                 seen_slot_order.append(slot_name)
@@ -111,7 +122,10 @@ def merge_schemas(schemas):
             if main_cls and slot_name not in merged_slot_usage:
                 su = main_cls.get("slot_usage", {})
                 if slot_name in su:
-                    merged_slot_usage[slot_name] = su[slot_name]
+                    usage = dict(su[slot_name])
+                    if source_prefix and "slot_group" in usage:
+                        usage["slot_group"] = source_prefix + ":" + usage["slot_group"]
+                    merged_slot_usage[slot_name] = usage
 
         for enum_name, enum_def in schema.get("enums", {}).items():
             if enum_name not in merged_enums:
@@ -297,7 +311,8 @@ def main():
         schemas.append(load_schema(path))
 
     # -- merge --------------------------------------------------------------
-    merge_result = merge_schemas(schemas)
+    source_names = [os.path.splitext(os.path.basename(p))[0] for p in args.input_files]
+    merge_result = merge_schemas(schemas, source_names=source_names)
 
     schema = build_merged_schema(
         merge_result,
