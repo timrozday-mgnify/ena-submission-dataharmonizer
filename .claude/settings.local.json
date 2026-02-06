@@ -17,7 +17,8 @@
       "Bash(printf:*)",
       "Bash(python:*)",
       "Bash(echo:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(git config:*)"
     ]
   }
 }

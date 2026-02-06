@@ -26,9 +26,12 @@ Hotkeys:
     Enter - Edit selected cell
     s - Save/Export schema
     o - Open schema file
+    ctrl+z - Undo
+    ctrl+y - Redo
     q - Quit
 """
 
+import copy
 import os
 import sys
 from pathlib import Path
@@ -628,6 +631,8 @@ class LinkMLEditor(App):
         Binding("enter", "edit_cell", "Edit"),
         Binding("s", "save_schema", "Save"),
         Binding("o", "open_schema", "Open"),
+        Binding("ctrl+z", "undo", "Undo"),
+        Binding("ctrl+y", "redo", "Redo"),
         Binding("q", "quit_app", "Quit"),
     ]
 
@@ -642,6 +647,13 @@ class LinkMLEditor(App):
         self.filter_required = False
         self.collapsed_groups: set[str] = set()
         self.modified = False
+        # Undo/redo stacks store (fields, enums_data) tuples
+        self._undo_stack: list[tuple[list[dict], list[dict]]] = []
+        self._redo_stack: list[tuple[list[dict], list[dict]]] = []
+        self._max_history = 50  # Limit history size
+        # Track last cursor positions for view switching
+        self._last_fields_row_key: Optional[str] = None
+        self._last_enums_row_key: Optional[str] = None
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -690,6 +702,12 @@ class LinkMLEditor(App):
             self.enums_data = extract_enums(self.schema)
             self.modified = False
             self.collapsed_groups = set()
+            # Clear undo/redo history on file load
+            self._undo_stack.clear()
+            self._redo_stack.clear()
+            # Clear saved cursor positions
+            self._last_fields_row_key = None
+            self._last_enums_row_key = None
 
             self.refresh_fields_table()
             self.refresh_enums_table()
@@ -751,6 +769,29 @@ class LinkMLEditor(App):
             return text[:max_len - 3] + "..."
         return text
 
+    def _get_row_key_at(self, table: DataTable, row_idx: int) -> Optional[str]:
+        """Get the row key (as string) at the given row index.
+
+        Note: table.get_row_at() returns row DATA, not the key.
+        We need to use ordered_rows to get the actual RowKey object.
+        """
+        if row_idx < 0 or row_idx >= table.row_count:
+            return None
+        row_obj = table.ordered_rows[row_idx]
+        return str(row_obj.key.value) if row_obj.key.value else None
+
+    def _move_cursor_to_key(self, table: DataTable, row_key: str) -> bool:
+        """Move table cursor to the row with the given key. Returns True if found."""
+        if table.row_count == 0:
+            return False
+        # Iterate through rows to find the matching key
+        for row_idx in range(table.row_count):
+            key = self._get_row_key_at(table, row_idx)
+            if key and key == row_key:
+                table.move_cursor(row=row_idx)
+                return True
+        return False
+
     def update_status(self) -> None:
         """Update status bar labels."""
         file_label = self.query_one("#file-label", Label)
@@ -770,18 +811,120 @@ class LinkMLEditor(App):
             filters.append(f"{len(self.collapsed_groups)} groups collapsed")
         filter_label.update(" | ".join(filters))
 
+    def _save_state(self) -> None:
+        """Save current state to undo stack before making changes."""
+        # Deep copy current state
+        state = (
+            copy.deepcopy(self.fields),
+            copy.deepcopy(self.enums_data),
+        )
+        self._undo_stack.append(state)
+        # Limit stack size
+        if len(self._undo_stack) > self._max_history:
+            self._undo_stack.pop(0)
+        # Clear redo stack on new action
+        self._redo_stack.clear()
+
+    def action_undo(self) -> None:
+        """Undo the last edit."""
+        if not self._undo_stack:
+            self.notify("Nothing to undo")
+            return
+
+        # Save current state to redo stack
+        current_state = (
+            copy.deepcopy(self.fields),
+            copy.deepcopy(self.enums_data),
+        )
+        self._redo_stack.append(current_state)
+
+        # Restore previous state
+        self.fields, self.enums_data = self._undo_stack.pop()
+        self.modified = True
+        self.refresh_fields_table()
+        self.refresh_enums_table()
+        self.update_status()
+        self.notify("Undo")
+
+    def action_redo(self) -> None:
+        """Redo the last undone edit."""
+        if not self._redo_stack:
+            self.notify("Nothing to redo")
+            return
+
+        # Save current state to undo stack
+        current_state = (
+            copy.deepcopy(self.fields),
+            copy.deepcopy(self.enums_data),
+        )
+        self._undo_stack.append(current_state)
+
+        # Restore redo state
+        self.fields, self.enums_data = self._redo_stack.pop()
+        self.modified = True
+        self.refresh_fields_table()
+        self.refresh_enums_table()
+        self.update_status()
+        self.notify("Redo")
+
     def action_show_fields(self) -> None:
-        """Switch to fields view."""
+        """Switch to fields view, restoring last cursor position."""
+        # Save current enums cursor position
+        if self.current_view == "enums":
+            enums_table = self.query_one("#enums-table", DataTable)
+            if enums_table.cursor_row is not None and enums_table.row_count > 0:
+                row_key = self._get_row_key_at(enums_table, enums_table.cursor_row)
+                if row_key:
+                    self._last_enums_row_key = row_key
+
         self.current_view = "fields"
         self.query_one("#fields-table").remove_class("hidden")
         self.query_one("#enums-table").add_class("hidden")
+
+        # Restore last fields cursor position
+        if self._last_fields_row_key:
+            fields_table = self.query_one("#fields-table", DataTable)
+            self._move_cursor_to_key(fields_table, self._last_fields_row_key)
+
         self.update_status()
 
     def action_show_enums(self) -> None:
-        """Switch to enums view."""
+        """Switch to enums view, jumping to field's enum if applicable."""
+        target_enum_name: Optional[str] = None
+
+        # If coming from fields view, check if current field has an enum range
+        if self.current_view == "fields":
+            fields_table = self.query_one("#fields-table", DataTable)
+            if fields_table.cursor_row is not None and fields_table.row_count > 0:
+                row_key = self._get_row_key_at(fields_table, fields_table.cursor_row)
+                if row_key:
+                    # Save fields cursor position
+                    self._last_fields_row_key = row_key
+                    # Find the field and check if its range is an enum
+                    field = next((f for f in self.fields if f["name"] == row_key), None)
+                    if field:
+                        field_range = field.get("range", "")
+                        # Check if this range is an enum name
+                        enum_names = set(e.get("enum_name", "") for e in self.enums_data)
+                        if field_range in enum_names:
+                            target_enum_name = field_range
+
         self.current_view = "enums"
         self.query_one("#fields-table").add_class("hidden")
         self.query_one("#enums-table").remove_class("hidden")
+
+        enums_table = self.query_one("#enums-table", DataTable)
+        if target_enum_name:
+            # Find first row with this enum name and move cursor there
+            for i, enum_row in enumerate(self.enums_data):
+                if enum_row.get("enum_name") == target_enum_name:
+                    row_key = f"{enum_row.get('enum_name')}_{i}"
+                    self._move_cursor_to_key(enums_table, row_key)
+                    break
+        elif self._last_enums_row_key:
+            # Restore last enums cursor position
+            self._move_cursor_to_key(enums_table, self._last_enums_row_key)
+
         self.update_status()
 
     def action_toggle_groups(self) -> None:
@@ -790,15 +933,15 @@ class LinkMLEditor(App):
             return
 
         table = self.query_one("#fields-table", DataTable)
-        if table.cursor_row is None:
+        if table.cursor_row is None or table.row_count == 0:
             return
 
-        row_key = table.get_row_at(table.cursor_row)
+        row_key = self._get_row_key_at(table, table.cursor_row)
         if row_key:
-            # Find the field by name (first column with actual name is index 2)
-            row_data = table.get_row(row_key)
-            if row_data:
-                group = row_data[0]  # slot_group is first column
+            # Find the field by name and get its slot_group
+            field = next((f for f in self.fields if f["name"] == row_key), None)
+            if field:
+                group = field.get("slot_group", "")
                 if group:
                     if group in self.collapsed_groups:
                         self.collapsed_groups.discard(group)
@@ -828,6 +971,7 @@ class LinkMLEditor(App):
     def _on_new_field(self, field: dict) -> None:
         """Handle new field creation."""
         if field:
+            self._save_state()
             self.fields.append(field)
             self.modified = True
             self.refresh_fields_table()
@@ -837,6 +981,7 @@ class LinkMLEditor(App):
     def _on_new_enum(self, enum_row: dict) -> None:
         """Handle new enum value creation."""
         if enum_row:
+            self._save_state()
             self.enums_data.append(enum_row)
             self.modified = True
             self.refresh_enums_table()
@@ -865,28 +1010,28 @@ class LinkMLEditor(App):
 
         if self.current_view == "fields":
             table = self.query_one("#fields-table", DataTable)
-            if table.cursor_row is not None:
-                row_key = table.get_row_at(table.cursor_row)
+            if table.cursor_row is not None and table.row_count > 0:
+                row_key = self._get_row_key_at(table, table.cursor_row)
                 if row_key:
                     # Find and remove field by name
-                    field_name = str(row_key)
-                    self.fields = [f for f in self.fields if f["name"] != field_name]
+                    self._save_state()
+                    self.fields = [f for f in self.fields if f["name"] != row_key]
                     self.modified = True
                     self.refresh_fields_table()
                     self.update_status()
-                    self.notify(f"Deleted field: {field_name}")
+                    self.notify(f"Deleted field: {row_key}")
         else:
             table = self.query_one("#enums-table", DataTable)
-            if table.cursor_row is not None:
-                row_key = table.get_row_at(table.cursor_row)
+            if table.cursor_row is not None and table.row_count > 0:
+                row_key = self._get_row_key_at(table, table.cursor_row)
                 if row_key:
-                    # Parse the key to find the enum row
-                    key_str = str(row_key)
-                    parts = key_str.rsplit("_", 1)
+                    # Parse the key to find the enum row (format: "EnumName_index")
+                    parts = row_key.rsplit("_", 1)
                     if len(parts) == 2:
                         try:
                             idx = int(parts[1])
                             if 0 <= idx < len(self.enums_data):
+                                self._save_state()
                                 removed = self.enums_data.pop(idx)
                                 self.modified = True
                                 self.refresh_enums_table()
@@ -904,7 +1049,7 @@ class LinkMLEditor(App):
             table = self.query_one("#enums-table", DataTable)
             columns = ["enum_name", "value", "text", "description"]
 
-        if table.cursor_row is None or table.cursor_column is None:
+        if table.cursor_row is None or table.cursor_column is None or table.row_count == 0:
             return
 
         col_idx = table.cursor_column
@@ -912,23 +1057,23 @@ class LinkMLEditor(App):
             return
 
         column = columns[col_idx]
-        row_key = table.get_row_at(table.cursor_row)
+        row_key = self._get_row_key_at(table, table.cursor_row)
 
         if not row_key:
             return
 
         # Get current value
         if self.current_view == "fields":
-            field = next((f for f in self.fields if f["name"] == str(row_key)), None)
+            field = next((f for f in self.fields if f["name"] == row_key), None)
             if field:
                 current_value = str(field.get(column, ""))
                 self.push_screen(
                     EditCellScreen(column, current_value),
-                    lambda v: self._on_field_edit(str(row_key), column, v)
+                    lambda v, rk=row_key: self._on_field_edit(rk, column, v)
                 )
         else:
-            key_str = str(row_key)
-            parts = key_str.rsplit("_", 1)
+            # Parse the key to find the enum row (format: "EnumName_index")
+            parts = row_key.rsplit("_", 1)
             if len(parts) == 2:
                 try:
                     idx = int(parts[1])
@@ -946,22 +1091,31 @@ class LinkMLEditor(App):
         """Handle field edit."""
         for field in self.fields:
             if field["name"] == field_name:
+                # Check if value actually changed
+                old_value = field.get(column, "")
                 if column == "required":
-                    field[column] = value.lower() in ("yes", "true", "1")
+                    new_value = value.lower() in ("yes", "true", "1")
                 else:
-                    field[column] = value
-                self.modified = True
-                self.refresh_fields_table()
-                self.update_status()
+                    new_value = value
+                if old_value != new_value:
+                    self._save_state()
+                    field[column] = new_value
+                    self.modified = True
+                    self.refresh_fields_table()
+                    self.update_status()
                 break
 
     def _on_enum_edit(self, idx: int, column: str, value: str) -> None:
         """Handle enum edit."""
         if 0 <= idx < len(self.enums_data):
-            self.enums_data[idx][column] = value
-            self.modified = True
-            self.refresh_enums_table()
-            self.update_status()
+            # Check if value actually changed
+            old_value = self.enums_data[idx].get(column, "")
+            if old_value != value:
+                self._save_state()
+                self.enums_data[idx][column] = value
+                self.modified = True
+                self.refresh_enums_table()
+                self.update_status()
 
     def action_save_schema(self) -> None:
         """Save/export the schema."""
