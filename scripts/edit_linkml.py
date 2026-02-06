@@ -24,6 +24,8 @@ Hotkeys:
     i - Insert new row
     d - Delete selected row
     Enter - Edit selected cell
+    [ - Move field up (decrease rank)
+    ] - Move field down (increase rank)
     s - Save/Export schema
     o - Open schema file
     ctrl+z - Undo
@@ -629,6 +631,8 @@ class LinkMLEditor(App):
         Binding("i", "insert_row", "Insert"),
         Binding("d", "delete_row", "Delete"),
         Binding("enter", "edit_cell", "Edit"),
+        Binding("[", "rank_up", "Rank Up"),
+        Binding("]", "rank_down", "Rank Down"),
         Binding("s", "save_schema", "Save"),
         Binding("o", "open_schema", "Open"),
         Binding("ctrl+z", "undo", "Undo"),
@@ -678,7 +682,7 @@ class LinkMLEditor(App):
         fields_table = self.query_one("#fields-table", DataTable)
         fields_table.cursor_type = "row"
         fields_table.add_columns(
-            "slot_group", "required", "name", "title", "description", "range", "pattern", "comments"
+            "rank", "slot_group", "required", "name", "title", "description", "range", "pattern", "comments"
         )
 
         # Setup enums table
@@ -717,27 +721,48 @@ class LinkMLEditor(App):
         except Exception as e:
             self.notify(f"Error loading file: {e}", severity="error")
 
+    def _sorted_fields(self) -> list[dict]:
+        """Return fields sorted by slot_group then rank.
+
+        Groups are ordered by the lowest rank among their members.
+        """
+        # Determine each group's sort key: its minimum rank value.
+        group_min_rank: dict[str, int] = {}
+        for field in self.fields:
+            group = field.get("slot_group", "")
+            rank = field.get("rank", 0)
+            if group not in group_min_rank or rank < group_min_rank[group]:
+                group_min_rank[group] = rank
+
+        return sorted(
+            self.fields,
+            key=lambda f: (group_min_rank.get(f.get("slot_group", ""), 0), f.get("rank", 0)),
+        )
+
     def refresh_fields_table(self) -> None:
         """Refresh the fields table with current data."""
         table = self.query_one("#fields-table", DataTable)
         table.clear()
 
-        for field in self.fields:
+        sorted_fields = self._sorted_fields()
+
+        for field in sorted_fields:
             # Apply filters
             if self.filter_required and not field.get("required"):
                 continue
 
             group = field.get("slot_group", "")
             if group in self.collapsed_groups:
-                # Show only first field of collapsed group
+                # Show only first field of collapsed group (in sorted order)
                 first_in_group = next(
-                    (f for f in self.fields if f.get("slot_group") == group),
+                    (f for f in sorted_fields if f.get("slot_group") == group),
                     None
                 )
                 if first_in_group and first_in_group["name"] != field["name"]:
                     continue
 
             table.add_row(
+                str(field.get("rank", 0)),
                 field.get("slot_group", ""),
                 "Yes" if field.get("required") else "No",
                 field.get("name", ""),
@@ -959,6 +984,62 @@ class LinkMLEditor(App):
         self.refresh_fields_table()
         self.update_status()
 
+    def _swap_rank(self, direction: int) -> None:
+        """Swap the selected field's rank with its neighbour.
+
+        *direction* is -1 (move up / lower rank) or +1 (move down / higher rank).
+        """
+        if self.current_view != "fields":
+            return
+
+        table = self.query_one("#fields-table", DataTable)
+        if table.cursor_row is None or table.row_count == 0:
+            return
+
+        row_key = self._get_row_key_at(table, table.cursor_row)
+        if not row_key:
+            return
+
+        field = next((f for f in self.fields if f["name"] == row_key), None)
+        if not field:
+            return
+
+        current_rank = field.get("rank", 0)
+
+        # Find the neighbour with the next lower (direction=-1) or higher
+        # (direction=+1) rank value.
+        neighbour = None
+        best_rank = None
+        for f in self.fields:
+            r = f.get("rank", 0)
+            if direction == -1 and r < current_rank:
+                if best_rank is None or r > best_rank:
+                    neighbour = f
+                    best_rank = r
+            elif direction == 1 and r > current_rank:
+                if best_rank is None or r < best_rank:
+                    neighbour = f
+                    best_rank = r
+
+        if neighbour is None:
+            return
+
+        self._save_state()
+        field["rank"] = best_rank
+        neighbour["rank"] = current_rank
+        self.modified = True
+        self.refresh_fields_table()
+        self.update_status()
+        self._move_cursor_to_key(table, row_key)
+
+    def action_rank_up(self) -> None:
+        """Move the selected field up (decrease rank number)."""
+        self._swap_rank(-1)
+
+    def action_rank_down(self) -> None:
+        """Move the selected field down (increase rank number)."""
+        self._swap_rank(1)
+
     def action_insert_row(self) -> None:
         """Insert a new row."""
         if self.current_view == "fields":
@@ -1064,7 +1145,7 @@ class LinkMLEditor(App):
         """Edit the selected cell."""
         if self.current_view == "fields":
             table = self.query_one("#fields-table", DataTable)
-            columns = ["slot_group", "required", "name", "title", "description", "range", "pattern", "comments"]
+            columns = ["rank", "slot_group", "required", "name", "title", "description", "range", "pattern", "comments"]
         else:
             table = self.query_one("#enums-table", DataTable)
             columns = ["enum_name", "value", "text", "description"]
@@ -1115,6 +1196,11 @@ class LinkMLEditor(App):
                 old_value = field.get(column, "")
                 if column == "required":
                     new_value = value.lower() in ("yes", "true", "1")
+                elif column == "rank":
+                    try:
+                        new_value = int(value)
+                    except ValueError:
+                        return
                 else:
                     new_value = value
                 if old_value != new_value:
