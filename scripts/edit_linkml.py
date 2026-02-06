@@ -20,6 +20,8 @@ Hotkeys:
     f - Switch to Fields table
     e - Switch to Enums table
     g - Toggle group collapse/expand
+    G - Collapse all groups
+    ctrl+g - Expand all groups
     r - Toggle required filter
     i - Insert new row
     d - Delete selected row
@@ -630,6 +632,8 @@ class LinkMLEditor(App):
         Binding("f", "show_fields", "Fields"),
         Binding("e", "show_enums", "Enums"),
         Binding("g", "toggle_groups", "Toggle Groups"),
+        Binding("G", "collapse_all_groups", "Collapse All", show=False),
+        Binding("ctrl+g", "expand_all_groups", "Expand All", show=False),
         Binding("r", "toggle_required", "Filter Required"),
         Binding("i", "insert_row", "Insert"),
         Binding("d", "delete_row", "Delete"),
@@ -694,10 +698,11 @@ class LinkMLEditor(App):
         fields_table = self.query_one("#fields-table", DataTable)
         fields_table.cursor_type = "row"
         col_keys = fields_table.add_columns(
-            " ", "rank", "slot_group", "required", "name", "title",
+            " ", " ", "rank", "slot_group", "required", "name", "title",
             "description", "range", "pattern", "comments",
         )
         self._sel_col_key = col_keys[0]
+        self._grp_col_key = col_keys[1]
 
         # Setup enums table
         enums_table = self.query_one("#enums-table", DataTable)
@@ -762,26 +767,50 @@ class LinkMLEditor(App):
 
         sorted_fields = self._sorted_fields()
 
+        # Precompute total field count per group (unfiltered).
+        group_counts: dict[str, int] = {}
+        for f in self.fields:
+            g = f.get("slot_group", "")
+            group_counts[g] = group_counts.get(g, 0) + 1
+
+        seen_groups: set[str] = set()
+
         for field in sorted_fields:
-            # Apply filters
+            group = field.get("slot_group", "")
+            is_first_in_group = group not in seen_groups
+
+            # --- collapsed group: show one summary row, skip the rest ----
+            if group and group in self.collapsed_groups:
+                if not is_first_in_group:
+                    continue
+                seen_groups.add(group)
+                name = field.get("name", "")
+                sel = "▶" if name in self._selected_fields else ""
+                count = group_counts.get(group, 0)
+                table.add_row(
+                    sel, "▶", "", f"{group} ({count} fields)",
+                    "", "", "", "", "", "", "",
+                    key=name,
+                )
+                continue
+
+            # --- required filter (only for non-collapsed groups) ---------
             if self.filter_required and not field.get("required"):
                 continue
 
-            group = field.get("slot_group", "")
-            if group in self.collapsed_groups:
-                # Show only first field of collapsed group (in sorted order)
-                first_in_group = next(
-                    (f for f in sorted_fields if f.get("slot_group") == group),
-                    None
-                )
-                if first_in_group and first_in_group["name"] != field["name"]:
-                    continue
+            # Track first *visible* row per group for the expand indicator.
+            is_first_visible = group not in seen_groups
+            if is_first_visible:
+                seen_groups.add(group)
 
             name = field.get("name", "")
+            sel = "▶" if name in self._selected_fields else ""
+            grp_indicator = "▼" if is_first_visible and group else ""
             table.add_row(
-                "▶" if name in self._selected_fields else "",
+                sel,
+                grp_indicator,
                 str(field.get("rank", 0)),
-                field.get("slot_group", ""),
+                group,
                 "Yes" if field.get("required") else "No",
                 name,
                 field.get("title", ""),
@@ -970,6 +999,26 @@ class LinkMLEditor(App):
 
         self.update_status()
 
+    def _toggle_group(self, group: str) -> None:
+        """Toggle collapse/expand for *group* and move cursor to its first row."""
+        if not group:
+            return
+        if group in self.collapsed_groups:
+            self.collapsed_groups.discard(group)
+        else:
+            self.collapsed_groups.add(group)
+        table = self.query_one("#fields-table", DataTable)
+        self.refresh_fields_table()
+        self.update_status()
+        # The first field in the group is the row key for both the collapsed
+        # summary row and the first expanded row.
+        first = next(
+            (f for f in self._sorted_fields() if f.get("slot_group") == group),
+            None,
+        )
+        if first:
+            self._move_cursor_to_key(table, first["name"])
+
     def action_toggle_groups(self) -> None:
         """Toggle collapse/expand of current slot group."""
         if self.current_view != "fields":
@@ -981,17 +1030,38 @@ class LinkMLEditor(App):
 
         row_key = self._get_row_key_at(table, table.cursor_row)
         if row_key:
-            # Find the field by name and get its slot_group
             field = next((f for f in self.fields if f["name"] == row_key), None)
             if field:
-                group = field.get("slot_group", "")
-                if group:
-                    if group in self.collapsed_groups:
-                        self.collapsed_groups.discard(group)
-                    else:
-                        self.collapsed_groups.add(group)
-                    self.refresh_fields_table()
-                    self.update_status()
+                self._toggle_group(field.get("slot_group", ""))
+
+    def action_collapse_all_groups(self) -> None:
+        """Collapse every slot group."""
+        if self.current_view != "fields":
+            return
+        all_groups = {f.get("slot_group", "") for f in self.fields if f.get("slot_group")}
+        if all_groups == self.collapsed_groups:
+            return
+        table = self.query_one("#fields-table", DataTable)
+        cursor_key = self._get_row_key_at(table, table.cursor_row) if table.cursor_row is not None else None
+        self.collapsed_groups = all_groups
+        self.refresh_fields_table()
+        self.update_status()
+        if cursor_key:
+            self._move_cursor_to_key(table, cursor_key)
+
+    def action_expand_all_groups(self) -> None:
+        """Expand every slot group."""
+        if self.current_view != "fields":
+            return
+        if not self.collapsed_groups:
+            return
+        table = self.query_one("#fields-table", DataTable)
+        cursor_key = self._get_row_key_at(table, table.cursor_row) if table.cursor_row is not None else None
+        self.collapsed_groups.clear()
+        self.refresh_fields_table()
+        self.update_status()
+        if cursor_key:
+            self._move_cursor_to_key(table, cursor_key)
 
     def action_toggle_required(self) -> None:
         """Toggle required filter."""
@@ -1309,7 +1379,7 @@ class LinkMLEditor(App):
         """Edit the selected cell."""
         if self.current_view == "fields":
             table = self.query_one("#fields-table", DataTable)
-            columns = [None, "rank", "slot_group", "required", "name", "title", "description", "range", "pattern", "comments"]
+            columns = [None, "_grp", "rank", "slot_group", "required", "name", "title", "description", "range", "pattern", "comments"]
         else:
             table = self.query_one("#enums-table", DataTable)
             columns = ["enum_name", "value", "text", "description"]
@@ -1329,30 +1399,40 @@ class LinkMLEditor(App):
         if not row_key:
             return
 
-        # Get current value
+        # Fields-specific: handle group toggle column and collapsed rows.
         if self.current_view == "fields":
             field = next((f for f in self.fields if f["name"] == row_key), None)
-            if field:
-                current_value = str(field.get(column, ""))
-                self.push_screen(
-                    EditCellScreen(column, current_value),
-                    lambda v, rk=row_key: self._on_field_edit(rk, column, v)
-                )
-        else:
-            # Parse the key to find the enum row (format: "EnumName_index")
-            parts = row_key.rsplit("_", 1)
-            if len(parts) == 2:
-                try:
-                    idx = int(parts[1])
-                    if 0 <= idx < len(self.enums_data):
-                        enum_row = self.enums_data[idx]
-                        current_value = str(enum_row.get(column, ""))
-                        self.push_screen(
-                            EditCellScreen(column, current_value),
-                            lambda v, i=idx: self._on_enum_edit(i, column, v)
-                        )
-                except (ValueError, IndexError):
-                    pass
+            if not field:
+                return
+            group = field.get("slot_group", "")
+            if column == "_grp":
+                if group:
+                    self._toggle_group(group)
+                return
+            if group in self.collapsed_groups:
+                return  # collapsed summary row is not editable
+            current_value = str(field.get(column, ""))
+            self.push_screen(
+                EditCellScreen(column, current_value),
+                lambda v, rk=row_key: self._on_field_edit(rk, column, v)
+            )
+            return
+
+        # Enums branch
+        # Parse the key to find the enum row (format: "EnumName_index")
+        parts = row_key.rsplit("_", 1)
+        if len(parts) == 2:
+            try:
+                idx = int(parts[1])
+                if 0 <= idx < len(self.enums_data):
+                    enum_row = self.enums_data[idx]
+                    current_value = str(enum_row.get(column, ""))
+                    self.push_screen(
+                        EditCellScreen(column, current_value),
+                        lambda v, i=idx: self._on_enum_edit(i, column, v)
+                    )
+            except (ValueError, IndexError):
+                pass
 
     def _on_field_edit(self, field_name: str, column: str, value: str) -> None:
         """Handle field edit."""
