@@ -152,6 +152,7 @@ def extract_fields(schema: dict) -> list[dict]:
             "comments": ", ".join(slot_def.get("comments", [])),
             "slot_group": usage.get("slot_group", ""),
             "rank": usage.get("rank", 0),
+            "source": slot_def.get("source", ""),
         }
         fields.append(field)
 
@@ -206,6 +207,8 @@ def rebuild_schema(schema: dict, fields: list[dict], enums_data: list[dict]) -> 
             comments = [c.strip() for c in field["comments"].split(",") if c.strip()]
             if comments:
                 slot["comments"] = comments
+        if field.get("source"):
+            slot["source"] = field["source"]
 
         new_slots[name] = slot
 
@@ -550,6 +553,7 @@ _DETAIL_ATTRS = [
     ("name", "Name"),
     ("title", "Title"),
     ("slot_group", "Slot Group"),
+    ("source", "Source"),
     ("rank", "Rank"),
     ("required", "Required"),
     ("range", "Range"),
@@ -752,6 +756,8 @@ class LinkMLEditor(App):
                     _DetailTextArea(id="detail-attr-title", soft_wrap=True),
                     Label("Slot Group", classes="detail-label"),
                     _DetailTextArea(id="detail-attr-slot_group", soft_wrap=True),
+                    Label("Source", classes="detail-label"),
+                    _DetailTextArea(id="detail-attr-source", soft_wrap=True),
                     Label("Rank", classes="detail-label"),
                     _DetailTextArea(id="detail-attr-rank", soft_wrap=True, disabled=True),
                     Label("Required", classes="detail-label"),
@@ -783,7 +789,7 @@ class LinkMLEditor(App):
         fields_table = self.query_one("#fields-table", DataTable)
         fields_table.cursor_type = "row"
         col_keys = fields_table.add_columns(
-            " ", "rank", "slot_group", "required", "name", "title",
+            " ", "rank", "slot_group", "source", "required", "name", "title",
             "description", "range", "pattern", "comments",
         )
         self._grp_col_key = col_keys[0]
@@ -873,7 +879,7 @@ class LinkMLEditor(App):
                 count = group_counts.get(group, 0)
                 cells = [
                     "▶", "", f"{group} ({count} fields)",
-                    "", "", "", "", "", "",
+                    "", "", "", "", "", "", "", "",
                 ]
                 if name in self._selected_fields:
                     cells = [Text(str(c), style=_SELECTED_STYLE) for c in cells]
@@ -895,6 +901,7 @@ class LinkMLEditor(App):
                 grp_indicator,
                 str(field.get("rank", 0)),
                 group,
+                field.get("source", ""),
                 "Yes" if field.get("required") else "No",
                 name,
                 field.get("title", ""),
@@ -1588,7 +1595,7 @@ class LinkMLEditor(App):
             return
         if self.current_view == "fields":
             table = self.query_one("#fields-table", DataTable)
-            columns = ["_grp", "rank", "slot_group", "required", "name", "title", "description", "range", "pattern", "comments"]
+            columns = ["_grp", "rank", "slot_group", "source", "required", "name", "title", "description", "range", "pattern", "comments"]
         else:
             table = self.query_one("#enums-table", DataTable)
             columns = ["enum_name", "value", "text", "description"]
