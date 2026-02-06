@@ -366,3 +366,226 @@ Key Design Decisions
 2. Optionality propagation: Children of xs:choice or elements with minOccurs="0" are marked optional
 3. Flat output: Nested structures are flattened - only leaf fields become slots
 4. Choice-as-enum: xs:choice with element children becomes an enum, not multiple exclusive fields
+
+## `scripts/edit_link.py`
+
+### Usage
+
+edit_linkml.py - Interactive LinkML Schema Editor
+
+  A terminal-based editor for DataHarmonizer LinkML schemas using the Textual framework.
+
+  Usage
+
+  python scripts/edit_linkml.py
+
+  Features
+
+  - Fields Table: View/edit slot_group, required, name, title, description, range, pattern, comments
+  - Enums Table: View/edit enum_name, value, text, description
+  - Group Collapse: Collapse/expand rows by slot_group
+  - Required Filter: Show only required fields
+
+  Keybindings
+  ┌───────┬────────────────────────────────────┐
+  │  Key  │               Action               │
+  ├───────┼────────────────────────────────────┤
+  │ f     │ Switch to Fields view              │
+  ├───────┼────────────────────────────────────┤
+  │ e     │ Switch to Enums view               │
+  ├───────┼────────────────────────────────────┤
+  │ g     │ Toggle group collapse/expand       │
+  ├───────┼────────────────────────────────────┤
+  │ r     │ Filter required fields only        │
+  ├───────┼────────────────────────────────────┤
+  │ i     │ Insert new row                     │
+  ├───────┼────────────────────────────────────┤
+  │ d     │ Delete selected row                │
+  ├───────┼────────────────────────────────────┤
+  │ Enter │ Edit selected cell                 │
+  ├───────┼────────────────────────────────────┤
+  │ s     │ Save schema to file                │
+  ├───────┼────────────────────────────────────┤
+  │ o     │ Open schema from schemas/          │
+  ├───────┼────────────────────────────────────┤
+  │ q     │ Quit (with unsaved changes prompt) │
+  └───────┴────────────────────────────────────┘
+  Tested Components
+
+  - Field extraction: 86 fields extracted from ERC000015.yaml
+  - Enum extraction: 430 enum values extracted
+  - Schema rebuild: Round-trip preserves all slots and enums
+
+### Implementation
+
+Implementation of scripts/edit_linkml.py
+
+  This script provides a terminal-based interactive editor for LinkML schemas using the Textual framework.
+
+  Architecture Overview
+
+  ┌───────────────────────────────────────────────────────────┐
+  │                     LinkMLEditor (App)                    │
+  ├───────────────────────────────────────────────────────────┤
+  │  State:                                                   │
+  │  - schema: dict          (loaded YAML)                    │
+  │  - fields: list[dict]    (extracted slot data)            │
+  │  - enums_data: list[dict] (extracted enum values)         │
+  │  - current_view: "fields" | "enums"                       │
+  │  - collapsed_groups: set  (collapsed slot_groups)         │
+  │  - filter_required: bool  (show only required fields)     │
+  ├───────────────────────────────────────────────────────────┤
+  │  UI Components:                                           │
+  │  ┌─────────────────────────────────────────────────────┐  │
+  │  │ Header                                              │  │
+  │  ├─────────────────────────────────────────────────────┤  │
+  │  │ Status Bar: File | View | Filters                   │  │
+  │  ├─────────────────────────────────────────────────────┤  │
+  │  │ DataTable (fields or enums)                         │  │
+  │  ├─────────────────────────────────────────────────────┤  │
+  │  │ Footer (keybindings)                                │  │
+  │  └─────────────────────────────────────────────────────┘  │
+  └───────────────────────────────────────────────────────────┘
+
+  Key Components
+
+  1. YAML Helpers (lines 63-100)
+
+  Custom YAML dumper for LinkML-compatible output:
+
+  class _LinkMLDumper(yaml.SafeDumper):
+      pass
+
+  # Lowercase booleans (true/false instead of True/False)
+  _LinkMLDumper.add_representer(bool, _bool_representer)
+
+  # Multi-line strings use literal block style (|)
+  _LinkMLDumper.add_representer(str, _str_representer)
+
+  2. Data Extraction Functions (lines 107-161)
+
+  extract_fields(schema) - Flattens nested LinkML structure into table rows:
+
+  # Combines data from two locations:
+  slot_usage = main_cls.get("slot_usage", {})  # rank, slot_group
+  slots = schema.get("slots", {})               # name, title, description, range, etc.
+
+  # Each field dict contains:
+  {
+      "name": "field_name",
+      "title": "Field Title",
+      "description": "...",
+      "range": "string",
+      "pattern": "",
+      "required": False,
+      "comments": "...",
+      "slot_group": "Group Name",
+      "rank": 1
+  }
+
+  extract_enums(schema) - Flattens enum permissible values:
+
+  # Each enum row:
+  {
+      "enum_name": "MenuName",
+      "value": "option_key",
+      "text": "Display Text",
+      "description": "..."
+  }
+
+  3. Schema Rebuilding (lines 164-240)
+
+  rebuild_schema(schema, fields, enums_data) - Reconstructs valid LinkML from modified table data:
+
+  1. Rebuilds slots dict from fields list
+  2. Rebuilds slot_usage with rank (based on list order) and slot_group
+  3. Rebuilds enums by grouping enum rows by enum_name
+  4. Preserves schema metadata (id, name, title, imports, prefixes)
+
+  4. Modal Screens (lines 247-528)
+
+  Six modal screens for user interaction:
+  ┌────────────────────┬────────────────────────────────┬─────────────────────┐
+  │       Screen       │            Purpose             │       Returns       │
+  ├────────────────────┼────────────────────────────────┼─────────────────────┤
+  │ FileSelectScreen   │ List YAML files in schemas/    │ filepath or ""      │
+  ├────────────────────┼────────────────────────────────┼─────────────────────┤
+  │ SaveScreen         │ Enter export filename          │ filename or ""      │
+  ├────────────────────┼────────────────────────────────┼─────────────────────┤
+  │ EditCellScreen     │ Edit cell with TextArea        │ new value           │
+  ├────────────────────┼────────────────────────────────┼─────────────────────┤
+  │ NewFieldScreen     │ Add new field with form inputs │ field dict or {}    │
+  ├────────────────────┼────────────────────────────────┼─────────────────────┤
+  │ NewEnumValueScreen │ Add new enum value             │ enum row dict or {} │
+  ├────────────────────┼────────────────────────────────┼─────────────────────┤
+  │ ConfirmScreen      │ Yes/No confirmation            │ bool                │
+  └────────────────────┴────────────────────────────────┴─────────────────────┘
+  Each modal uses Textual's ModalScreen[T] with dismiss(value) to return results.
+
+  5. Main Application (lines 534-1020)
+
+  State Management:
+  - self.fields and self.enums_data hold the editable data
+  - self.modified tracks unsaved changes
+  - self.collapsed_groups stores which slot_groups are collapsed
+
+  Key Actions:
+  ┌────────────────────────┬─────────┬───────────────────────────────────────────────────────┐
+  │         Action         │ Binding │                    Implementation                     │
+  ├────────────────────────┼─────────┼───────────────────────────────────────────────────────┤
+  │ action_show_fields     │ f       │ Toggle CSS class hidden on tables                     │
+  ├────────────────────────┼─────────┼───────────────────────────────────────────────────────┤
+  │ action_show_enums      │ e       │ Toggle CSS class hidden on tables                     │
+  ├────────────────────────┼─────────┼───────────────────────────────────────────────────────┤
+  │ action_toggle_groups   │ g       │ Add/remove group from collapsed_groups, refresh table │
+  ├────────────────────────┼─────────┼───────────────────────────────────────────────────────┤
+  │ action_toggle_required │ r       │ Flip filter_required, refresh table                   │
+  ├────────────────────────┼─────────┼───────────────────────────────────────────────────────┤
+  │ action_insert_row      │ i       │ Push NewFieldScreen or NewEnumValueScreen             │
+  ├────────────────────────┼─────────┼───────────────────────────────────────────────────────┤
+  │ action_delete_row      │ d       │ Push ConfirmScreen, then remove from list             │
+  ├────────────────────────┼─────────┼───────────────────────────────────────────────────────┤
+  │ action_edit_cell       │ Enter   │ Push EditCellScreen, update list on dismiss           │
+  ├────────────────────────┼─────────┼───────────────────────────────────────────────────────┤
+  │ action_save_schema     │ s       │ Push SaveScreen, call rebuild_schema, write YAML      │
+  ├────────────────────────┼─────────┼───────────────────────────────────────────────────────┤
+  │ action_open_schema     │ o       │ Push FileSelectScreen, call load_file                 │
+  ├────────────────────────┼─────────┼───────────────────────────────────────────────────────┤
+  │ action_quit_app        │ q       │ Check modified, confirm if unsaved changes            │
+  └────────────────────────┴─────────┴───────────────────────────────────────────────────────┘
+  Table Refresh Logic (lines 702-746):
+
+  def refresh_fields_table(self):
+      table.clear()
+      for field in self.fields:
+          # Skip if filter_required and field not required
+          if self.filter_required and not field.get("required"):
+              continue
+
+          # Skip if group is collapsed (except first field in group)
+          if group in self.collapsed_groups:
+              if not is_first_in_group:
+                  continue
+
+          table.add_row(..., key=field["name"])
+
+  Row Key Strategy:
+  - Fields use name as row key (unique identifier)
+  - Enums use f"{enum_name}_{index}" since multiple values can exist per enum
+
+  Data Flow
+
+  Load:  YAML file → load_schema() → extract_fields/enums() → DataTable rows
+
+  Edit:  DataTable selection → EditCellScreen → update fields/enums_data list
+                                              → refresh_*_table()
+
+  Save:  fields + enums_data → rebuild_schema() → save_schema() → YAML file
+
+  CSS Styling (lines 537-618)
+
+  Embedded CSS for:
+  - Modal containers with fixed width and border
+  - Status bar docked at top
+  - Hidden class for view switching: .hidden { display: none; }
+  - Button margins and input widths in modals
