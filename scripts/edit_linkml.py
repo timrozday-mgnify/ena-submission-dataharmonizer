@@ -866,22 +866,32 @@ class LinkMLEditor(App):
         except Exception as e:
             self.notify(f"Error loading file: {e}", severity="error")
 
+    @staticmethod
+    def _get_display_group(field: dict) -> str:
+        """Return the display group for a field.
+
+        Uses ``slot_group`` if it has a value, otherwise falls back to
+        ``source``.  This determines how rows are visually grouped,
+        collapsed, and expanded in the fields table.
+        """
+        return field.get("slot_group") or field.get("source") or ""
+
     def _sorted_fields(self) -> list[dict]:
-        """Return fields sorted by slot_group then rank.
+        """Return fields sorted by display group then rank.
 
         Groups are ordered by the lowest rank among their members.
         """
         # Determine each group's sort key: its minimum rank value.
         group_min_rank: dict[str, int] = {}
         for field in self.fields:
-            group = field.get("slot_group", "")
+            group = self._get_display_group(field)
             rank = field.get("rank", 0)
             if group not in group_min_rank or rank < group_min_rank[group]:
                 group_min_rank[group] = rank
 
         return sorted(
             self.fields,
-            key=lambda f: (group_min_rank.get(f.get("slot_group", ""), 0), f.get("rank", 0)),
+            key=lambda f: (group_min_rank.get(self._get_display_group(f), 0), f.get("rank", 0)),
         )
 
     def refresh_fields_table(self) -> None:
@@ -903,13 +913,13 @@ class LinkMLEditor(App):
         # Precompute total field count per group (unfiltered).
         group_counts: dict[str, int] = {}
         for f in self.fields:
-            g = f.get("slot_group", "")
+            g = self._get_display_group(f)
             group_counts[g] = group_counts.get(g, 0) + 1
 
         seen_groups: set[str] = set()
 
         for field in sorted_fields:
-            group = field.get("slot_group", "")
+            group = self._get_display_group(field)
             is_first_in_group = group not in seen_groups
 
             # --- collapsed group: show one summary row, skip the rest ----
@@ -921,7 +931,7 @@ class LinkMLEditor(App):
                 if self._search_matched is not None:
                     group_names = [
                         f.get("name", "") for f in self.fields
-                        if f.get("slot_group") == group
+                        if self._get_display_group(f) == group
                     ]
                     if not any(n in self._search_matched for n in group_names):
                         continue
@@ -1552,7 +1562,7 @@ class LinkMLEditor(App):
         # The first field in the group is the row key for both the collapsed
         # summary row and the first expanded row.
         first = next(
-            (f for f in self._sorted_fields() if f.get("slot_group") == group),
+            (f for f in self._sorted_fields() if self._get_display_group(f) == group),
             None,
         )
         if first:
@@ -1571,13 +1581,13 @@ class LinkMLEditor(App):
         if row_key:
             field = next((f for f in self.fields if f["name"] == row_key), None)
             if field:
-                self._toggle_group(field.get("slot_group", ""))
+                self._toggle_group(self._get_display_group(field))
 
     def action_collapse_all_groups(self) -> None:
         """Collapse every slot group."""
         if self.current_view != "fields":
             return
-        all_groups = {f.get("slot_group", "") for f in self.fields if f.get("slot_group")}
+        all_groups = {self._get_display_group(f) for f in self.fields if self._get_display_group(f)}
         if all_groups == self.collapsed_groups:
             return
         table = self.query_one("#fields-table", DataTable)
@@ -1816,7 +1826,7 @@ class LinkMLEditor(App):
         field = next((f for f in self.fields if f["name"] == row_key), None)
         if not field:
             return
-        if field.get("slot_group", "") in self.collapsed_groups:
+        if self._get_display_group(field) in self.collapsed_groups:
             return
         self._last_fields_row_key = row_key
         if self._populate_detail_view(row_key):
@@ -1883,7 +1893,7 @@ class LinkMLEditor(App):
     def action_insert_row(self) -> None:
         """Insert a new row."""
         if self.current_view == "fields":
-            slot_groups = list(set(f.get("slot_group", "") for f in self.fields if f.get("slot_group")))
+            slot_groups = list(set(self._get_display_group(f) for f in self.fields if self._get_display_group(f)))
             self.push_screen(NewFieldScreen(slot_groups), self._on_new_field)
         else:
             enum_names = list(set(e.get("enum_name", "") for e in self.enums_data if e.get("enum_name")))
@@ -2036,7 +2046,7 @@ class LinkMLEditor(App):
             field = next((f for f in self.fields if f["name"] == row_key), None)
             if not field:
                 return
-            group = field.get("slot_group", "")
+            group = self._get_display_group(field)
             if column == "_grp":
                 if group:
                     self._toggle_group(group)

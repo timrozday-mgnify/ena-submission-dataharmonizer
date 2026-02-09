@@ -727,8 +727,6 @@ def merge_schemas(schemas, source_names=None):
                 su = main_cls.get("slot_usage", {})
                 if slot_name in su:
                     usage = dict(su[slot_name])
-                    if source_prefix and "slot_group" in usage:
-                        usage["slot_group"] = source_prefix + ":" + usage["slot_group"]
                     merged_slot_usage[slot_name] = usage
 
         for enum_name, enum_def in schema.get("enums", {}).items():
