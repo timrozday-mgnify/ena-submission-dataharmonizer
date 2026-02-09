@@ -1067,9 +1067,39 @@ class LinkMLEditor(App):
                 break
         if key is None:
             return
+        table = event.data_table
+        saved_scroll_x = table.scroll_x
+        saved_scroll_y = table.scroll_y
         state = self._col_width_state.get(key, 0)
         self._col_width_state[key] = (state + 1) % 3
         self.refresh_fields_table()
+        self.call_after_refresh(
+            lambda: table.scroll_to(x=saved_scroll_x, y=saved_scroll_y, animate=False)
+        )
+
+    def on_click(self, event) -> None:
+        """Toggle group collapse/expand when the arrow indicator is clicked."""
+        if self.current_view != "fields":
+            return
+        try:
+            table = self.query_one("#fields-table", DataTable)
+        except Exception:
+            return
+        # Only act when the mouse is over the fields table's first column.
+        if not table.mouse_hover:
+            return
+        if table.hover_coordinate.column != 0:
+            return
+        hover_row = table.hover_coordinate.row
+        row_key = self._get_row_key_at(table, hover_row)
+        if not row_key:
+            return
+        field = next((f for f in self.fields if f["name"] == row_key), None)
+        if not field:
+            return
+        group = self._get_display_group(field)
+        if group:
+            self._toggle_group(group)
 
     def refresh_enums_table(self) -> None:
         """Refresh the enums table with current data."""
@@ -1633,6 +1663,7 @@ class LinkMLEditor(App):
         else:
             self.collapsed_groups.add(group)
         table = self.query_one("#fields-table", DataTable)
+        saved_scroll_y = table.scroll_y
         self.refresh_fields_table()
         self.update_status()
         # The first field in the group is the row key for both the collapsed
@@ -1643,6 +1674,10 @@ class LinkMLEditor(App):
         )
         if first:
             self._move_cursor_to_key(table, first["name"])
+        # Restore scroll position after layout so the view doesn't jump.
+        self.call_after_refresh(
+            lambda: table.scroll_to(y=saved_scroll_y, animate=False)
+        )
 
     def action_toggle_groups(self) -> None:
         """Toggle collapse/expand of current slot group."""
@@ -1667,12 +1702,16 @@ class LinkMLEditor(App):
         if all_groups == self.collapsed_groups:
             return
         table = self.query_one("#fields-table", DataTable)
+        saved_scroll_y = table.scroll_y
         cursor_key = self._get_row_key_at(table, table.cursor_row) if table.cursor_row is not None else None
         self.collapsed_groups = all_groups
         self.refresh_fields_table()
         self.update_status()
         if cursor_key:
             self._move_cursor_to_key(table, cursor_key)
+        self.call_after_refresh(
+            lambda: table.scroll_to(y=saved_scroll_y, animate=False)
+        )
 
     def action_expand_all_groups(self) -> None:
         """Expand every slot group."""
@@ -1681,12 +1720,16 @@ class LinkMLEditor(App):
         if not self.collapsed_groups:
             return
         table = self.query_one("#fields-table", DataTable)
+        saved_scroll_y = table.scroll_y
         cursor_key = self._get_row_key_at(table, table.cursor_row) if table.cursor_row is not None else None
         self.collapsed_groups.clear()
         self.refresh_fields_table()
         self.update_status()
         if cursor_key:
             self._move_cursor_to_key(table, cursor_key)
+        self.call_after_refresh(
+            lambda: table.scroll_to(y=saved_scroll_y, animate=False)
+        )
 
     def action_toggle_required(self) -> None:
         """Toggle required filter."""
