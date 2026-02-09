@@ -18,7 +18,17 @@
       "Bash(python:*)",
       "Bash(echo:*)",
       "Bash(ls:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(curl:*)",
+      "Bash(docker compose:*)",
+      "Bash(conda run:*)",
+      "Bash(mamba:*)",
+      "Bash(conda --version:*)",
+      "Bash(brew upgrade:*)",
+      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/conda list)",
+      "Bash(/Users/timrozday/miniforge3/bin/conda:*)",
+      "Bash(/Users/timrozday/miniforge3/bin/mamba:*)",
+      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-test/bin/python -m pytest:*)"
     ]
   }
 }

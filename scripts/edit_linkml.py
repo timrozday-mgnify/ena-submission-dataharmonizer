@@ -42,12 +42,19 @@ Hotkeys:
 
 import copy
 import os
+import re
 import sys
+import uuid
 from pathlib import Path
 from typing import Optional
 
 import yaml
 from rich.text import Text
+
+try:
+    from elasticsearch import Elasticsearch
+except ImportError:
+    Elasticsearch = None
 
 from textual import on
 from textual.app import App, ComposeResult
@@ -92,6 +99,7 @@ _LinkMLDumper.add_representer(bool, _bool_representer)
 _LinkMLDumper.add_representer(str, _str_representer)
 
 _SELECTED_STYLE = "on dark_blue"
+_HIGHLIGHT_STYLE = "bold yellow"
 
 
 def load_schema(filepath: str) -> dict:
@@ -658,6 +666,11 @@ class LinkMLEditor(App):
         display: none;
     }
 
+    #search-input {
+        height: 3;
+        margin: 0 1;
+    }
+
     #field-detail-container {
         padding: 0 2;
     }
@@ -703,6 +716,7 @@ class LinkMLEditor(App):
         Binding("shift+down", "select_extend_down", "Select Down", show=False),
         Binding("space", "toggle_select", "Toggle Select", show=False),
         Binding("escape", "clear_selection", "Clear Selection", show=False),
+        Binding("/", "focus_search", "Search"),
         Binding("v", "view_field", "View Field"),
         Binding("ctrl+s", "save_field_detail", "Save Field", show=False),
         Binding("s", "save_schema", "Save"),
@@ -712,13 +726,14 @@ class LinkMLEditor(App):
         Binding("q", "quit_app", "Quit"),
     ]
 
-    def __init__(self, initial_file: Optional[str] = None):
+    def __init__(self, initial_file: Optional[str] = None, es_url: Optional[str] = None):
         super().__init__()
         self.schema: dict = {}
         self.fields: list[dict] = []
         self.enums_data: list[dict] = []
         self.current_file: str = ""
         self.initial_file = initial_file
+        self._es_url: str = es_url or "http://localhost:9200"
         self.current_view = "fields"  # "fields" or "enums"
         self.filter_required = False
         self.collapsed_groups: set[str] = set()
@@ -735,6 +750,12 @@ class LinkMLEditor(App):
         self._selection_anchor: Optional[str] = None
         # Field detail view state
         self._detail_field_name: Optional[str] = None
+        # Elasticsearch search state
+        self._es: Optional[object] = None
+        self._es_index: str = f"linkml_editor_{uuid.uuid4().hex[:8]}"
+        self._es_dirty: bool = True
+        self._search_matched: Optional[set[str]] = None
+        self._search_highlights: dict[str, dict[str, list[str]]] = {}
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -745,6 +766,7 @@ class LinkMLEditor(App):
                 Label("", id="filter-label"),
                 id="status-bar",
             ),
+            Input(placeholder="Search (ES syntax: field:value, AND, OR, *)...", id="search-input"),
             VerticalScroll(
                 DataTable(id="fields-table"),
                 DataTable(id="enums-table", classes="hidden"),
@@ -799,6 +821,9 @@ class LinkMLEditor(App):
         enums_table.cursor_type = "row"
         enums_table.add_columns("enum_name", "value", "text", "description")
 
+        # Initialize Elasticsearch for search
+        self._init_elasticsearch()
+
         # Load initial file if provided
         if self.initial_file and os.path.exists(self.initial_file):
             self.load_file(self.initial_file)
@@ -824,6 +849,14 @@ class LinkMLEditor(App):
             self._selected_fields.clear()
             self._selection_anchor = None
             self._detail_field_name = None
+            self._search_matched = None
+            self._search_highlights = {}
+            self._es_dirty = True
+            try:
+                self.query_one("#search-input", Input).value = ""
+            except Exception:
+                pass
+            self._index_fields()
 
             self.refresh_fields_table()
             self.refresh_enums_table()
@@ -856,6 +889,15 @@ class LinkMLEditor(App):
         table = self.query_one("#fields-table", DataTable)
         table.clear()
 
+        # Re-run search if index is stale and search is active
+        if self._es_dirty and self._search_matched is not None:
+            try:
+                query = self.query_one("#search-input", Input).value
+                if query.strip():
+                    self._run_search(query)
+            except Exception:
+                pass
+
         sorted_fields = self._sorted_fields()
 
         # Precompute total field count per group (unfiltered).
@@ -875,6 +917,14 @@ class LinkMLEditor(App):
                 if not is_first_in_group:
                     continue
                 seen_groups.add(group)
+                # Skip collapsed group if search active and no fields match
+                if self._search_matched is not None:
+                    group_names = [
+                        f.get("name", "") for f in self.fields
+                        if f.get("slot_group") == group
+                    ]
+                    if not any(n in self._search_matched for n in group_names):
+                        continue
                 name = field.get("name", "")
                 count = group_counts.get(group, 0)
                 cells = [
@@ -886,6 +936,11 @@ class LinkMLEditor(App):
                 table.add_row(*cells, key=name)
                 continue
 
+            # --- search filter -------------------------------------------
+            name = field.get("name", "")
+            if self._search_matched is not None and name not in self._search_matched:
+                continue
+
             # --- required filter (only for non-collapsed groups) ---------
             if self.filter_required and not field.get("required"):
                 continue
@@ -895,23 +950,39 @@ class LinkMLEditor(App):
             if is_first_visible:
                 seen_groups.add(group)
 
-            name = field.get("name", "")
             grp_indicator = "▼" if is_first_visible and group else ""
-            cells = [
-                grp_indicator,
-                str(field.get("rank", 0)),
-                group,
-                field.get("source", ""),
-                "Yes" if field.get("required") else "No",
-                name,
-                field.get("title", ""),
-                self._truncate(field.get("description", ""), 50),
-                field.get("range", "string"),
-                field.get("pattern", ""),
-                self._truncate(field.get("comments", ""), 30),
+
+            # Build cells with optional search highlighting
+            field_hl = self._search_highlights.get(name, {})
+            is_selected = name in self._selected_fields
+            base_style = _SELECTED_STYLE if is_selected else ""
+
+            raw_cells = [
+                (None, grp_indicator),
+                ("rank", str(field.get("rank", 0))),
+                ("slot_group", group),
+                ("source", field.get("source", "")),
+                ("required", "Yes" if field.get("required") else "No"),
+                ("name", name),
+                ("title", field.get("title", "")),
+                ("description", self._truncate(field.get("description", ""), 50)),
+                ("range", field.get("range", "string")),
+                ("pattern", field.get("pattern", "")),
+                ("comments", self._truncate(field.get("comments", ""), 30)),
             ]
-            if name in self._selected_fields:
-                cells = [Text(str(c), style=_SELECTED_STYLE) for c in cells]
+
+            cells = []
+            for es_key, text_val in raw_cells:
+                terms = set()
+                if es_key and es_key in field_hl:
+                    terms = self._extract_highlight_terms(field_hl[es_key])
+                if terms:
+                    cells.append(self._highlight_cell(str(text_val), terms, base_style))
+                elif is_selected:
+                    cells.append(Text(str(text_val), style=_SELECTED_STYLE))
+                else:
+                    cells.append(text_val)
+
             table.add_row(*cells, key=name)
 
     def refresh_enums_table(self) -> None:
@@ -992,6 +1063,338 @@ class LinkMLEditor(App):
             self._undo_stack.pop(0)
         # Clear redo stack on new action
         self._redo_stack.clear()
+        self._es_dirty = True
+
+    # ------------------------------------------------------------------
+    # Elasticsearch search
+    # ------------------------------------------------------------------
+
+    def _init_elasticsearch(self) -> None:
+        """Try to connect to a local Elasticsearch instance."""
+        if Elasticsearch is None:
+            self.notify("elasticsearch package not installed – search disabled", severity="warning")
+            return
+        try:
+            self._es = Elasticsearch(self._es_url)
+            self._es.info()  # type: ignore[union-attr]
+        except Exception as exc:
+            self._es = None
+            self.notify(f"Elasticsearch unavailable ({self._es_url}) – search disabled", severity="warning")
+
+    def _cleanup_elasticsearch(self) -> None:
+        """Delete the ES index on shutdown."""
+        if self._es:
+            try:
+                self._es.options(ignore_status=[404]).indices.delete(index=self._es_index)  # type: ignore[union-attr]
+            except Exception:
+                pass
+
+    def _index_fields(self) -> None:
+        """Index all fields into Elasticsearch."""
+        if not self._es:
+            return
+        try:
+            if self._es.indices.exists(index=self._es_index):  # type: ignore[union-attr]
+                self._es.indices.delete(index=self._es_index)  # type: ignore[union-attr]
+            # Custom analyzers:
+            # - underscore_analyzer: splits on underscores/delimiters for
+            #   whole-word matching (e.g. name:sample).
+            # - partial_analyzer / underscore_partial_analyzer: use edge_ngram
+            #   at index time so that prefix/sub-word queries like "coll" match
+            #   "collection".  The search_analyzer is set to the non-ngram
+            #   variant so the search term is not itself expanded.
+            self._es.indices.create(  # type: ignore[union-attr]
+                index=self._es_index,
+                settings={
+                    "analysis": {
+                        "tokenizer": {
+                            "underscore_tokenizer": {
+                                "type": "pattern",
+                                "pattern": r"[_\s\-\.]+",
+                            }
+                        },
+                        "filter": {
+                            "edge_ngram_filter": {
+                                "type": "edge_ngram",
+                                "min_gram": 2,
+                                "max_gram": 20,
+                            }
+                        },
+                        "analyzer": {
+                            "underscore_analyzer": {
+                                "type": "pattern",
+                                "pattern": r"[_\s\-\.]+",
+                                "lowercase": True,
+                            },
+                            "partial_analyzer": {
+                                "type": "custom",
+                                "tokenizer": "standard",
+                                "filter": ["lowercase", "edge_ngram_filter"],
+                            },
+                            "underscore_partial_analyzer": {
+                                "type": "custom",
+                                "tokenizer": "underscore_tokenizer",
+                                "filter": ["lowercase", "edge_ngram_filter"],
+                            },
+                        }
+                    }
+                },
+                mappings={
+                    "properties": {
+                        "name": {"type": "text",
+                                 "analyzer": "underscore_partial_analyzer",
+                                 "search_analyzer": "underscore_analyzer",
+                                 "fields": {"keyword": {"type": "keyword"}}},
+                        "title": {"type": "text",
+                                  "analyzer": "partial_analyzer",
+                                  "search_analyzer": "standard",
+                                  "fields": {"keyword": {"type": "keyword"}}},
+                        "description": {"type": "text",
+                                        "analyzer": "partial_analyzer",
+                                        "search_analyzer": "standard",
+                                        "fields": {"keyword": {"type": "keyword"}}},
+                        "range": {"type": "text",
+                                  "analyzer": "underscore_partial_analyzer",
+                                  "search_analyzer": "underscore_analyzer",
+                                  "fields": {"keyword": {"type": "keyword"}}},
+                        "pattern": {"type": "text",
+                                    "fields": {"keyword": {"type": "keyword"}}},
+                        "required": {"type": "text",
+                                     "fields": {"keyword": {"type": "keyword"}}},
+                        "comments": {"type": "text",
+                                     "analyzer": "partial_analyzer",
+                                     "search_analyzer": "standard",
+                                     "fields": {"keyword": {"type": "keyword"}}},
+                        "slot_group": {"type": "text",
+                                       "analyzer": "underscore_partial_analyzer",
+                                       "search_analyzer": "underscore_analyzer",
+                                       "fields": {"keyword": {"type": "keyword"}}},
+                        "source": {"type": "text",
+                                   "analyzer": "underscore_partial_analyzer",
+                                   "search_analyzer": "underscore_analyzer",
+                                   "fields": {"keyword": {"type": "keyword"}}},
+                        "rank": {"type": "text",
+                                 "fields": {"keyword": {"type": "keyword"}}},
+                    }
+                },
+            )
+            for field in self.fields:
+                doc = {
+                    "name": field.get("name", ""),
+                    "title": field.get("title", ""),
+                    "description": field.get("description", ""),
+                    "range": field.get("range", ""),
+                    "pattern": field.get("pattern", ""),
+                    "required": "Yes" if field.get("required") else "No",
+                    "comments": field.get("comments", ""),
+                    "slot_group": field.get("slot_group", ""),
+                    "source": field.get("source", ""),
+                    "rank": str(field.get("rank", 0)),
+                }
+                self._es.index(index=self._es_index, id=field["name"], document=doc)  # type: ignore[union-attr]
+            self._es.indices.refresh(index=self._es_index)  # type: ignore[union-attr]
+            self._es_dirty = False
+        except Exception as exc:
+            self.notify(f"Search index error: {exc}", severity="warning")
+
+    _SEARCHABLE_FIELDS = [
+        "name", "title", "description", "range",
+        "pattern", "slot_group", "source", "comments",
+        "required", "rank",
+    ]
+
+    @staticmethod
+    def _escape_es_regexp(s: str) -> str:
+        """Escape special characters for an Elasticsearch regexp query.
+
+        Only the standard Lucene regexp operators need escaping:
+        . ? + * | { } [ ] ( ) \\
+        """
+        out: list[str] = []
+        for ch in s:
+            if ch in r".?+*|{}[]()\\":
+                out.append("\\")
+            out.append(ch)
+        return "".join(out)
+
+    def _run_search(self, query: str) -> None:
+        """Execute ES regexp search and update match/highlight state.
+
+        Every whitespace-separated token is converted to the regexp
+        ``.*<escaped_token>.*`` and matched against the ``.keyword``
+        sub-field of every searchable attribute.  This gives true
+        substring matching (including single-character and
+        cross-delimiter queries such as ``22:sa`` matching
+        ``ERC000022:sample``).
+
+        Tokens that start with a known field name followed by ``:``
+        (e.g. ``name:coll``) are treated as field-specific searches.
+        """
+        if not query.strip():
+            self._search_matched = None
+            self._search_highlights = {}
+            return
+        if not self._es:
+            return
+        if self._es_dirty:
+            self._index_fields()
+        try:
+            known = {f.lower() for f in self._SEARCHABLE_FIELDS}
+            tokens = query.strip().split()
+            must_clauses: list[dict] = []
+            highlight_terms: list[str] = []
+
+            for token in tokens:
+                field_name: str | None = None
+                value = token
+
+                # Detect field-specific syntax (field:value)
+                if ":" in token:
+                    prefix, suffix = token.split(":", 1)
+                    if prefix.lower() in known:
+                        field_name = prefix.lower()
+                        value = suffix
+
+                if not value:
+                    continue
+
+                escaped = self._escape_es_regexp(value)
+                pattern = f".*{escaped}.*"
+
+                if field_name:
+                    must_clauses.append({
+                        "regexp": {
+                            f"{field_name}.keyword": {
+                                "value": pattern,
+                                "case_insensitive": True,
+                            }
+                        }
+                    })
+                else:
+                    should_clauses = [
+                        {"regexp": {
+                            f"{f}.keyword": {
+                                "value": pattern,
+                                "case_insensitive": True,
+                            }
+                        }}
+                        for f in self._SEARCHABLE_FIELDS
+                    ]
+                    must_clauses.append({
+                        "bool": {"should": should_clauses, "minimum_should_match": 1}
+                    })
+
+                highlight_terms.append(value)
+
+            if not must_clauses:
+                self._search_matched = None
+                self._search_highlights = {}
+                return
+
+            es_query = (
+                {"bool": {"must": must_clauses}}
+                if len(must_clauses) > 1
+                else must_clauses[0]
+            )
+
+            resp = self._es.search(  # type: ignore[union-attr]
+                index=self._es_index,
+                query=es_query,
+                size=10000,
+            )
+
+            matched: set[str] = set()
+            highlights: dict[str, dict[str, list[str]]] = {}
+            # Build client-side highlight fragments from the search terms
+            hl_fragments = {
+                f: [f"<em>{t}</em>" for t in highlight_terms]
+                for f in self._SEARCHABLE_FIELDS
+            }
+            for hit in resp["hits"]["hits"]:
+                name = hit["_id"]
+                matched.add(name)
+                highlights[name] = hl_fragments
+
+            self._search_matched = matched
+            self._search_highlights = highlights
+        except Exception:
+            # Regexp errors while typing are expected – keep the previous
+            # search state rather than clearing it.
+            pass
+
+    def _perform_search(self, query: str) -> None:
+        """Search fields and refresh the table."""
+        self._run_search(query)
+        self.refresh_fields_table()
+
+    @staticmethod
+    def _extract_highlight_terms(fragments: list[str]) -> set[str]:
+        """Extract matched terms from ES highlight fragments."""
+        terms: set[str] = set()
+        for fragment in fragments:
+            for m in re.finditer(r"<em>(.*?)</em>", fragment):
+                terms.add(m.group(1))
+        return terms
+
+    def _highlight_cell(self, text: str, terms: set[str], base_style: str = "") -> Text:
+        """Create Rich Text with highlighted search terms."""
+        if not terms or not text:
+            return Text(text, style=base_style) if base_style else Text(text)
+
+        # Build (start, end) ranges to highlight
+        ranges: list[tuple[int, int]] = []
+        text_lower = text.lower()
+        for term in terms:
+            term_lower = term.lower()
+            start = 0
+            while True:
+                idx = text_lower.find(term_lower, start)
+                if idx == -1:
+                    break
+                ranges.append((idx, idx + len(term)))
+                start = idx + 1
+
+        if not ranges:
+            return Text(text, style=base_style) if base_style else Text(text)
+
+        # Merge overlapping ranges
+        ranges.sort()
+        merged = [ranges[0]]
+        for s, e in ranges[1:]:
+            if s <= merged[-1][1]:
+                merged[-1] = (merged[-1][0], max(merged[-1][1], e))
+            else:
+                merged.append((s, e))
+
+        # Build Rich Text
+        result = Text()
+        hl_style = _HIGHLIGHT_STYLE + (" " + base_style if base_style else "")
+        pos = 0
+        for s, e in merged:
+            if pos < s:
+                result.append(text[pos:s], style=base_style or "")
+            result.append(text[s:e], style=hl_style)
+            pos = e
+        if pos < len(text):
+            result.append(text[pos:], style=base_style or "")
+
+        return result
+
+    def action_focus_search(self) -> None:
+        """Focus the search input."""
+        if self.current_view == "fields":
+            self.query_one("#search-input", Input).focus()
+
+    @on(Input.Changed, "#search-input")
+    def _on_search_changed(self, event: Input.Changed) -> None:
+        """Handle search query changes."""
+        self._perform_search(event.value)
+
+    @on(Input.Submitted, "#search-input")
+    def _on_search_submitted(self, event: Input.Submitted) -> None:
+        """Return focus to the fields table on Enter."""
+        if self.current_view == "fields":
+            self.query_one("#fields-table", DataTable).focus()
 
     def _restore_cursor(self, table: DataTable, row_key: Optional[str], row_idx: Optional[int]) -> None:
         """Try to place the cursor on *row_key*; fall back to *row_idx*."""
@@ -1086,6 +1489,7 @@ class LinkMLEditor(App):
         self.current_view = "fields"
         self.query_one("#fields-table").remove_class("hidden")
         self.query_one("#enums-table").add_class("hidden")
+        self.query_one("#search-input").remove_class("hidden")
 
         # Restore last fields cursor position
         if self._last_fields_row_key:
@@ -1118,6 +1522,7 @@ class LinkMLEditor(App):
         self.current_view = "enums"
         self.query_one("#fields-table").add_class("hidden")
         self.query_one("#enums-table").remove_class("hidden")
+        self.query_one("#search-input").add_class("hidden")
 
         enums_table = self.query_one("#enums-table", DataTable)
         if target_enum_name:
@@ -1358,10 +1763,21 @@ class LinkMLEditor(App):
             self._update_selection_indicators()
 
     def action_clear_selection(self) -> None:
-        """Clear all selected fields, or leave detail view."""
+        """Clear search, selection, or leave detail view."""
         if self.current_view == "field_detail":
             self._switch_to_fields_from_detail()
             return
+        # If search input is focused, clear/unfocus it
+        try:
+            search_input = self.query_one("#search-input", Input)
+            if search_input.has_focus:
+                if search_input.value:
+                    search_input.value = ""
+                if self.current_view == "fields":
+                    self.query_one("#fields-table", DataTable).focus()
+                return
+        except Exception:
+            pass
         if self._selected_fields:
             self._selected_fields.clear()
             self._selection_anchor = None
@@ -1407,6 +1823,7 @@ class LinkMLEditor(App):
             self.current_view = "field_detail"
             self.query_one("#fields-table").add_class("hidden")
             self.query_one("#field-detail-container").remove_class("hidden")
+            self.query_one("#search-input").add_class("hidden")
             self.update_status()
             self.query_one("#detail-attr-name").focus()
 
@@ -1447,6 +1864,7 @@ class LinkMLEditor(App):
         self.current_view = "fields"
         self.query_one("#field-detail-container").add_class("hidden")
         self.query_one("#fields-table").remove_class("hidden")
+        self.query_one("#search-input").remove_class("hidden")
         self.refresh_fields_table()
         self.update_status()
         if field_name:
@@ -1731,11 +2149,13 @@ class LinkMLEditor(App):
                 self._on_quit_confirm
             )
         else:
+            self._cleanup_elasticsearch()
             self.exit()
 
     def _on_quit_confirm(self, confirmed: bool) -> None:
         """Handle quit confirmation."""
         if confirmed:
+            self._cleanup_elasticsearch()
             self.exit()
 
 
@@ -1755,9 +2175,14 @@ def main():
         nargs="?",
         help="LinkML schema file to open",
     )
+    parser.add_argument(
+        "--es-url",
+        default=None,
+        help="Elasticsearch server URL (default: http://localhost:9200)",
+    )
     args = parser.parse_args()
 
-    app = LinkMLEditor(initial_file=args.file)
+    app = LinkMLEditor(initial_file=args.file, es_url=args.es_url)
     app.run()
 
 

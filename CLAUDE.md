@@ -31,7 +31,18 @@ pytest scripts/test_edit_linkml.py -v
 
 ## Dependencies
 
-Managed via conda (no requirements.txt). Key packages: PyYAML, textual, linkml-runtime, pytest, pytest-asyncio.
+Managed via mamba/conda with pip sub-dependencies. See `environment.yml` for the full spec and `requirements.txt` for a pip-only alternative.
+
+**Setup (mamba):**
+```bash
+mamba env create -f environment.yml
+mamba activate dataharmonizer-dev
+```
+
+**Key packages (conda-forge):** python 3.11, PyYAML, linkml-runtime
+**Key packages (pip):** textual, rich, elasticsearch (v8.x), pytest, pytest-asyncio
+
+**Docker services:** Elasticsearch 8.17.0 (see `docker-compose.yaml`, required for search in `edit_linkml.py` and ES integration tests)
 
 ## Architecture
 
