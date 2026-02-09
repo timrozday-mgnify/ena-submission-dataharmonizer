@@ -28,7 +28,8 @@
       "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/conda list)",
       "Bash(/Users/timrozday/miniforge3/bin/conda:*)",
       "Bash(/Users/timrozday/miniforge3/bin/mamba:*)",
-      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-test/bin/python -m pytest:*)"
+      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-test/bin/python -m pytest:*)",
+      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/python -m pytest:*)"
     ]
   }
 }

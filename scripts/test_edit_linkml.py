@@ -13,6 +13,7 @@ Usage:
 
 import os
 import sys
+import tempfile
 import uuid
 
 import pytest
@@ -26,7 +27,9 @@ from edit_linkml import (
     extract_enums,
     extract_fields,
     get_main_class,
+    load_schema,
     rebuild_schema,
+    save_schema,
 )
 
 # ---------------------------------------------------------------------------
@@ -206,6 +209,256 @@ class TestRebuildSchema:
         name, cls = get_main_class(rebuilt)
         assert name == "test"
         assert len(cls["slots"]) == 3
+
+
+# ---------------------------------------------------------------------------
+# Save / load round-trip tests (rank persistence & inserted fields)
+# ---------------------------------------------------------------------------
+
+class TestSaveRankOrder:
+    """Verify that modified field ordering (rank) survives save → load."""
+
+    def test_swapped_ranks_persist(self, minimal_schema):
+        """Swap two fields' ranks, save, reload, and verify the new order."""
+        fields = extract_fields(minimal_schema)
+        enums = extract_enums(minimal_schema)
+
+        # Original order: sample_name(1), sample_collection_date(2), host_organism(3)
+        assert fields[0]["name"] == "sample_name"
+        assert fields[1]["name"] == "sample_collection_date"
+        assert fields[2]["name"] == "host_organism"
+
+        # Swap ranks of first two fields (simulating action_rank_down on sample_name)
+        fields[0]["rank"], fields[1]["rank"] = fields[1]["rank"], fields[0]["rank"]
+
+        # Sort by rank before rebuilding (as the app now does)
+        ordered = sorted(fields, key=lambda f: f.get("rank", 0))
+        rebuilt = rebuild_schema(minimal_schema, ordered, enums)
+
+        with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False) as tmp:
+            tmp_path = tmp.name
+        try:
+            save_schema(rebuilt, tmp_path)
+            loaded = load_schema(tmp_path)
+            loaded_fields = extract_fields(loaded)
+
+            names = [f["name"] for f in loaded_fields]
+            assert names == ["sample_collection_date", "sample_name", "host_organism"]
+            assert loaded_fields[0]["rank"] == 1
+            assert loaded_fields[1]["rank"] == 2
+            assert loaded_fields[2]["rank"] == 3
+        finally:
+            os.unlink(tmp_path)
+
+    def test_reverse_order_persists(self, minimal_schema):
+        """Reverse the entire field order, save, reload, and verify."""
+        fields = extract_fields(minimal_schema)
+        enums = extract_enums(minimal_schema)
+
+        # Reverse ranks: host_organism=1, sample_collection_date=2, sample_name=3
+        fields[0]["rank"] = 3
+        fields[1]["rank"] = 2
+        fields[2]["rank"] = 1
+
+        ordered = sorted(fields, key=lambda f: f.get("rank", 0))
+        rebuilt = rebuild_schema(minimal_schema, ordered, enums)
+
+        with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False) as tmp:
+            tmp_path = tmp.name
+        try:
+            save_schema(rebuilt, tmp_path)
+            loaded = load_schema(tmp_path)
+            loaded_fields = extract_fields(loaded)
+
+            names = [f["name"] for f in loaded_fields]
+            assert names == ["host_organism", "sample_collection_date", "sample_name"]
+            # Ranks should be renumbered sequentially
+            assert [f["rank"] for f in loaded_fields] == [1, 2, 3]
+        finally:
+            os.unlink(tmp_path)
+
+    def test_slot_groups_preserved_after_reorder(self, minimal_schema):
+        """Slot group assignments survive a rank reorder."""
+        fields = extract_fields(minimal_schema)
+        enums = extract_enums(minimal_schema)
+
+        # Move host_organism (rank 3, group "Host") to rank 1
+        fields[2]["rank"] = 0  # before everything
+        ordered = sorted(fields, key=lambda f: f.get("rank", 0))
+        rebuilt = rebuild_schema(minimal_schema, ordered, enums)
+
+        with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False) as tmp:
+            tmp_path = tmp.name
+        try:
+            save_schema(rebuilt, tmp_path)
+            loaded = load_schema(tmp_path)
+            loaded_fields = extract_fields(loaded)
+
+            first = loaded_fields[0]
+            assert first["name"] == "host_organism"
+            assert first["slot_group"] == "Host"
+        finally:
+            os.unlink(tmp_path)
+
+
+class TestSaveInsertedFields:
+    """Verify that newly inserted fields survive save → load."""
+
+    def test_inserted_field_persists(self, minimal_schema):
+        """Insert a new field, save, reload, and verify it exists."""
+        fields = extract_fields(minimal_schema)
+        enums = extract_enums(minimal_schema)
+
+        new_field = {
+            "name": "new_measurement",
+            "title": "New Measurement",
+            "description": "A freshly added field",
+            "range": "string",
+            "slot_group": "Sample info",
+            "required": False,
+            "pattern": "",
+            "comments": "",
+            "rank": 4,
+            "source": "",
+        }
+        fields.append(new_field)
+
+        ordered = sorted(fields, key=lambda f: f.get("rank", 0))
+        rebuilt = rebuild_schema(minimal_schema, ordered, enums)
+
+        with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False) as tmp:
+            tmp_path = tmp.name
+        try:
+            save_schema(rebuilt, tmp_path)
+            loaded = load_schema(tmp_path)
+            loaded_fields = extract_fields(loaded)
+
+            names = [f["name"] for f in loaded_fields]
+            assert "new_measurement" in names
+            assert len(loaded_fields) == 4
+
+            new_f = next(f for f in loaded_fields if f["name"] == "new_measurement")
+            assert new_f["title"] == "New Measurement"
+            assert new_f["description"] == "A freshly added field"
+            assert new_f["slot_group"] == "Sample info"
+            assert new_f["rank"] == 4
+        finally:
+            os.unlink(tmp_path)
+
+    def test_inserted_field_with_attributes(self, minimal_schema):
+        """Insert a field with non-default attributes (required, pattern, range)."""
+        fields = extract_fields(minimal_schema)
+        enums = extract_enums(minimal_schema)
+
+        new_field = {
+            "name": "ph_level",
+            "title": "pH Level",
+            "description": "Measured pH value",
+            "range": "float",
+            "slot_group": "Measurements",
+            "required": True,
+            "pattern": r"^\d+\.\d+$",
+            "comments": "Must be numeric",
+            "rank": 4,
+            "source": "custom",
+        }
+        fields.append(new_field)
+
+        ordered = sorted(fields, key=lambda f: f.get("rank", 0))
+        rebuilt = rebuild_schema(minimal_schema, ordered, enums)
+
+        with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False) as tmp:
+            tmp_path = tmp.name
+        try:
+            save_schema(rebuilt, tmp_path)
+            loaded = load_schema(tmp_path)
+            loaded_fields = extract_fields(loaded)
+
+            ph = next(f for f in loaded_fields if f["name"] == "ph_level")
+            assert ph["required"] is True
+            assert ph["pattern"] == r"^\d+\.\d+$"
+            assert ph["range"] == "float"
+            assert ph["slot_group"] == "Measurements"
+            assert ph["source"] == "custom"
+            assert "numeric" in ph["comments"]
+        finally:
+            os.unlink(tmp_path)
+
+    def test_multiple_inserted_fields(self, minimal_schema):
+        """Insert several fields and verify all persist after save → load."""
+        fields = extract_fields(minimal_schema)
+        enums = extract_enums(minimal_schema)
+
+        for i in range(3):
+            fields.append({
+                "name": f"extra_field_{i}",
+                "title": f"Extra Field {i}",
+                "description": f"Extra description {i}",
+                "range": "string",
+                "slot_group": "",
+                "required": False,
+                "pattern": "",
+                "comments": "",
+                "rank": 4 + i,
+                "source": "",
+            })
+
+        ordered = sorted(fields, key=lambda f: f.get("rank", 0))
+        rebuilt = rebuild_schema(minimal_schema, ordered, enums)
+
+        with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False) as tmp:
+            tmp_path = tmp.name
+        try:
+            save_schema(rebuilt, tmp_path)
+            loaded = load_schema(tmp_path)
+            loaded_fields = extract_fields(loaded)
+
+            assert len(loaded_fields) == 6
+            names = [f["name"] for f in loaded_fields]
+            for i in range(3):
+                assert f"extra_field_{i}" in names
+        finally:
+            os.unlink(tmp_path)
+
+    def test_insert_then_reorder(self, minimal_schema):
+        """Insert a field, reorder it ahead of existing ones, save, verify."""
+        fields = extract_fields(minimal_schema)
+        enums = extract_enums(minimal_schema)
+
+        new_field = {
+            "name": "priority_field",
+            "title": "Priority Field",
+            "description": "Should appear first after reorder",
+            "range": "string",
+            "slot_group": "Sample info",
+            "required": False,
+            "pattern": "",
+            "comments": "",
+            "rank": 4,
+            "source": "",
+        }
+        fields.append(new_field)
+
+        # Now reorder: give new field rank 0 so it comes first
+        for f in fields:
+            if f["name"] == "priority_field":
+                f["rank"] = 0
+
+        ordered = sorted(fields, key=lambda f: f.get("rank", 0))
+        rebuilt = rebuild_schema(minimal_schema, ordered, enums)
+
+        with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False) as tmp:
+            tmp_path = tmp.name
+        try:
+            save_schema(rebuilt, tmp_path)
+            loaded = load_schema(tmp_path)
+            loaded_fields = extract_fields(loaded)
+
+            assert loaded_fields[0]["name"] == "priority_field"
+            assert loaded_fields[0]["rank"] == 1
+            assert len(loaded_fields) == 4
+        finally:
+            os.unlink(tmp_path)
 
 
 # ---------------------------------------------------------------------------

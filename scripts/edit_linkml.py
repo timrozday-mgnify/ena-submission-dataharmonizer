@@ -1979,6 +1979,9 @@ class LinkMLEditor(App):
         """Handle new field creation."""
         if field:
             self._save_state()
+            # Assign rank after all existing fields so it appears at the end.
+            max_rank = max((f.get("rank", 0) for f in self.fields), default=0)
+            field["rank"] = max_rank + 1
             self.fields.append(field)
             self.modified = True
             self.refresh_fields_table()
@@ -2208,10 +2211,16 @@ class LinkMLEditor(App):
             filename = os.path.join("schemas", filename)
 
         try:
-            new_schema = rebuild_schema(self.schema, self.fields, self.enums_data)
+            # Sort fields by rank so that reordering is preserved in the
+            # saved file.  rebuild_schema assigns sequential ranks based on
+            # list position, so the order must reflect the user's intent.
+            ordered_fields = sorted(self.fields, key=lambda f: f.get("rank", 0))
+            new_schema = rebuild_schema(self.schema, ordered_fields, self.enums_data)
             save_schema(new_schema, filename)
             self.current_file = filename
             self.schema = new_schema
+            # Re-extract fields so self.fields reflects the saved ranks.
+            self.fields = extract_fields(new_schema)
             self.modified = False
             self.update_status()
             self.notify(f"Saved: {filename}")
