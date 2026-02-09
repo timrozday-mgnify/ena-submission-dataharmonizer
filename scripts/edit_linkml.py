@@ -700,6 +700,25 @@ class LinkMLEditor(App):
     }
     """
 
+    # Column width caps for the three cycling states (default / expanded / collapsed).
+    _COL_MAX_DEFAULT = 80
+    _COL_MAX_EXPANDED = 1000
+
+    # Column definitions: (label, key)
+    _FIELD_COLUMNS = [
+        (" ", "_grp"),
+        ("rank", "rank"),
+        ("slot_group", "slot_group"),
+        ("source", "source"),
+        ("required", "required"),
+        ("name", "name"),
+        ("title", "title"),
+        ("description", "description"),
+        ("range", "range"),
+        ("pattern", "pattern"),
+        ("comments", "comments"),
+    ]
+
     BINDINGS = [
         Binding("f", "show_fields", "Fields"),
         Binding("e", "show_enums", "Enums"),
@@ -750,6 +769,8 @@ class LinkMLEditor(App):
         self._selection_anchor: Optional[str] = None
         # Field detail view state
         self._detail_field_name: Optional[str] = None
+        # Column width cycling state: 0=default(80), 1=expanded(1000), 2=collapsed(header)
+        self._col_width_state: dict[str, int] = {}
         # Elasticsearch search state
         self._es: Optional[object] = None
         self._es_index: str = f"linkml_editor_{uuid.uuid4().hex[:8]}"
@@ -810,11 +831,8 @@ class LinkMLEditor(App):
         # Setup fields table
         fields_table = self.query_one("#fields-table", DataTable)
         fields_table.cursor_type = "row"
-        col_keys = fields_table.add_columns(
-            " ", "rank", "slot_group", "source", "required", "name", "title",
-            "description", "range", "pattern", "comments",
-        )
-        self._grp_col_key = col_keys[0]
+        for label, key in self._FIELD_COLUMNS:
+            fields_table.add_column(label, key=key)
 
         # Setup enums table
         enums_table = self.query_one("#enums-table", DataTable)
@@ -910,6 +928,9 @@ class LinkMLEditor(App):
 
         sorted_fields = self._sorted_fields()
 
+        # Track max content width per column index for width capping.
+        col_max_widths: list[int] = [0] * len(self._FIELD_COLUMNS)
+
         # Precompute total field count per group (unfiltered).
         group_counts: dict[str, int] = {}
         for f in self.fields:
@@ -937,10 +958,13 @@ class LinkMLEditor(App):
                         continue
                 name = field.get("name", "")
                 count = group_counts.get(group, 0)
-                cells = [
+                summary_texts = [
                     "▶", "", f"{group} ({count} fields)",
                     "", "", "", "", "", "", "", "",
                 ]
+                for ci, cv in enumerate(summary_texts):
+                    col_max_widths[ci] = max(col_max_widths[ci], len(str(cv)))
+                cells = summary_texts
                 if name in self._selected_fields:
                     cells = [Text(str(c), style=_SELECTED_STYLE) for c in cells]
                 table.add_row(*cells, key=name)
@@ -980,6 +1004,8 @@ class LinkMLEditor(App):
                 ("pattern", field.get("pattern", "")),
                 ("comments", self._truncate(field.get("comments", ""), 30)),
             ]
+            for ci, (_, cv) in enumerate(raw_cells):
+                col_max_widths[ci] = max(col_max_widths[ci], len(str(cv)))
 
             cells = []
             for es_key, text_val in raw_cells:
@@ -994,6 +1020,56 @@ class LinkMLEditor(App):
                     cells.append(text_val)
 
             table.add_row(*cells, key=name)
+
+        self._apply_column_widths(table, col_max_widths)
+
+    def _apply_column_widths(
+        self, table: DataTable, content_widths: list[int]
+    ) -> None:
+        """Set column widths according to the current cycling state.
+
+        State 0 (default):  min(content_width, 80)
+        State 1 (expanded): min(content_width, 1000)
+        State 2 (collapsed): width of the column header label
+        """
+        columns = list(table.columns.values())
+        for i, col in enumerate(columns):
+            if i >= len(self._FIELD_COLUMNS):
+                break
+            key = self._FIELD_COLUMNS[i][1]
+            label_text = self._FIELD_COLUMNS[i][0]
+            state = self._col_width_state.get(key, 0)
+            natural = content_widths[i] if i < len(content_widths) else 0
+            label_width = len(label_text)
+
+            if state == 2:
+                w = label_width
+            elif state == 1:
+                w = min(natural, self._COL_MAX_EXPANDED)
+            else:
+                w = min(natural, self._COL_MAX_DEFAULT)
+
+            # Ensure at least the label fits.
+            w = max(w, label_width)
+            col.auto_width = False
+            col.width = w
+            col.content_width = w
+
+    @on(DataTable.HeaderSelected, "#fields-table")
+    def _on_fields_header_selected(self, event: DataTable.HeaderSelected) -> None:
+        """Cycle column width on header click: default -> expanded -> collapsed."""
+        col_key_str = str(event.column_key.value)
+        # Map the column_key back to our key name
+        key: str | None = None
+        for _, k in self._FIELD_COLUMNS:
+            if k == col_key_str:
+                key = k
+                break
+        if key is None:
+            return
+        state = self._col_width_state.get(key, 0)
+        self._col_width_state[key] = (state + 1) % 3
+        self.refresh_fields_table()
 
     def refresh_enums_table(self) -> None:
         """Refresh the enums table with current data."""
