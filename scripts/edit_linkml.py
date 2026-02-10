@@ -1123,29 +1123,43 @@ class LinkMLEditor(App):
             lambda: table.scroll_to(x=saved_scroll_x, y=saved_scroll_y, animate=False)
         )
 
-    def on_click(self, event) -> None:
+    @on(DataTable.RowSelected, "#fields-table")
+    def on_table_click(self, event: DataTable.RowSelected) -> None:
         """Toggle group collapse/expand when the arrow indicator is clicked."""
+        
+        logger = get_logger()
+        logger.debug(f'Click registered!')
+
         if self.current_view != "fields":
+            logger.debug(f'Current view is not "fields" (self.current_view)')
             return
         try:
             table = self.query_one("#fields-table", DataTable)
         except Exception:
+            logger.debug('Failed to retreive fields table')
             return
         # Only act when the mouse is over the fields table's first column.
         if not table.mouse_hover:
+            logger.debug('Mouse is not hovering over table')
             return
         if table.hover_coordinate.column != 0:
+            logger.debug(f'Mouse is not hovering over column 0 ({table.hover_coordinate.column})')
             return
         hover_row = table.hover_coordinate.row
         row_key = self._get_row_key_at(table, hover_row)
         if not row_key:
+            logger.debug(f'Could not retrieve row key')
             return
         field = next((f for f in self.fields if f["name"] == row_key), None)
         if not field:
+            logger.debug(f'Could not retrieve field')
             return
         group = self._get_display_group(field)
         if group:
+            logger.debug(f'Group is {group}. Toggling...')
             self._toggle_group(group)
+        else:
+            logger.debug(f'Could not retrieve group')
 
     def refresh_enums_table(self) -> None:
         """Refresh the enums table with current data."""

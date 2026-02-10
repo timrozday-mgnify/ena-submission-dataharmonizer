@@ -1,0 +1,67 @@
+2026-02-10 14:43:07,514 [DEBUG] Mouse is not hovering over column 0 (3)
+2026-02-10 14:43:10,546 [DEBUG] Mouse is not hovering over column 0 (2)
+2026-02-10 14:43:12,145 [DEBUG] Mouse is not hovering over column 0 (1)
+2026-02-10 14:43:13,478 [DEBUG] Could not retrieve row key
+2026-02-10 14:43:21,395 [DEBUG] Mouse is not hovering over table
+2026-02-10 14:43:23,077 [DEBUG] Mouse is not hovering over table
+2026-02-10 14:43:24,181 [DEBUG] Mouse is not hovering over table
+2026-02-10 14:43:25,181 [DEBUG] Could not retrieve row key
+2026-02-10 14:44:58,213 [DEBUG] Mouse is not hovering over column 0 (3)
+2026-02-10 14:44:59,721 [DEBUG] Group is SRA.experiment. Toggling...
+2026-02-10 14:45:06,596 [DEBUG] Mouse is not hovering over column 0 (3)
+2026-02-10 14:45:07,330 [DEBUG] Group is SRA.experiment. Toggling...
+2026-02-10 14:45:08,729 [DEBUG] Mouse is not hovering over column 0 (3)
+2026-02-10 14:46:04,193 [DEBUG] Click registered!
+2026-02-10 14:46:04,194 [DEBUG] Mouse is not hovering over column 0 (2)
+2026-02-10 14:55:10,156 [DEBUG] Click registered!
+2026-02-10 14:55:10,156 [DEBUG] Mouse is not hovering over column 0 (2)
+2026-02-10 14:55:29,883 [DEBUG] Click registered!
+2026-02-10 14:55:29,884 [DEBUG] Group is ERC000025:Organism characteristics: ecosystem. Toggling...
+2026-02-10 14:55:32,117 [DEBUG] Click registered!
+2026-02-10 14:55:32,118 [DEBUG] Group is ERC000025:Organism characteristics: ecosystem. Toggling...
+2026-02-10 14:55:33,792 [DEBUG] Click registered!
+2026-02-10 14:55:33,792 [DEBUG] Group is ERC000025:sample collection: methods, storage and transport. Toggling...
+2026-02-10 14:55:34,709 [DEBUG] Click registered!
+2026-02-10 14:55:34,709 [DEBUG] Group is SRA.experiment. Toggling...
+2026-02-10 14:55:36,832 [DEBUG] Click registered!
+2026-02-10 14:55:36,833 [DEBUG] Group is SRA.experiment. Toggling...
+2026-02-10 14:55:38,973 [DEBUG] Click registered!
+2026-02-10 14:55:38,973 [DEBUG] Group is ERC000025:Organism characteristics: ecosystem. Toggling...
+2026-02-10 14:55:40,081 [DEBUG] Click registered!
+2026-02-10 14:55:40,081 [DEBUG] Group is ERC000025:Organism characteristics: ecosystem. Toggling...
+2026-02-10 14:55:42,109 [DEBUG] Click registered!
+2026-02-10 14:55:42,110 [DEBUG] Group is ERC000025:sample collection: methods, storage and transport. Toggling...
+2026-02-10 14:55:45,399 [DEBUG] Click registered!
+2026-02-10 14:55:45,399 [DEBUG] Group is ERC000025:sample collection: methods, storage and transport. Toggling...
+2026-02-10 14:55:47,064 [DEBUG] Click registered!
+2026-02-10 14:55:47,064 [DEBUG] Group is ERC000025:sample collection: methods, storage and transport. Toggling...
+2026-02-10 14:55:48,840 [DEBUG] Click registered!
+2026-02-10 14:55:48,840 [DEBUG] Group is ERC000025:sample collection: core sample properties. Toggling...
+2026-02-10 14:55:49,733 [DEBUG] Click registered!
+2026-02-10 14:55:49,733 [DEBUG] Group is ERC000025:sample collection: core sample properties. Toggling...
+2026-02-10 14:55:51,534 [DEBUG] Click registered!
+2026-02-10 14:55:51,534 [DEBUG] Group is ERC000025:non-sample terms: study or project. Toggling...
+2026-02-10 14:55:52,385 [DEBUG] Click registered!
+2026-02-10 14:55:52,385 [DEBUG] Group is ERC000025:non-sample terms: study or project. Toggling...
+2026-02-10 14:55:54,064 [DEBUG] Click registered!
+2026-02-10 14:55:54,064 [DEBUG] Group is ERC000025:non-sample terms. Toggling...
+2026-02-10 14:55:55,532 [DEBUG] Click registered!
+2026-02-10 14:55:55,533 [DEBUG] Group is SRA.experiment. Toggling...
+2026-02-10 14:55:58,900 [DEBUG] Click registered!
+2026-02-10 14:55:58,901 [DEBUG] Group is ERC000025:non-sample terms. Toggling...
+2026-02-10 14:56:01,898 [DEBUG] Click registered!
+2026-02-10 14:56:01,898 [DEBUG] Group is SRA.experiment. Toggling...
+2026-02-10 14:56:07,641 [DEBUG] Click registered!
+2026-02-10 14:56:07,641 [DEBUG] Mouse is not hovering over column 0 (2)
+2026-02-10 14:56:09,173 [DEBUG] Click registered!
+2026-02-10 14:56:09,173 [DEBUG] Mouse is not hovering over column 0 (2)
+2026-02-10 14:56:10,217 [DEBUG] Click registered!
+2026-02-10 14:56:10,217 [DEBUG] Mouse is not hovering over column 0 (2)
+2026-02-10 14:56:11,065 [DEBUG] Click registered!
+2026-02-10 14:56:11,066 [DEBUG] Mouse is not hovering over column 0 (2)
+2026-02-10 14:56:11,820 [DEBUG] Click registered!
+2026-02-10 14:56:11,820 [DEBUG] Mouse is not hovering over column 0 (2)
+2026-02-10 14:56:12,489 [DEBUG] Click registered!
+2026-02-10 14:56:12,489 [DEBUG] Mouse is not hovering over column 0 (2)
+2026-02-10 14:56:13,248 [DEBUG] Click registered!
+2026-02-10 14:56:13,248 [DEBUG] Mouse is not hovering over column 0 (2)
