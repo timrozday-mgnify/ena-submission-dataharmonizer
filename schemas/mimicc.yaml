@@ -24,6 +24,7 @@ classes:
       from a relevant subsets of the GSC terms.
     is_a: dh_interface
     slots:
+    - TITLE
     - trophic_level
     - observed_biotic_relationship
     - known_pathogenicity
@@ -118,7 +119,6 @@ classes:
     - adapters
     - depth
     - chemical_administration
-    - TITLE
     - STUDY_REF
     - DESIGN_DESCRIPTION
     - member_name
@@ -172,290 +172,290 @@ classes:
     - PROJECT_ID
     - STUDY_DESCRIPTION
     slot_usage:
-      trophic_level:
+      TITLE:
         rank: 1
-        slot_group: 'ERC000025:Organism characteristics: ecosystem'
-      observed_biotic_relationship:
+      trophic_level:
         rank: 2
         slot_group: 'ERC000025:Organism characteristics: ecosystem'
-      known_pathogenicity:
+      observed_biotic_relationship:
         rank: 3
         slot_group: 'ERC000025:Organism characteristics: ecosystem'
-      relationship_to_oxygen:
+      known_pathogenicity:
         rank: 4
         slot_group: 'ERC000025:Organism characteristics: ecosystem'
-      propagation:
+      relationship_to_oxygen:
         rank: 5
         slot_group: 'ERC000025:Organism characteristics: ecosystem'
-      sample_collection_device:
+      propagation:
         rank: 6
-        slot_group: 'ERC000025:sample collection: methods, storage and transport'
-      sample_collection_method:
+        slot_group: 'ERC000025:Organism characteristics: ecosystem'
+      sample_collection_device:
         rank: 7
         slot_group: 'ERC000025:sample collection: methods, storage and transport'
-      sample_storage_temperature:
+      sample_collection_method:
         rank: 8
         slot_group: 'ERC000025:sample collection: methods, storage and transport'
-      sample_storage_location:
+      sample_storage_temperature:
         rank: 9
         slot_group: 'ERC000025:sample collection: methods, storage and transport'
-      oxygenation_status_of_sample:
+      sample_storage_location:
         rank: 10
-        slot_group: 'ERC000025:sample collection: core sample properties'
-      density:
+        slot_group: 'ERC000025:sample collection: methods, storage and transport'
+      oxygenation_status_of_sample:
         rank: 11
         slot_group: 'ERC000025:sample collection: core sample properties'
-      project_name:
+      density:
         rank: 12
+        slot_group: 'ERC000025:sample collection: core sample properties'
+      project_name:
+        rank: 13
         slot_group: 'ERC000025:non-sample terms: study or project'
       ploidy:
-        rank: 13
-        slot_group: ERC000025:non-sample terms
-      number_of_replicons:
         rank: 14
         slot_group: ERC000025:non-sample terms
-      extrachromosomal_elements:
+      number_of_replicons:
         rank: 15
         slot_group: ERC000025:non-sample terms
-      estimated_size:
+      extrachromosomal_elements:
         rank: 16
         slot_group: ERC000025:non-sample terms
-      target_gene:
+      estimated_size:
         rank: 17
         slot_group: ERC000025:non-sample terms
-      target_subfragment:
+      target_gene:
         rank: 18
         slot_group: ERC000025:non-sample terms
-      multiplex_identifiers:
+      target_subfragment:
         rank: 19
         slot_group: ERC000025:non-sample terms
-      sequence_quality_check:
+      multiplex_identifiers:
         rank: 20
         slot_group: ERC000025:non-sample terms
-      chimera_check_software:
+      sequence_quality_check:
         rank: 21
         slot_group: ERC000025:non-sample terms
-      relevant_electronic_resources:
+      chimera_check_software:
         rank: 22
         slot_group: ERC000025:non-sample terms
-      relevant_standard_operating_procedures:
+      relevant_electronic_resources:
         rank: 23
         slot_group: ERC000025:non-sample terms
-      collection_date:
+      relevant_standard_operating_procedures:
         rank: 24
-        slot_group: ERC000025:Collection event information
-      altitude:
+        slot_group: ERC000025:non-sample terms
+      collection_date:
         rank: 25
         slot_group: ERC000025:Collection event information
-      geographic_location_latitude:
+      altitude:
         rank: 26
         slot_group: ERC000025:Collection event information
-      geographic_location_longitude:
+      geographic_location_latitude:
         rank: 27
         slot_group: ERC000025:Collection event information
-      geographic_location_region_and_locality:
+      geographic_location_longitude:
         rank: 28
         slot_group: ERC000025:Collection event information
-      broadscale_environmental_context:
+      geographic_location_region_and_locality:
         rank: 29
         slot_group: ERC000025:Collection event information
-      local_environmental_context:
+      broadscale_environmental_context:
         rank: 30
         slot_group: ERC000025:Collection event information
-      environmental_medium:
+      local_environmental_context:
         rank: 31
         slot_group: ERC000025:Collection event information
-      elevation:
+      environmental_medium:
         rank: 32
         slot_group: ERC000025:Collection event information
-      amount_or_size_of_sample_collected:
+      elevation:
         rank: 33
-        slot_group: ERC000025:sample collection
-      biomass:
+        slot_group: ERC000025:Collection event information
+      amount_or_size_of_sample_collected:
         rank: 34
         slot_group: ERC000025:sample collection
-      organism_count:
+      biomass:
         rank: 35
         slot_group: ERC000025:sample collection
-      sample_storage_duration:
+      organism_count:
         rank: 36
-        slot_group: ERC000025:Organism characteristics
-      geographic_location_country_andor_sea:
+        slot_group: ERC000025:sample collection
+      sample_storage_duration:
         rank: 37
         slot_group: ERC000025:Organism characteristics
-      host_disease_status:
+      geographic_location_country_andor_sea:
         rank: 38
+        slot_group: ERC000025:Organism characteristics
+      host_disease_status:
+        rank: 39
         slot_group: ERC000025:host disorder
       host_scientific_name:
-        rank: 39
+        rank: 40
         slot_group: ERC000025:host description
       water_current:
-        rank: 40
-        slot_group: ERC000025:local environment conditions
-      pressure:
         rank: 41
         slot_group: ERC000025:local environment conditions
-      temperature:
+      pressure:
         rank: 42
         slot_group: ERC000025:local environment conditions
-      ph:
+      temperature:
         rank: 43
         slot_group: ERC000025:local environment conditions
-      ammonium:
+      ph:
         rank: 44
-        slot_group: ERC000025:concentration measurement
-      bromide:
+        slot_group: ERC000025:local environment conditions
+      ammonium:
         rank: 45
         slot_group: ERC000025:concentration measurement
-      calcium:
+      bromide:
         rank: 46
         slot_group: ERC000025:concentration measurement
-      chloride:
+      calcium:
         rank: 47
         slot_group: ERC000025:concentration measurement
-      chlorophyll:
+      chloride:
         rank: 48
         slot_group: ERC000025:concentration measurement
-      diether_lipids:
+      chlorophyll:
         rank: 49
         slot_group: ERC000025:concentration measurement
-      dissolved_carbon_dioxide:
+      diether_lipids:
         rank: 50
         slot_group: ERC000025:concentration measurement
-      dissolved_hydrogen:
+      dissolved_carbon_dioxide:
         rank: 51
         slot_group: ERC000025:concentration measurement
-      dissolved_inorganic_carbon:
+      dissolved_hydrogen:
         rank: 52
         slot_group: ERC000025:concentration measurement
-      dissolved_organic_nitrogen:
+      dissolved_inorganic_carbon:
         rank: 53
         slot_group: ERC000025:concentration measurement
-      dissolved_oxygen:
+      dissolved_organic_nitrogen:
         rank: 54
         slot_group: ERC000025:concentration measurement
-      nitrate:
+      dissolved_oxygen:
         rank: 55
         slot_group: ERC000025:concentration measurement
-      nitrite:
+      nitrate:
         rank: 56
         slot_group: ERC000025:concentration measurement
-      total_nitrogen_concentration:
+      nitrite:
         rank: 57
         slot_group: ERC000025:concentration measurement
-      organic_carbon:
+      total_nitrogen_concentration:
         rank: 58
         slot_group: ERC000025:concentration measurement
-      organic_matter:
+      organic_carbon:
         rank: 59
         slot_group: ERC000025:concentration measurement
-      organic_nitrogen:
+      organic_matter:
         rank: 60
         slot_group: ERC000025:concentration measurement
-      phosphate:
+      organic_nitrogen:
         rank: 61
         slot_group: ERC000025:concentration measurement
-      phospholipid_fatty_acid:
+      phosphate:
         rank: 62
         slot_group: ERC000025:concentration measurement
-      potassium:
+      phospholipid_fatty_acid:
         rank: 63
         slot_group: ERC000025:concentration measurement
-      salinity:
+      potassium:
         rank: 64
         slot_group: ERC000025:concentration measurement
-      silicate:
+      salinity:
         rank: 65
         slot_group: ERC000025:concentration measurement
-      sodium:
+      silicate:
         rank: 66
         slot_group: ERC000025:concentration measurement
-      sulfate:
+      sodium:
         rank: 67
         slot_group: ERC000025:concentration measurement
-      sulfide:
+      sulfate:
         rank: 68
         slot_group: ERC000025:concentration measurement
-      alkalinity:
+      sulfide:
         rank: 69
         slot_group: ERC000025:concentration measurement
-      source_material_identifiers:
+      alkalinity:
         rank: 70
+        slot_group: ERC000025:concentration measurement
+      source_material_identifiers:
+        rank: 71
         slot_group: ERC000025:Pointer to physical material
       perturbation:
-        rank: 71
+        rank: 72
         slot_group: ERC000025:treatment
       negative_control_type:
-        rank: 72
-        slot_group: ERC000025:experimental factor and block
-      positive_control_type:
         rank: 73
         slot_group: ERC000025:experimental factor and block
-      experimental_factor:
+      positive_control_type:
         rank: 74
         slot_group: ERC000025:experimental factor and block
-      encoded_traits:
+      experimental_factor:
         rank: 75
-        slot_group: 'ERC000025:Organism characteristics: genetic'
-      subspecific_genetic_lineage:
+        slot_group: ERC000025:experimental factor and block
+      encoded_traits:
         rank: 76
         slot_group: 'ERC000025:Organism characteristics: genetic'
-      taxonomic_classification:
+      subspecific_genetic_lineage:
         rank: 77
         slot_group: 'ERC000025:Organism characteristics: genetic'
-      isolation_and_growth_condition:
+      taxonomic_classification:
         rank: 78
-        slot_group: ERC000025:Reference
-      annotation_source:
+        slot_group: 'ERC000025:Organism characteristics: genetic'
+      isolation_and_growth_condition:
         rank: 79
         slot_group: ERC000025:Reference
-      reference_for_biomaterial:
+      annotation_source:
         rank: 80
         slot_group: ERC000025:Reference
-      sample_material_processing:
+      reference_for_biomaterial:
         rank: 81
-        slot_group: ERC000025:sample processing
-      sample_volume_or_weight_for_dna_extraction:
+        slot_group: ERC000025:Reference
+      sample_material_processing:
         rank: 82
         slot_group: ERC000025:sample processing
-      nucleic_acid_extraction:
+      sample_volume_or_weight_for_dna_extraction:
         rank: 83
         slot_group: ERC000025:sample processing
-      nucleic_acid_amplification:
+      nucleic_acid_extraction:
         rank: 84
         slot_group: ERC000025:sample processing
-      library_size:
+      nucleic_acid_amplification:
         rank: 85
         slot_group: ERC000025:sample processing
-      library_reads_sequenced:
+      library_size:
         rank: 86
         slot_group: ERC000025:sample processing
-      library_construction_method:
+      library_reads_sequenced:
         rank: 87
         slot_group: ERC000025:sample processing
-      library_vector:
+      library_construction_method:
         rank: 88
         slot_group: ERC000025:sample processing
-      library_screening_strategy:
+      library_vector:
         rank: 89
         slot_group: ERC000025:sample processing
-      pcr_conditions:
+      library_screening_strategy:
         rank: 90
         slot_group: ERC000025:sample processing
-      pcr_primers:
+      pcr_conditions:
         rank: 91
         slot_group: ERC000025:sample processing
-      adapters:
+      pcr_primers:
         rank: 92
         slot_group: ERC000025:sample processing
-      depth:
+      adapters:
         rank: 93
+        slot_group: ERC000025:sample processing
+      depth:
+        rank: 94
         slot_group: ERC000025:Environmental information
       chemical_administration:
-        rank: 94
-        slot_group: ERC000025:local environment conditions imposed
-      TITLE:
         rank: 95
+        slot_group: ERC000025:local environment conditions imposed
       STUDY_REF:
         rank: 96
       DESIGN_DESCRIPTION:
@@ -561,6 +561,12 @@ classes:
       STUDY_DESCRIPTION:
         rank: 147
 slots:
+  TITLE:
+    name: TITLE
+    description: Short text that can be used to call out experiment records in searches or in displays. This element is technically
+      optional but should be used for all new records.
+    range: string
+    source: SRA.experiment
   trophic_level:
     name: trophic_level
     title: trophic level
@@ -1371,12 +1377,6 @@ slots:
       (v111), please see http://purl.bioontology.org/ontology/CHEBI
     range: string
     source: ERC000025
-  TITLE:
-    name: TITLE
-    description: Short text that can be used to call out experiment records in searches or in displays. This element is technically
-      optional but should be used for all new records.
-    range: string
-    source: SRA.experiment
   STUDY_REF:
     name: STUDY_REF
     description: Identifies the parent study.

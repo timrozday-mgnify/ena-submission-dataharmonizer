@@ -894,6 +894,13 @@ class LinkMLEditor(App):
         """
         return field.get("slot_group") or field.get("source") or ""
 
+    def _renumber_ranks(self) -> None:
+        """Reassign sequential ranks (1, 2, 3, …) based on current rank order."""
+        for new_rank, field in enumerate(
+            sorted(self.fields, key=lambda f: f.get("rank", 0)), start=1
+        ):
+            field["rank"] = new_rank
+
     def _sorted_fields(self) -> list[dict]:
         """Return fields sorted by display group then rank.
 
@@ -2012,6 +2019,17 @@ class LinkMLEditor(App):
     def action_insert_row(self) -> None:
         """Insert a new row."""
         if self.current_view == "fields":
+            # Capture the rank of the currently selected row so the new field
+            # is inserted at that position.
+            insert_rank = None
+            table = self.query_one("#fields-table", DataTable)
+            if table.cursor_row is not None and table.row_count > 0:
+                row_key = self._get_row_key_at(table, table.cursor_row)
+                if row_key:
+                    cur_field = next((f for f in self.fields if f["name"] == row_key), None)
+                    if cur_field:
+                        insert_rank = cur_field.get("rank")
+            self._insert_rank = insert_rank
             slot_groups = list(set(self._get_display_group(f) for f in self.fields if self._get_display_group(f)))
             self.push_screen(NewFieldScreen(slot_groups), self._on_new_field)
         else:
@@ -2022,10 +2040,19 @@ class LinkMLEditor(App):
         """Handle new field creation."""
         if field:
             self._save_state()
-            # Assign rank after all existing fields so it appears at the end.
-            max_rank = max((f.get("rank", 0) for f in self.fields), default=0)
-            field["rank"] = max_rank + 1
+            insert_rank = getattr(self, "_insert_rank", None)
+            if insert_rank is not None:
+                # Shift existing fields at or after the insertion point down.
+                for f in self.fields:
+                    if f.get("rank", 0) >= insert_rank:
+                        f["rank"] = f.get("rank", 0) + 1
+                field["rank"] = insert_rank
+            else:
+                # No cursor context – append after the last field.
+                max_rank = max((f.get("rank", 0) for f in self.fields), default=0)
+                field["rank"] = max_rank + 1
             self.fields.append(field)
+            self._renumber_ranks()
             self.modified = True
             self.refresh_fields_table()
             self.update_status()
@@ -2108,6 +2135,7 @@ class LinkMLEditor(App):
                 self._save_state()
                 deleted_count = len(target_names)
                 self.fields = [f for f in self.fields if f["name"] not in target_names]
+                self._renumber_ranks()
                 self._selected_fields.clear()
                 self._selection_anchor = None
                 self.modified = True
