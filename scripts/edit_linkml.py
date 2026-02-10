@@ -41,6 +41,7 @@ Hotkeys:
 """
 
 import copy
+import logging
 import os
 import re
 import sys
@@ -74,6 +75,42 @@ from textual.widgets import (
     Static,
     TextArea,
 )
+
+
+# ---------------------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------------------
+
+_LOG_NAME = "edit_linkml"
+
+
+def get_logger() -> logging.Logger:
+    """Return the module-level logger.
+
+    Call this from anywhere in the code to obtain the shared logger.
+    If :func:`setup_logging` has not been called, the logger will have no
+    handlers and messages will be silently discarded (the default
+    ``logging`` behaviour for libraries).
+    """
+    return logging.getLogger(_LOG_NAME)
+
+
+def setup_logging(log_path: str) -> None:
+    """Configure file logging for the application.
+
+    Parameters
+    ----------
+    log_path:
+        Filesystem path where log output will be written.
+    """
+    logger = logging.getLogger(_LOG_NAME)
+    logger.setLevel(logging.DEBUG)
+    handler = logging.FileHandler(log_path, encoding="utf-8")
+    handler.setLevel(logging.DEBUG)
+    handler.setFormatter(
+        logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
+    )
+    logger.addHandler(handler)
 
 
 # ---------------------------------------------------------------------------
@@ -2417,7 +2454,16 @@ def main():
         default=None,
         help="Elasticsearch server URL (default: http://localhost:9200)",
     )
+    parser.add_argument(
+        "--log",
+        default=None,
+        metavar="PATH",
+        help="Write log output to PATH",
+    )
     args = parser.parse_args()
+
+    if args.log:
+        setup_logging(args.log)
 
     app = LinkMLEditor(initial_file=args.file, es_url=args.es_url)
     app.run()
