@@ -731,6 +731,8 @@ class LinkMLEditor(App):
         Binding("enter", "edit_cell", "Edit"),
         Binding("[", "rank_up", "Rank Up"),
         Binding("]", "rank_down", "Rank Down"),
+        Binding("{", "rank_top", "Rank Top", show=False),
+        Binding("}", "rank_bottom", "Rank Bottom", show=False),
         Binding("shift+up", "select_extend_up", "Select Up", show=False),
         Binding("shift+down", "select_extend_down", "Select Down", show=False),
         Binding("space", "toggle_select", "Toggle Select", show=False),
@@ -802,7 +804,7 @@ class LinkMLEditor(App):
                     Label("Source", classes="detail-label"),
                     _DetailTextArea(id="detail-attr-source", soft_wrap=True),
                     Label("Rank", classes="detail-label"),
-                    _DetailTextArea(id="detail-attr-rank", soft_wrap=True, disabled=True),
+                    _DetailTextArea(id="detail-attr-rank", soft_wrap=True),
                     Label("Required", classes="detail-label"),
                     _DetailTextArea(id="detail-attr-required", soft_wrap=True),
                     Label("Range", classes="detail-label"),
@@ -1822,6 +1824,62 @@ class LinkMLEditor(App):
         """Move the selected field(s) down (increase rank number)."""
         self._swap_rank(1)
 
+    def _move_rank_to(self, target: str) -> None:
+        """Move selected or cursor field(s) to the top or bottom.
+
+        *target* is ``"top"`` or ``"bottom"``.
+        """
+        if self.current_view != "fields":
+            return
+
+        table = self.query_one("#fields-table", DataTable)
+        if table.cursor_row is None or table.row_count == 0:
+            return
+
+        if self._selected_fields:
+            target_names = set(self._selected_fields)
+        else:
+            row_key = self._get_row_key_at(table, table.cursor_row)
+            if not row_key:
+                return
+            target_names = {row_key}
+
+        target_fields = [f for f in self.fields if f["name"] in target_names]
+        if not target_fields:
+            return
+
+        cursor_key = self._get_row_key_at(table, table.cursor_row)
+        self._save_state()
+
+        if target == "top":
+            # Give target fields ranks below the current minimum so they
+            # sort first, preserving their relative order.
+            target_fields.sort(key=lambda f: f.get("rank", 0))
+            min_rank = min(f.get("rank", 0) for f in self.fields)
+            for i, f in enumerate(target_fields):
+                f["rank"] = min_rank - len(target_fields) + i
+        else:
+            # Give target fields ranks above the current maximum.
+            target_fields.sort(key=lambda f: f.get("rank", 0))
+            max_rank = max(f.get("rank", 0) for f in self.fields)
+            for i, f in enumerate(target_fields):
+                f["rank"] = max_rank + 1 + i
+
+        self._renumber_ranks()
+        self.modified = True
+        self.refresh_fields_table()
+        self.update_status()
+        if cursor_key:
+            self._move_cursor_to_key(table, cursor_key)
+
+    def action_rank_top(self) -> None:
+        """Move the selected field(s) to the top (rank 1)."""
+        self._move_rank_to("top")
+
+    def action_rank_bottom(self) -> None:
+        """Move the selected field(s) to the bottom (last rank)."""
+        self._move_rank_to("bottom")
+
     # ------------------------------------------------------------------
     # Multi-select helpers
     # ------------------------------------------------------------------
@@ -1979,17 +2037,30 @@ class LinkMLEditor(App):
                 new_values[attr] = value.lower() in ("yes", "true", "1")
             elif attr == "rank":
                 try:
-                    new_values[attr] = int(value)
+                    new_values[attr] = max(1, int(value))
                 except ValueError:
-                    new_values[attr] = field.get("rank", 0)
+                    new_values[attr] = field.get("rank", 1)
             else:
                 new_values[attr] = value
         changed = any(field.get(attr) != new_values[attr] for attr, _ in _DETAIL_ATTRS)
         if changed:
             self._save_state()
+            old_rank = field.get("rank", 1)
             for attr, _label in _DETAIL_ATTRS:
                 field[attr] = new_values[attr]
             self._detail_field_name = new_values.get("name", self._detail_field_name)
+            # If the rank was changed, shift other fields to make room and
+            # renumber so that ranks stay sequential with no duplicates.
+            new_rank = new_values.get("rank", old_rank)
+            if new_rank != old_rank:
+                for f in self.fields:
+                    if f is field:
+                        continue
+                    if new_rank <= old_rank and new_rank <= f.get("rank", 0) < old_rank:
+                        f["rank"] = f.get("rank", 0) + 1
+                    elif new_rank > old_rank and old_rank < f.get("rank", 0) <= new_rank:
+                        f["rank"] = f.get("rank", 0) - 1
+                self._renumber_ranks()
             self.modified = True
             self.notify("Field updated")
         self._switch_to_fields_from_detail()
