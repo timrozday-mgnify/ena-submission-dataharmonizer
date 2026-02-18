@@ -1,0 +1,14 @@
+{
+  "duplicates": [
+    {
+      "input_index": 0,
+      "title": "Metagenome assembly of PRJEB73820 data set (Microbiome in pediatric obesity)",
+      "alias": "",
+      "existing_accession": "",
+      "existing_secondary_accession": "PRJEB108451",
+      "match_reason": "title 'Metagenome assembly of PRJEB73820 data set (Microbiome in pediatric obesity)' (private)"
+    }
+  ],
+  "submitted": [],
+  "failed": []
+}

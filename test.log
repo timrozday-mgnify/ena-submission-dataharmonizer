@@ -65,3 +65,18 @@
 2026-02-10 14:56:12,489 [DEBUG] Mouse is not hovering over column 0 (2)
 2026-02-10 14:56:13,248 [DEBUG] Click registered!
 2026-02-10 14:56:13,248 [DEBUG] Mouse is not hovering over column 0 (2)
+2026-02-18 13:49:36 [INFO] ENA Study Submission — environment: TEST
+2026-02-18 13:49:36 [INFO] Loading input JSON: /Users/timrozday/Downloads/mimicc_study.json
+2026-02-18 13:49:36 [INFO] Extracted studies from Container.SRA_studys
+2026-02-18 13:49:36 [INFO] Loaded 1 study/studies from input
+2026-02-18 13:49:36 [INFO] Fetching existing studies from ENA account...
+2026-02-18 13:49:50 [INFO] ENA Study Submission — environment: TEST
+2026-02-18 13:49:50 [INFO] Loading input JSON: /Users/timrozday/Downloads/mimicc_study.json
+2026-02-18 13:49:50 [INFO] Extracted studies from Container.SRA_studys
+2026-02-18 13:49:50 [INFO] Loaded 1 study/studies from input
+2026-02-18 13:49:50 [INFO] Fetching existing studies from ENA account...
+2026-02-18 13:49:53 [INFO] ENA Study Submission — environment: TEST
+2026-02-18 13:49:53 [INFO] Loading input JSON: /Users/timrozday/Downloads/mimicc_study.json
+2026-02-18 13:49:53 [INFO] Extracted studies from Container.SRA_studys
+2026-02-18 13:49:53 [INFO] Loaded 1 study/studies from input
+2026-02-18 13:49:53 [INFO] Fetching existing studies from ENA account...

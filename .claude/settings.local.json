@@ -30,7 +30,12 @@
       "Bash(/Users/timrozday/miniforge3/bin/mamba:*)",
       "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-test/bin/python -m pytest:*)",
       "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/python -m pytest:*)",
-      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/python:*)"
+      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/python:*)",
+      "WebFetch(domain:ena-docs.readthedocs.io)",
+      "WebFetch(domain:www.ebi.ac.uk)",
+      "WebFetch(domain:biodiversitydata-se.github.io)",
+      "WebFetch(domain:nbisweden.github.io)",
+      "WebFetch(domain:sib-swiss.github.io)"
     ]
   }
 }

@@ -24,6 +24,7 @@ classes:
       from a relevant subsets of the GSC terms.
     is_a: dh_interface
     slots:
+    - TITLE
     - sample_collection_device
     - sample_collection_method
     - sample_storage_temperature
@@ -56,7 +57,6 @@ classes:
     - pcr_primers
     - adapters
     - chemical_administration
-    - TITLE
     - STUDY_REF
     - DESIGN_DESCRIPTION
     - member_name
@@ -109,104 +109,104 @@ classes:
     - STUDY_DESCRIPTION
     - Sample name
     slot_usage:
-      sample_collection_device:
+      TITLE:
         rank: 1
-        slot_group: 'ERC000025:sample collection: methods, storage and transport'
-      sample_collection_method:
+      sample_collection_device:
         rank: 2
         slot_group: 'ERC000025:sample collection: methods, storage and transport'
-      sample_storage_temperature:
+      sample_collection_method:
         rank: 3
         slot_group: 'ERC000025:sample collection: methods, storage and transport'
-      sample_storage_location:
+      sample_storage_temperature:
         rank: 4
         slot_group: 'ERC000025:sample collection: methods, storage and transport'
-      project_name:
+      sample_storage_location:
         rank: 5
+        slot_group: 'ERC000025:sample collection: methods, storage and transport'
+      project_name:
+        rank: 6
         slot_group: 'ERC000025:non-sample terms: study or project'
       collection_date:
-        rank: 6
-        slot_group: ERC000025:Collection event information
-      geographic_location_latitude:
         rank: 7
         slot_group: ERC000025:Collection event information
-      geographic_location_longitude:
+      geographic_location_latitude:
         rank: 8
         slot_group: ERC000025:Collection event information
-      geographic_location_region_and_locality:
+      geographic_location_longitude:
         rank: 9
         slot_group: ERC000025:Collection event information
-      broadscale_environmental_context:
+      geographic_location_region_and_locality:
         rank: 10
         slot_group: ERC000025:Collection event information
-      local_environmental_context:
+      broadscale_environmental_context:
         rank: 11
         slot_group: ERC000025:Collection event information
-      environmental_medium:
+      local_environmental_context:
         rank: 12
         slot_group: ERC000025:Collection event information
-      amount_or_size_of_sample_collected:
+      environmental_medium:
         rank: 13
+        slot_group: ERC000025:Collection event information
+      amount_or_size_of_sample_collected:
+        rank: 14
         slot_group: ERC000025:sample collection
       sample_storage_duration:
-        rank: 14
-        slot_group: ERC000025:Organism characteristics
-      geographic_location_country_andor_sea:
         rank: 15
         slot_group: ERC000025:Organism characteristics
-      temperature:
+      geographic_location_country_andor_sea:
         rank: 16
-        slot_group: ERC000025:local environment conditions
-      ph:
+        slot_group: ERC000025:Organism characteristics
+      temperature:
         rank: 17
         slot_group: ERC000025:local environment conditions
-      source_material_identifiers:
+      ph:
         rank: 18
+        slot_group: ERC000025:local environment conditions
+      source_material_identifiers:
+        rank: 19
         slot_group: ERC000025:Pointer to physical material
       isolation_and_growth_condition:
-        rank: 19
+        rank: 20
         slot_group: ERC000025:Reference
       sample_material_processing:
-        rank: 20
-        slot_group: ERC000025:sample processing
-      sample_volume_or_weight_for_dna_extraction:
         rank: 21
         slot_group: ERC000025:sample processing
-      nucleic_acid_extraction:
+      sample_volume_or_weight_for_dna_extraction:
         rank: 22
         slot_group: ERC000025:sample processing
-      nucleic_acid_amplification:
+      nucleic_acid_extraction:
         rank: 23
         slot_group: ERC000025:sample processing
-      library_size:
+      nucleic_acid_amplification:
         rank: 24
         slot_group: ERC000025:sample processing
-      library_reads_sequenced:
+      library_size:
         rank: 25
         slot_group: ERC000025:sample processing
-      library_construction_method:
+      library_reads_sequenced:
         rank: 26
         slot_group: ERC000025:sample processing
-      library_vector:
+      library_construction_method:
         rank: 27
         slot_group: ERC000025:sample processing
-      library_screening_strategy:
+      library_vector:
         rank: 28
         slot_group: ERC000025:sample processing
-      pcr_conditions:
+      library_screening_strategy:
         rank: 29
         slot_group: ERC000025:sample processing
-      pcr_primers:
+      pcr_conditions:
         rank: 30
         slot_group: ERC000025:sample processing
-      adapters:
+      pcr_primers:
         rank: 31
         slot_group: ERC000025:sample processing
-      chemical_administration:
+      adapters:
         rank: 32
-        slot_group: ERC000025:local environment conditions imposed
-      TITLE:
+        slot_group: ERC000025:sample processing
+      chemical_administration:
         rank: 33
+        slot_group: ERC000025:local environment conditions imposed
       STUDY_REF:
         rank: 34
       DESIGN_DESCRIPTION:
@@ -310,6 +310,12 @@ classes:
       Sample name:
         rank: 84
 slots:
+  TITLE:
+    name: TITLE
+    description: Short text that can be used to call out experiment records in searches or in displays. This element is technically
+      optional but should be used for all new records.
+    range: string
+    source: SRA.experiment
   sample_collection_device:
     name: sample_collection_device
     title: sample collection device
@@ -583,12 +589,6 @@ slots:
       (v111), please see http://purl.bioontology.org/ontology/CHEBI
     range: string
     source: ERC000025
-  TITLE:
-    name: TITLE
-    description: Short text that can be used to call out experiment records in searches or in displays. This element is technically
-      optional but should be used for all new records.
-    range: string
-    source: SRA.experiment
   STUDY_REF:
     name: STUDY_REF
     description: Identifies the parent study.
