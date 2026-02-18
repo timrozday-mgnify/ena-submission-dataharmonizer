@@ -16012,3 +16012,312 @@
 2026-02-18 14:58:40 [WARNING]   DUPLICATE: 'Metagenome assembly of PRJEB73820 data set (Microbiome in pediatric obesity)' matches existing title 'Metagenome assembly of PRJEB73820 data set (Microbiome in pediatric obesity)' (private) (accession: )
 2026-02-18 14:58:40 [INFO] No new studies to submit (all are duplicates or input is empty)
 2026-02-18 14:58:40 [INFO] Results written to study_submit_test.out
+2026-02-18 15:00:58 [INFO] ENA Study Submission — environment: TEST
+2026-02-18 15:00:58 [DEBUG] Auth: <requests.auth.HTTPBasicAuth object at 0x100fa8510>
+2026-02-18 15:00:58 [INFO] Loading input JSON: assets/test-fixtures/mimicc_study.json
+2026-02-18 15:00:58 [INFO] Extracted studies from Container.SRA_studys
+2026-02-18 15:00:58 [INFO] Loaded 1 study/studies from input
+2026-02-18 15:00:58 [INFO] Fetching private studies from Webin account...
+2026-02-18 15:00:58 [INFO] Fetching private studies from: https://wwwdev.ebi.ac.uk/ena/submit/report/studies
+2026-02-18 15:00:58 [DEBUG] curl -u Webin-460:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/studies?status=PRIVATE&format=json&max-results=1000&skip=0"
+2026-02-18 15:00:58 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/studies returned 200
+2026-02-18 15:00:58 [INFO] Found 9 total studies, 9 with PRIVATE status
+2026-02-18 15:00:58 [INFO]   Private:  | alias=PRJEB73820_assembly | title=Metagenome assembly of PRJEB73820 data set (Microbiome in pediatric obesity)
+2026-02-18 15:00:58 [INFO]   Private:  | alias=PRJNA1022580_assembly | title=Metagenome assembly of PRJNA1022580 data set (16S, OmeSeq-qRRS, and shotgun sequencing of maize rhizosphere)
+2026-02-18 15:00:58 [INFO]   Private:  | alias=PRJEB44309_assembly | title=Metagenome assembly of PRJEB44309 data set (Soil metagenome from Drought-Net experiment plots in Western Australia)
+2026-02-18 15:00:58 [INFO]   Private:  | alias=PRJEB44678_assembly | title=Metagenome assembly of PRJEB44678 data set (16S rRNA, metagenomic, and metatranscriptomic analysis of the human hard palate following death)
+2026-02-18 15:00:58 [INFO]   Private:  | alias=PRJEB5860_assembly | title=Metagenome assembly of PRJEB5860 data set (Structure and functions of the bacterial root microbiota in wild and domesticated barley and signatures of positive selection in the rhizosphere metagenome)
+2026-02-18 15:00:58 [INFO]   Private:  | alias=PRJEB62577_assembly | title=Metagenome assembly of PRJEB62577 data set (Saliva microbiome in SARS-CoV-2 infection)
+2026-02-18 15:00:58 [INFO]   Private:  | alias=PRJNA1010809_assembly | title=Metagenome assembly of PRJNA1010809 data set (Role of P. gingivalis in microbial diversity and composition of dental plaque)
+2026-02-18 15:00:58 [INFO]   Private:  | alias=PRJNA692099_assembly | title=Metagenome assembly of PRJNA692099 data set (Metabolic potential from sediment samples of Mariana Trench)
+2026-02-18 15:00:58 [INFO]   Private:  | alias=PRJEB41171_assembly | title=Metagenome assembly of PRJEB41171 data set (A Peek into the Plasmidome of Global Sewage)
+2026-02-18 15:00:58 [INFO] Checking for duplicate studies...
+2026-02-18 15:00:58 [INFO] Phase 1: Checking for public duplicates via ENA Portal API...
+2026-02-18 15:00:58 [INFO] Querying ENA Portal API for: MIMICC
+2026-02-18 15:00:58 [DEBUG] curl -u Webin-460:*** "https://www.ebi.ac.uk/ena/portal/api/search?result=study&query=study_title%3D%22MIMICC%22&fields=study_accession%2Csecondary_study_accession%2Cstudy_title%2Cstudy_alias&format=json&limit=10"
+2026-02-18 15:00:59 [DEBUG] ENA Portal API returned 200
+2026-02-18 15:00:59 [INFO]   No existing study found
+2026-02-18 15:00:59 [INFO] Phase 2: Checking 9 private studies for remaining 1 unmatched studies...
+2026-02-18 15:00:59 [INFO] 1 study/studies to submit after duplicate check
+2026-02-18 15:00:59 [INFO] Loading LinkML schema: schemas/SRA_study.yaml
+2026-02-18 15:00:59 [INFO] Validating input against LinkML schema...
+2026-02-18 15:00:59 [INFO]   LinkML schema defines 9 slots: IS_PRIMARY, STUDY_TITLE, existing_study_type, new_study_type, STUDY_ABSTRACT, CENTER_NAME, CENTER_PROJECT_NAME, PROJECT_ID, STUDY_DESCRIPTION
+2026-02-18 15:00:59 [INFO]   Required slots: IS_PRIMARY, STUDY_TITLE, existing_study_type
+2026-02-18 15:00:59 [INFO]   
+--- Validating study: MIMICC ---
+2026-02-18 15:00:59 [INFO]     OK: Required field 'STUDY_TITLE' = 'MIMICC'
+2026-02-18 15:00:59 [INFO]     OK: Required field 'IS_PRIMARY' = 'YES'
+2026-02-18 15:00:59 [INFO]     OK: Required field 'existing_study_type' = 'Metagenomics'
+2026-02-18 15:00:59 [INFO]     OK: Field 'IS_PRIMARY' = 'YES' (boolean)
+2026-02-18 15:00:59 [INFO]     OK: Field 'STUDY_TITLE' = 'MIMICC' (string)
+2026-02-18 15:00:59 [INFO]     OK: Field 'existing_study_type' = 'Metagenomics' (valid enum)
+2026-02-18 15:00:59 [INFO] LinkML validation PASSED
+2026-02-18 15:00:59 [INFO] Building XML submission document...
+2026-02-18 15:00:59 [DEBUG] Generated XML:
+<?xml version='1.0' encoding='UTF-8'?>
+<WEBIN><SUBMISSION_SET><SUBMISSION alias="study-submission-20260218-150059"><ACTIONS><ACTION><ADD /></ACTION><ACTION><HOLD HoldUntilDate="2030-01-01" /></ACTION></ACTIONS></SUBMISSION></SUBMISSION_SET><PROJECT_SET><PROJECT alias="MIMICC"><NAME>MIMICC</NAME><TITLE>MIMICC</TITLE><SUBMISSION_PROJECT><SEQUENCING_PROJECT /></SUBMISSION_PROJECT><PROJECT_ATTRIBUTES><PROJECT_ATTRIBUTE><TAG>existing_study_type</TAG><VALUE>Metagenomics</VALUE></PROJECT_ATTRIBUTE></PROJECT_ATTRIBUTES></PROJECT></PROJECT_SET></WEBIN>
+2026-02-18 15:00:59 [INFO] XML document size: 549 bytes
+2026-02-18 15:00:59 [INFO] Validating XML against XSD: assets/ena_schema/SRA.study.xsd
+2026-02-18 15:00:59 [INFO]   WARNING: Could not build XSD schema (missing imports?): complex type 'StudyType', attribute 'base': The QName value '{SRA.common}ObjectType' does not resolve to a(n) simple type definition., line 16. Falling back to basic XML well-formedness check.
+2026-02-18 15:00:59 [INFO]   XML is well-formed (basic check passed)
+2026-02-18 15:00:59 [INFO]   OK: PROJECT 'MIMICC' has required elements
+2026-02-18 15:00:59 [INFO] XSD validation PASSED
+2026-02-18 15:00:59 [INFO] DRY RUN — skipping actual submission
+2026-02-18 15:00:59 [INFO] Generated XML:
+<?xml version='1.0' encoding='UTF-8'?>
+<WEBIN><SUBMISSION_SET><SUBMISSION alias="study-submission-20260218-150059"><ACTIONS><ACTION><ADD /></ACTION><ACTION><HOLD HoldUntilDate="2030-01-01" /></ACTION></ACTIONS></SUBMISSION></SUBMISSION_SET><PROJECT_SET><PROJECT alias="MIMICC"><NAME>MIMICC</NAME><TITLE>MIMICC</TITLE><SUBMISSION_PROJECT><SEQUENCING_PROJECT /></SUBMISSION_PROJECT><PROJECT_ATTRIBUTES><PROJECT_ATTRIBUTE><TAG>existing_study_type</TAG><VALUE>Metagenomics</VALUE></PROJECT_ATTRIBUTE></PROJECT_ATTRIBUTES></PROJECT></PROJECT_SET></WEBIN>
+2026-02-18 15:00:59 [INFO] Results written to study_submit_test.out
+2026-02-18 15:08:04 [INFO] ENA Study Submission — environment: TEST
+2026-02-18 15:08:04 [DEBUG] Auth: <requests.auth.HTTPBasicAuth object at 0x1019074d0>
+2026-02-18 15:08:04 [INFO] Loading input JSON: assets/test-fixtures/mimicc_study.json
+2026-02-18 15:08:04 [INFO] Extracted studies from Container.SRA_studys
+2026-02-18 15:08:04 [INFO] Loaded 1 study/studies from input
+2026-02-18 15:08:04 [INFO] Fetching private studies from Webin account...
+2026-02-18 15:08:04 [INFO] Fetching private studies from: https://wwwdev.ebi.ac.uk/ena/submit/report/studies
+2026-02-18 15:08:04 [DEBUG] curl -u Webin-460:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/studies?status=PRIVATE&format=json&max-results=1000&skip=0"
+2026-02-18 15:08:05 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/studies returned 200
+2026-02-18 15:08:05 [INFO] Found 9 total studies, 9 with PRIVATE status
+2026-02-18 15:08:05 [INFO]   Private:  | alias=PRJEB73820_assembly | title=Metagenome assembly of PRJEB73820 data set (Microbiome in pediatric obesity)
+2026-02-18 15:08:05 [INFO]   Private:  | alias=PRJNA1022580_assembly | title=Metagenome assembly of PRJNA1022580 data set (16S, OmeSeq-qRRS, and shotgun sequencing of maize rhizosphere)
+2026-02-18 15:08:05 [INFO]   Private:  | alias=PRJEB44309_assembly | title=Metagenome assembly of PRJEB44309 data set (Soil metagenome from Drought-Net experiment plots in Western Australia)
+2026-02-18 15:08:05 [INFO]   Private:  | alias=PRJEB44678_assembly | title=Metagenome assembly of PRJEB44678 data set (16S rRNA, metagenomic, and metatranscriptomic analysis of the human hard palate following death)
+2026-02-18 15:08:05 [INFO]   Private:  | alias=PRJEB5860_assembly | title=Metagenome assembly of PRJEB5860 data set (Structure and functions of the bacterial root microbiota in wild and domesticated barley and signatures of positive selection in the rhizosphere metagenome)
+2026-02-18 15:08:05 [INFO]   Private:  | alias=PRJEB62577_assembly | title=Metagenome assembly of PRJEB62577 data set (Saliva microbiome in SARS-CoV-2 infection)
+2026-02-18 15:08:05 [INFO]   Private:  | alias=PRJNA1010809_assembly | title=Metagenome assembly of PRJNA1010809 data set (Role of P. gingivalis in microbial diversity and composition of dental plaque)
+2026-02-18 15:08:05 [INFO]   Private:  | alias=PRJNA692099_assembly | title=Metagenome assembly of PRJNA692099 data set (Metabolic potential from sediment samples of Mariana Trench)
+2026-02-18 15:08:05 [INFO]   Private:  | alias=PRJEB41171_assembly | title=Metagenome assembly of PRJEB41171 data set (A Peek into the Plasmidome of Global Sewage)
+2026-02-18 15:08:05 [INFO] Checking for duplicate studies...
+2026-02-18 15:08:05 [INFO] Phase 1: Checking for public duplicates via ENA Portal API...
+2026-02-18 15:08:05 [INFO] Querying ENA Portal API for: MIMICC
+2026-02-18 15:08:05 [DEBUG] curl -u Webin-460:*** "https://www.ebi.ac.uk/ena/portal/api/search?result=study&query=study_title%3D%22MIMICC%22&fields=study_accession%2Csecondary_study_accession%2Cstudy_title%2Cstudy_alias&format=json&limit=10"
+2026-02-18 15:08:05 [DEBUG] ENA Portal API returned 200
+2026-02-18 15:08:05 [INFO]   No existing study found
+2026-02-18 15:08:05 [INFO] Phase 2: Checking 9 private studies for remaining 1 unmatched studies...
+2026-02-18 15:08:05 [INFO] 1 study/studies to submit after duplicate check
+2026-02-18 15:08:05 [INFO] Loading LinkML schema: schemas/SRA_study.yaml
+2026-02-18 15:08:05 [INFO] Validating input against LinkML schema...
+2026-02-18 15:08:05 [INFO]   LinkML schema defines 9 slots: IS_PRIMARY, STUDY_TITLE, existing_study_type, new_study_type, STUDY_ABSTRACT, CENTER_NAME, CENTER_PROJECT_NAME, PROJECT_ID, STUDY_DESCRIPTION
+2026-02-18 15:08:05 [INFO]   Required slots: IS_PRIMARY, STUDY_TITLE, existing_study_type
+2026-02-18 15:08:05 [INFO]   
+--- Validating study: MIMICC ---
+2026-02-18 15:08:05 [INFO]     OK: Required field 'existing_study_type' = 'Metagenomics'
+2026-02-18 15:08:05 [INFO]     OK: Required field 'STUDY_TITLE' = 'MIMICC'
+2026-02-18 15:08:05 [INFO]     OK: Required field 'IS_PRIMARY' = 'YES'
+2026-02-18 15:08:05 [INFO]     OK: Field 'IS_PRIMARY' = 'YES' (boolean)
+2026-02-18 15:08:05 [INFO]     OK: Field 'STUDY_TITLE' = 'MIMICC' (string)
+2026-02-18 15:08:05 [INFO]     OK: Field 'existing_study_type' = 'Metagenomics' (valid enum)
+2026-02-18 15:08:05 [INFO] LinkML validation PASSED
+2026-02-18 15:08:05 [INFO] Building XML submission document...
+2026-02-18 15:08:05 [DEBUG] Generated XML:
+<?xml version='1.0' encoding='UTF-8'?>
+<WEBIN><SUBMISSION_SET><SUBMISSION alias="study-submission-20260218-150805"><ACTIONS><ACTION><ADD /></ACTION><ACTION><HOLD HoldUntilDate="2030-01-01" /></ACTION></ACTIONS></SUBMISSION></SUBMISSION_SET><PROJECT_SET><PROJECT alias="MIMICC"><NAME>MIMICC</NAME><TITLE>MIMICC</TITLE><SUBMISSION_PROJECT><SEQUENCING_PROJECT /></SUBMISSION_PROJECT><PROJECT_ATTRIBUTES><PROJECT_ATTRIBUTE><TAG>existing_study_type</TAG><VALUE>Metagenomics</VALUE></PROJECT_ATTRIBUTE></PROJECT_ATTRIBUTES></PROJECT></PROJECT_SET></WEBIN>
+2026-02-18 15:08:05 [INFO] XML document size: 549 bytes
+2026-02-18 15:08:05 [INFO] Validating XML against XSD: assets/ena_schema
+2026-02-18 15:08:05 [INFO]   XSD validation passed (lxml)
+2026-02-18 15:08:05 [INFO] XSD validation PASSED
+2026-02-18 15:08:05 [INFO] Submitting to ENA (TEST)...
+2026-02-18 15:08:05 [INFO]   Receipt: INFO: All objects in this submission are set to private status (HOLD).
+2026-02-18 15:08:05 [INFO]   Receipt: INFO: This submission is a TEST submission and will be discarded within 24 hours
+2026-02-18 15:08:05 [INFO]   Receipt: ERROR: HOLD date must be no more than 2 years in the future.
+2026-02-18 15:08:05 [ERROR] Submission FAILED
+2026-02-18 15:08:05 [ERROR] Receipt XML: <RECEIPT receiptDate="2026-02-18T15:08:05.649Z" submissionFile="submission-EBI-EMG_1771427285649.xml" success="false">
+     <PROJECT alias="MIMICC" status="PRIVATE" holdUntilDate="2030-01-01Z" />
+     <SUBMISSION alias="study-submission-20260218-150805" />
+     <MESSAGES>
+          <ERROR>HOLD date must be no more than 2 years in the future.</ERROR>
+          <INFO>All objects in this submission are set to private status (HOLD).</INFO>
+          <INFO>This submission is a TEST submission and will be discarded within 24 hours</INFO>
+     </MESSAGES>
+     <ACTIONS>ADD</ACTIONS>
+     <ACTIONS>HOLD</ACTIONS>
+</RECEIPT>
+2026-02-18 15:08:34 [INFO] ENA Study Submission — environment: TEST
+2026-02-18 15:08:34 [DEBUG] Auth: <requests.auth.HTTPBasicAuth object at 0x103ecf4d0>
+2026-02-18 15:08:34 [INFO] Loading input JSON: assets/test-fixtures/mimicc_study.json
+2026-02-18 15:08:34 [INFO] Extracted studies from Container.SRA_studys
+2026-02-18 15:08:34 [INFO] Loaded 1 study/studies from input
+2026-02-18 15:08:34 [INFO] Fetching private studies from Webin account...
+2026-02-18 15:08:34 [INFO] Fetching private studies from: https://wwwdev.ebi.ac.uk/ena/submit/report/studies
+2026-02-18 15:08:34 [DEBUG] curl -u Webin-460:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/studies?status=PRIVATE&format=json&max-results=1000&skip=0"
+2026-02-18 15:08:34 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/studies returned 200
+2026-02-18 15:08:34 [INFO] Found 9 total studies, 9 with PRIVATE status
+2026-02-18 15:08:34 [INFO]   Private:  | alias=PRJEB73820_assembly | title=Metagenome assembly of PRJEB73820 data set (Microbiome in pediatric obesity)
+2026-02-18 15:08:34 [INFO]   Private:  | alias=PRJNA1022580_assembly | title=Metagenome assembly of PRJNA1022580 data set (16S, OmeSeq-qRRS, and shotgun sequencing of maize rhizosphere)
+2026-02-18 15:08:34 [INFO]   Private:  | alias=PRJEB44309_assembly | title=Metagenome assembly of PRJEB44309 data set (Soil metagenome from Drought-Net experiment plots in Western Australia)
+2026-02-18 15:08:34 [INFO]   Private:  | alias=PRJEB44678_assembly | title=Metagenome assembly of PRJEB44678 data set (16S rRNA, metagenomic, and metatranscriptomic analysis of the human hard palate following death)
+2026-02-18 15:08:34 [INFO]   Private:  | alias=PRJEB5860_assembly | title=Metagenome assembly of PRJEB5860 data set (Structure and functions of the bacterial root microbiota in wild and domesticated barley and signatures of positive selection in the rhizosphere metagenome)
+2026-02-18 15:08:34 [INFO]   Private:  | alias=PRJEB62577_assembly | title=Metagenome assembly of PRJEB62577 data set (Saliva microbiome in SARS-CoV-2 infection)
+2026-02-18 15:08:34 [INFO]   Private:  | alias=PRJNA1010809_assembly | title=Metagenome assembly of PRJNA1010809 data set (Role of P. gingivalis in microbial diversity and composition of dental plaque)
+2026-02-18 15:08:34 [INFO]   Private:  | alias=PRJNA692099_assembly | title=Metagenome assembly of PRJNA692099 data set (Metabolic potential from sediment samples of Mariana Trench)
+2026-02-18 15:08:34 [INFO]   Private:  | alias=PRJEB41171_assembly | title=Metagenome assembly of PRJEB41171 data set (A Peek into the Plasmidome of Global Sewage)
+2026-02-18 15:08:34 [INFO] Checking for duplicate studies...
+2026-02-18 15:08:34 [INFO] Phase 1: Checking for public duplicates via ENA Portal API...
+2026-02-18 15:08:34 [INFO] Querying ENA Portal API for: MIMICC
+2026-02-18 15:08:34 [DEBUG] curl -u Webin-460:*** "https://www.ebi.ac.uk/ena/portal/api/search?result=study&query=study_title%3D%22MIMICC%22&fields=study_accession%2Csecondary_study_accession%2Cstudy_title%2Cstudy_alias&format=json&limit=10"
+2026-02-18 15:08:34 [DEBUG] ENA Portal API returned 200
+2026-02-18 15:08:34 [INFO]   No existing study found
+2026-02-18 15:08:34 [INFO] Phase 2: Checking 9 private studies for remaining 1 unmatched studies...
+2026-02-18 15:08:34 [INFO] 1 study/studies to submit after duplicate check
+2026-02-18 15:08:34 [INFO] Loading LinkML schema: schemas/SRA_study.yaml
+2026-02-18 15:08:34 [INFO] Validating input against LinkML schema...
+2026-02-18 15:08:34 [INFO]   LinkML schema defines 9 slots: IS_PRIMARY, STUDY_TITLE, existing_study_type, new_study_type, STUDY_ABSTRACT, CENTER_NAME, CENTER_PROJECT_NAME, PROJECT_ID, STUDY_DESCRIPTION
+2026-02-18 15:08:34 [INFO]   Required slots: IS_PRIMARY, STUDY_TITLE, existing_study_type
+2026-02-18 15:08:34 [INFO]   
+--- Validating study: MIMICC ---
+2026-02-18 15:08:34 [INFO]     OK: Required field 'STUDY_TITLE' = 'MIMICC'
+2026-02-18 15:08:34 [INFO]     OK: Required field 'IS_PRIMARY' = 'YES'
+2026-02-18 15:08:34 [INFO]     OK: Required field 'existing_study_type' = 'Metagenomics'
+2026-02-18 15:08:34 [INFO]     OK: Field 'IS_PRIMARY' = 'YES' (boolean)
+2026-02-18 15:08:34 [INFO]     OK: Field 'STUDY_TITLE' = 'MIMICC' (string)
+2026-02-18 15:08:34 [INFO]     OK: Field 'existing_study_type' = 'Metagenomics' (valid enum)
+2026-02-18 15:08:34 [INFO] LinkML validation PASSED
+2026-02-18 15:08:34 [INFO] Building XML submission document...
+2026-02-18 15:08:34 [DEBUG] Generated XML:
+<?xml version='1.0' encoding='UTF-8'?>
+<WEBIN><SUBMISSION_SET><SUBMISSION alias="study-submission-20260218-150834"><ACTIONS><ACTION><ADD /></ACTION><ACTION><HOLD HoldUntilDate="2027-01-01" /></ACTION></ACTIONS></SUBMISSION></SUBMISSION_SET><PROJECT_SET><PROJECT alias="MIMICC"><NAME>MIMICC</NAME><TITLE>MIMICC</TITLE><SUBMISSION_PROJECT><SEQUENCING_PROJECT /></SUBMISSION_PROJECT><PROJECT_ATTRIBUTES><PROJECT_ATTRIBUTE><TAG>existing_study_type</TAG><VALUE>Metagenomics</VALUE></PROJECT_ATTRIBUTE></PROJECT_ATTRIBUTES></PROJECT></PROJECT_SET></WEBIN>
+2026-02-18 15:08:34 [INFO] XML document size: 549 bytes
+2026-02-18 15:08:34 [INFO] Validating XML against XSD: assets/ena_schema
+2026-02-18 15:08:34 [INFO]   XSD validation passed (lxml)
+2026-02-18 15:08:34 [INFO] XSD validation PASSED
+2026-02-18 15:08:34 [INFO] Submitting to ENA (TEST)...
+2026-02-18 15:08:34 [INFO]   Receipt: INFO: All objects in this submission are set to private status (HOLD).
+2026-02-18 15:08:34 [INFO]   Receipt: INFO: This submission is a TEST submission and will be discarded within 24 hours
+2026-02-18 15:08:34 [INFO] Submission SUCCESSFUL
+2026-02-18 15:08:34 [INFO]   SUBMITTED: alias=MIMICC accession=PRJEB108467 status=PRIVATE (study: ERP189300)
+2026-02-18 15:08:34 [INFO] Results written to study_submit_test.out
+2026-02-18 15:08:34 [INFO] ============================================================
+2026-02-18 15:08:34 [INFO] SUBMISSION SUMMARY
+2026-02-18 15:08:34 [INFO]   Duplicates (already in ENA): 0
+2026-02-18 15:08:34 [INFO]   Newly submitted: 1
+2026-02-18 15:08:34 [INFO]     MIMICC -> PRJEB108467 (ERP189300)
+2026-02-18 15:08:34 [INFO] ============================================================
+2026-02-18 15:08:43 [INFO] ENA Study Submission — environment: TEST
+2026-02-18 15:08:43 [DEBUG] Auth: <requests.auth.HTTPBasicAuth object at 0x1006f4850>
+2026-02-18 15:08:43 [INFO] Loading input JSON: assets/test-fixtures/mimicc_study.json
+2026-02-18 15:08:43 [INFO] Extracted studies from Container.SRA_studys
+2026-02-18 15:08:43 [INFO] Loaded 1 study/studies from input
+2026-02-18 15:08:43 [INFO] Fetching private studies from Webin account...
+2026-02-18 15:08:43 [INFO] Fetching private studies from: https://wwwdev.ebi.ac.uk/ena/submit/report/studies
+2026-02-18 15:08:43 [DEBUG] curl -u Webin-460:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/studies?status=PRIVATE&format=json&max-results=1000&skip=0"
+2026-02-18 15:08:43 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/studies returned 200
+2026-02-18 15:08:43 [INFO] Found 10 total studies, 10 with PRIVATE status
+2026-02-18 15:08:43 [INFO]   Private:  | alias=MIMICC | title=MIMICC
+2026-02-18 15:08:43 [INFO]   Private:  | alias=PRJEB73820_assembly | title=Metagenome assembly of PRJEB73820 data set (Microbiome in pediatric obesity)
+2026-02-18 15:08:43 [INFO]   Private:  | alias=PRJNA1022580_assembly | title=Metagenome assembly of PRJNA1022580 data set (16S, OmeSeq-qRRS, and shotgun sequencing of maize rhizosphere)
+2026-02-18 15:08:43 [INFO]   Private:  | alias=PRJEB44309_assembly | title=Metagenome assembly of PRJEB44309 data set (Soil metagenome from Drought-Net experiment plots in Western Australia)
+2026-02-18 15:08:43 [INFO]   Private:  | alias=PRJEB44678_assembly | title=Metagenome assembly of PRJEB44678 data set (16S rRNA, metagenomic, and metatranscriptomic analysis of the human hard palate following death)
+2026-02-18 15:08:43 [INFO]   Private:  | alias=PRJEB5860_assembly | title=Metagenome assembly of PRJEB5860 data set (Structure and functions of the bacterial root microbiota in wild and domesticated barley and signatures of positive selection in the rhizosphere metagenome)
+2026-02-18 15:08:43 [INFO]   Private:  | alias=PRJEB62577_assembly | title=Metagenome assembly of PRJEB62577 data set (Saliva microbiome in SARS-CoV-2 infection)
+2026-02-18 15:08:43 [INFO]   Private:  | alias=PRJNA1010809_assembly | title=Metagenome assembly of PRJNA1010809 data set (Role of P. gingivalis in microbial diversity and composition of dental plaque)
+2026-02-18 15:08:43 [INFO]   Private:  | alias=PRJNA692099_assembly | title=Metagenome assembly of PRJNA692099 data set (Metabolic potential from sediment samples of Mariana Trench)
+2026-02-18 15:08:43 [INFO]   Private:  | alias=PRJEB41171_assembly | title=Metagenome assembly of PRJEB41171 data set (A Peek into the Plasmidome of Global Sewage)
+2026-02-18 15:08:43 [INFO] Checking for duplicate studies...
+2026-02-18 15:08:43 [INFO] Phase 1: Checking for public duplicates via ENA Portal API...
+2026-02-18 15:08:43 [INFO] Querying ENA Portal API for: MIMICC
+2026-02-18 15:08:43 [DEBUG] curl -u Webin-460:*** "https://www.ebi.ac.uk/ena/portal/api/search?result=study&query=study_title%3D%22MIMICC%22&fields=study_accession%2Csecondary_study_accession%2Cstudy_title%2Cstudy_alias&format=json&limit=10"
+2026-02-18 15:08:43 [DEBUG] ENA Portal API returned 200
+2026-02-18 15:08:43 [INFO]   No existing study found
+2026-02-18 15:08:43 [INFO] Phase 2: Checking 10 private studies for remaining 1 unmatched studies...
+2026-02-18 15:08:43 [INFO] Duplicate (private): 'MIMICC' matches title 'MIMICC' (private) -> 
+2026-02-18 15:08:43 [INFO] All studies are duplicates — skipping further checks
+2026-02-18 15:08:43 [WARNING] Found 1 duplicate(s) — these will NOT be submitted:
+2026-02-18 15:08:43 [WARNING]   DUPLICATE: 'MIMICC' matches existing title 'MIMICC' (private) (accession: )
+2026-02-18 15:08:43 [INFO] No new studies to submit (all are duplicates or input is empty)
+2026-02-18 15:08:43 [INFO] Results written to study_submit_test.out
+2026-02-18 15:11:40 [INFO] ENA Study Submission — environment: TEST
+2026-02-18 15:11:40 [DEBUG] Auth: <requests.auth.HTTPBasicAuth object at 0x101af0650>
+2026-02-18 15:11:40 [INFO] Loading input JSON: assets/test-fixtures/mimicc_study.json
+2026-02-18 15:11:40 [INFO] Extracted studies from Container.SRA_studys
+2026-02-18 15:11:40 [INFO] Loaded 1 study/studies from input
+2026-02-18 15:11:40 [INFO] Fetching private studies from Webin account...
+2026-02-18 15:11:40 [INFO] Fetching private studies from: https://wwwdev.ebi.ac.uk/ena/submit/report/studies
+2026-02-18 15:11:40 [DEBUG] curl -u Webin-460:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/studies?status=PRIVATE&format=json&max-results=1000&skip=0"
+2026-02-18 15:11:40 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/studies returned 200
+2026-02-18 15:11:40 [INFO] Found 10 total studies, 10 with PRIVATE status
+2026-02-18 15:11:40 [INFO]   Private:  | alias=MIMICC | title=MIMICC
+2026-02-18 15:11:40 [INFO]   Private:  | alias=PRJEB73820_assembly | title=Metagenome assembly of PRJEB73820 data set (Microbiome in pediatric obesity)
+2026-02-18 15:11:40 [INFO]   Private:  | alias=PRJNA1022580_assembly | title=Metagenome assembly of PRJNA1022580 data set (16S, OmeSeq-qRRS, and shotgun sequencing of maize rhizosphere)
+2026-02-18 15:11:40 [INFO]   Private:  | alias=PRJEB44309_assembly | title=Metagenome assembly of PRJEB44309 data set (Soil metagenome from Drought-Net experiment plots in Western Australia)
+2026-02-18 15:11:40 [INFO]   Private:  | alias=PRJEB44678_assembly | title=Metagenome assembly of PRJEB44678 data set (16S rRNA, metagenomic, and metatranscriptomic analysis of the human hard palate following death)
+2026-02-18 15:11:40 [INFO]   Private:  | alias=PRJEB5860_assembly | title=Metagenome assembly of PRJEB5860 data set (Structure and functions of the bacterial root microbiota in wild and domesticated barley and signatures of positive selection in the rhizosphere metagenome)
+2026-02-18 15:11:40 [INFO]   Private:  | alias=PRJEB62577_assembly | title=Metagenome assembly of PRJEB62577 data set (Saliva microbiome in SARS-CoV-2 infection)
+2026-02-18 15:11:40 [INFO]   Private:  | alias=PRJNA1010809_assembly | title=Metagenome assembly of PRJNA1010809 data set (Role of P. gingivalis in microbial diversity and composition of dental plaque)
+2026-02-18 15:11:40 [INFO]   Private:  | alias=PRJNA692099_assembly | title=Metagenome assembly of PRJNA692099 data set (Metabolic potential from sediment samples of Mariana Trench)
+2026-02-18 15:11:40 [INFO]   Private:  | alias=PRJEB41171_assembly | title=Metagenome assembly of PRJEB41171 data set (A Peek into the Plasmidome of Global Sewage)
+2026-02-18 15:11:40 [INFO] Checking for duplicate studies...
+2026-02-18 15:11:40 [INFO] Phase 1: Checking for public duplicates via ENA Portal API...
+2026-02-18 15:11:40 [INFO] Querying ENA Portal API for: MIMICC
+2026-02-18 15:11:40 [DEBUG] curl -u Webin-460:*** "https://www.ebi.ac.uk/ena/portal/api/search?result=study&query=study_title%3D%22MIMICC%22&fields=study_accession%2Csecondary_study_accession%2Cstudy_title%2Cstudy_alias&format=json&limit=10"
+2026-02-18 15:11:40 [DEBUG] ENA Portal API returned 200
+2026-02-18 15:11:40 [INFO]   No existing study found
+2026-02-18 15:11:40 [INFO] Phase 2: Checking 10 private studies for remaining 1 unmatched studies...
+2026-02-18 15:11:40 [INFO] Duplicate (private): 'MIMICC' matches title 'MIMICC' (private) -> 
+2026-02-18 15:11:40 [INFO] All studies are duplicates — skipping further checks
+2026-02-18 15:11:40 [WARNING] Found 1 duplicate(s) — these will NOT be submitted:
+2026-02-18 15:11:40 [WARNING]   DUPLICATE: 'MIMICC' matches existing title 'MIMICC' (private) (accession: )
+2026-02-18 15:11:40 [INFO] No new studies to submit (all are duplicates or input is empty)
+2026-02-18 15:11:40 [INFO] Results written to study_submit_test.out
+2026-02-18 15:17:39 [INFO] ENA Study Submission — environment: TEST
+2026-02-18 15:17:39 [DEBUG] Auth: <requests.auth.HTTPBasicAuth object at 0x102239cd0>
+2026-02-18 15:17:39 [INFO] Loading input: assets/test-fixtures/mimicc_study.xls
+2026-02-18 15:17:39 [INFO] Loaded 1 study/studies from input
+2026-02-18 15:17:39 [INFO] Fetching private studies from Webin account...
+2026-02-18 15:17:39 [INFO] Fetching private studies from: https://wwwdev.ebi.ac.uk/ena/submit/report/studies
+2026-02-18 15:17:39 [DEBUG] curl -u Webin-460:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/studies?status=PRIVATE&format=json&max-results=1000&skip=0"
+2026-02-18 15:17:39 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/studies returned 200
+2026-02-18 15:17:39 [INFO] Found 10 total studies, 10 with PRIVATE status
+2026-02-18 15:17:39 [INFO]   Private:  | alias=MIMICC | title=MIMICC
+2026-02-18 15:17:39 [INFO]   Private:  | alias=PRJEB73820_assembly | title=Metagenome assembly of PRJEB73820 data set (Microbiome in pediatric obesity)
+2026-02-18 15:17:39 [INFO]   Private:  | alias=PRJNA1022580_assembly | title=Metagenome assembly of PRJNA1022580 data set (16S, OmeSeq-qRRS, and shotgun sequencing of maize rhizosphere)
+2026-02-18 15:17:39 [INFO]   Private:  | alias=PRJEB44309_assembly | title=Metagenome assembly of PRJEB44309 data set (Soil metagenome from Drought-Net experiment plots in Western Australia)
+2026-02-18 15:17:39 [INFO]   Private:  | alias=PRJEB44678_assembly | title=Metagenome assembly of PRJEB44678 data set (16S rRNA, metagenomic, and metatranscriptomic analysis of the human hard palate following death)
+2026-02-18 15:17:39 [INFO]   Private:  | alias=PRJEB5860_assembly | title=Metagenome assembly of PRJEB5860 data set (Structure and functions of the bacterial root microbiota in wild and domesticated barley and signatures of positive selection in the rhizosphere metagenome)
+2026-02-18 15:17:39 [INFO]   Private:  | alias=PRJEB62577_assembly | title=Metagenome assembly of PRJEB62577 data set (Saliva microbiome in SARS-CoV-2 infection)
+2026-02-18 15:17:39 [INFO]   Private:  | alias=PRJNA1010809_assembly | title=Metagenome assembly of PRJNA1010809 data set (Role of P. gingivalis in microbial diversity and composition of dental plaque)
+2026-02-18 15:17:39 [INFO]   Private:  | alias=PRJNA692099_assembly | title=Metagenome assembly of PRJNA692099 data set (Metabolic potential from sediment samples of Mariana Trench)
+2026-02-18 15:17:39 [INFO]   Private:  | alias=PRJEB41171_assembly | title=Metagenome assembly of PRJEB41171 data set (A Peek into the Plasmidome of Global Sewage)
+2026-02-18 15:17:39 [INFO] Checking for duplicate studies...
+2026-02-18 15:17:39 [INFO] Phase 1: Checking for public duplicates via ENA Portal API...
+2026-02-18 15:17:39 [INFO] Querying ENA Portal API for: MIMICC
+2026-02-18 15:17:39 [DEBUG] curl -u Webin-460:*** "https://www.ebi.ac.uk/ena/portal/api/search?result=study&query=study_title%3D%22MIMICC%22&fields=study_accession%2Csecondary_study_accession%2Cstudy_title%2Cstudy_alias&format=json&limit=10"
+2026-02-18 15:17:39 [DEBUG] ENA Portal API returned 200
+2026-02-18 15:17:39 [INFO]   No existing study found
+2026-02-18 15:17:39 [INFO] Phase 2: Checking 10 private studies for remaining 1 unmatched studies...
+2026-02-18 15:17:39 [INFO] Duplicate (private): 'MIMICC' matches title 'MIMICC' (private) -> 
+2026-02-18 15:17:39 [INFO] All studies are duplicates — skipping further checks
+2026-02-18 15:17:39 [WARNING] Found 1 duplicate(s) — these will NOT be submitted:
+2026-02-18 15:17:39 [WARNING]   DUPLICATE: 'MIMICC' matches existing title 'MIMICC' (private) (accession: )
+2026-02-18 15:17:39 [INFO] No new studies to submit (all are duplicates or input is empty)
+2026-02-18 15:17:39 [INFO] Results written to study_submit_test.out
+2026-02-18 15:17:59 [INFO] ENA Study Submission — environment: TEST
+2026-02-18 15:17:59 [DEBUG] Auth: <requests.auth.HTTPBasicAuth object at 0x1018a9090>
+2026-02-18 15:17:59 [INFO] Loading input: assets/test-fixtures/mimicc_study.tsv
+2026-02-18 15:17:59 [INFO] Loaded 1 study/studies from input
+2026-02-18 15:17:59 [INFO] Fetching private studies from Webin account...
+2026-02-18 15:17:59 [INFO] Fetching private studies from: https://wwwdev.ebi.ac.uk/ena/submit/report/studies
+2026-02-18 15:17:59 [DEBUG] curl -u Webin-460:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/studies?status=PRIVATE&format=json&max-results=1000&skip=0"
+2026-02-18 15:17:59 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/studies returned 200
+2026-02-18 15:17:59 [INFO] Found 10 total studies, 10 with PRIVATE status
+2026-02-18 15:17:59 [INFO]   Private:  | alias=MIMICC | title=MIMICC
+2026-02-18 15:17:59 [INFO]   Private:  | alias=PRJEB73820_assembly | title=Metagenome assembly of PRJEB73820 data set (Microbiome in pediatric obesity)
+2026-02-18 15:17:59 [INFO]   Private:  | alias=PRJNA1022580_assembly | title=Metagenome assembly of PRJNA1022580 data set (16S, OmeSeq-qRRS, and shotgun sequencing of maize rhizosphere)
+2026-02-18 15:17:59 [INFO]   Private:  | alias=PRJEB44309_assembly | title=Metagenome assembly of PRJEB44309 data set (Soil metagenome from Drought-Net experiment plots in Western Australia)
+2026-02-18 15:17:59 [INFO]   Private:  | alias=PRJEB44678_assembly | title=Metagenome assembly of PRJEB44678 data set (16S rRNA, metagenomic, and metatranscriptomic analysis of the human hard palate following death)
+2026-02-18 15:17:59 [INFO]   Private:  | alias=PRJEB5860_assembly | title=Metagenome assembly of PRJEB5860 data set (Structure and functions of the bacterial root microbiota in wild and domesticated barley and signatures of positive selection in the rhizosphere metagenome)
+2026-02-18 15:17:59 [INFO]   Private:  | alias=PRJEB62577_assembly | title=Metagenome assembly of PRJEB62577 data set (Saliva microbiome in SARS-CoV-2 infection)
+2026-02-18 15:17:59 [INFO]   Private:  | alias=PRJNA1010809_assembly | title=Metagenome assembly of PRJNA1010809 data set (Role of P. gingivalis in microbial diversity and composition of dental plaque)
+2026-02-18 15:17:59 [INFO]   Private:  | alias=PRJNA692099_assembly | title=Metagenome assembly of PRJNA692099 data set (Metabolic potential from sediment samples of Mariana Trench)
+2026-02-18 15:17:59 [INFO]   Private:  | alias=PRJEB41171_assembly | title=Metagenome assembly of PRJEB41171 data set (A Peek into the Plasmidome of Global Sewage)
+2026-02-18 15:17:59 [INFO] Checking for duplicate studies...
+2026-02-18 15:17:59 [INFO] Phase 1: Checking for public duplicates via ENA Portal API...
+2026-02-18 15:17:59 [INFO] Querying ENA Portal API for: MIMICC
+2026-02-18 15:17:59 [DEBUG] curl -u Webin-460:*** "https://www.ebi.ac.uk/ena/portal/api/search?result=study&query=study_title%3D%22MIMICC%22&fields=study_accession%2Csecondary_study_accession%2Cstudy_title%2Cstudy_alias&format=json&limit=10"
+2026-02-18 15:17:59 [DEBUG] ENA Portal API returned 200
+2026-02-18 15:17:59 [INFO]   No existing study found
+2026-02-18 15:17:59 [INFO] Phase 2: Checking 10 private studies for remaining 1 unmatched studies...
+2026-02-18 15:17:59 [INFO] Duplicate (private): 'MIMICC' matches title 'MIMICC' (private) -> 
+2026-02-18 15:17:59 [INFO] All studies are duplicates — skipping further checks
+2026-02-18 15:17:59 [WARNING] Found 1 duplicate(s) — these will NOT be submitted:
+2026-02-18 15:17:59 [WARNING]   DUPLICATE: 'MIMICC' matches existing title 'MIMICC' (private) (accession: )
+2026-02-18 15:17:59 [INFO] No new studies to submit (all are duplicates or input is empty)
+2026-02-18 15:17:59 [INFO] Results written to study_submit_test.out

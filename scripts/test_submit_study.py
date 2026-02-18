@@ -21,6 +21,9 @@ from requests.auth import HTTPBasicAuth
 
 from submit_study import (
     extract_studies_from_json,
+    extract_studies_from_tabular,
+    extract_studies_from_excel,
+    load_input_file,
     load_linkml_schema,
     validate_against_linkml,
     build_submission_xml,
@@ -36,9 +39,13 @@ from submit_study import (
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "..", "assets", "test-fixtures")
 SCHEMAS_DIR = os.path.join(os.path.dirname(__file__), "..", "schemas")
 MIMICC_JSON = os.path.join(FIXTURES_DIR, "mimicc_study.json")
+MIMICC_CSV = os.path.join(FIXTURES_DIR, "mimicc_study.csv")
+MIMICC_TSV = os.path.join(FIXTURES_DIR, "mimicc_study.tsv")
+MIMICC_XLSX = os.path.join(FIXTURES_DIR, "mimicc_study.xlsx")
+MIMICC_XLS = os.path.join(FIXTURES_DIR, "mimicc_study.xls")
 SRA_STUDY_YAML = os.path.join(SCHEMAS_DIR, "SRA_study.yaml")
-SRA_STUDY_XSD = os.path.join(
-    os.path.dirname(__file__), "..", "assets", "ena_schema", "SRA.study.xsd"
+SRA_STUDY_XSD_DIR = os.path.join(
+    os.path.dirname(__file__), "..", "assets", "ena_schema"
 )
 
 # ---------------------------------------------------------------------------
@@ -286,7 +293,7 @@ class TestBuildSubmissionXml:
         ]
         root = build_submission_xml(studies)
         xml_bytes = xml_to_bytes(root)
-        is_valid, messages = validate_against_xsd(xml_bytes, SRA_STUDY_XSD)
+        is_valid, messages = validate_against_xsd(xml_bytes, SRA_STUDY_XSD_DIR)
         for msg in messages:
             print(msg)
         assert is_valid
@@ -495,3 +502,92 @@ class TestFindDuplicateStudies:
         dups = find_duplicate_studies(new, self.MOCK_AUTH, private_studies=[])
         assert len(dups) == 0
         mock_search.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# Tabular file loading tests (CSV, TSV, XLS, XLSX)
+# ---------------------------------------------------------------------------
+
+# The expected study data shared by all tabular fixtures
+EXPECTED_STUDY = {
+    "IS_PRIMARY": "YES",
+    "STUDY_TITLE": "MIMICC",
+    "existing_study_type": "Metagenomics",
+}
+
+
+class TestLoadInputFile:
+    """Tests for loading study data from CSV, TSV, XLS, and XLSX files."""
+
+    def test_load_csv(self):
+        studies = load_input_file(MIMICC_CSV)
+        assert studies is not None
+        assert len(studies) == 1
+        for key, val in EXPECTED_STUDY.items():
+            assert studies[0][key] == val
+
+    def test_load_tsv(self):
+        studies = load_input_file(MIMICC_TSV)
+        assert studies is not None
+        assert len(studies) == 1
+        for key, val in EXPECTED_STUDY.items():
+            assert studies[0][key] == val
+
+    def test_load_xlsx(self):
+        studies = load_input_file(MIMICC_XLSX)
+        assert studies is not None
+        assert len(studies) == 1
+        for key, val in EXPECTED_STUDY.items():
+            assert studies[0][key] == val
+
+    def test_load_xls(self):
+        studies = load_input_file(MIMICC_XLS)
+        assert studies is not None
+        assert len(studies) == 1
+        for key, val in EXPECTED_STUDY.items():
+            assert studies[0][key] == val
+
+    def test_load_json(self):
+        studies = load_input_file(MIMICC_JSON)
+        assert studies is not None
+        assert len(studies) == 1
+        for key, val in EXPECTED_STUDY.items():
+            assert studies[0][key] == val
+
+    def test_all_formats_produce_same_data(self):
+        """All tabular formats should produce the same core study fields."""
+        json_studies = load_input_file(MIMICC_JSON)
+        csv_studies = load_input_file(MIMICC_CSV)
+        tsv_studies = load_input_file(MIMICC_TSV)
+        xlsx_studies = load_input_file(MIMICC_XLSX)
+        xls_studies = load_input_file(MIMICC_XLS)
+
+        # All should have the same expected keys/values
+        for studies in [json_studies, csv_studies, tsv_studies, xlsx_studies, xls_studies]:
+            assert len(studies) == 1
+            for key, val in EXPECTED_STUDY.items():
+                assert studies[0][key] == val
+
+    def test_unknown_extension_returns_none(self, tmp_path):
+        unknown = tmp_path / "data.parquet"
+        unknown.write_text("dummy")
+        result = load_input_file(str(unknown))
+        assert result is None
+
+    def test_csv_without_metadata_row(self, tmp_path):
+        """A CSV with no metadata row (headers on first line) should still work."""
+        csvfile = tmp_path / "no_meta.csv"
+        csvfile.write_text("STUDY_TITLE,IS_PRIMARY\nTest,YES\n")
+        studies = load_input_file(str(csvfile))
+        assert len(studies) == 1
+        assert studies[0]["STUDY_TITLE"] == "Test"
+        assert studies[0]["IS_PRIMARY"] == "YES"
+
+    def test_tabular_empty_values_omitted(self, tmp_path):
+        """Empty cells in tabular files should be omitted from study dicts."""
+        csvfile = tmp_path / "sparse.csv"
+        csvfile.write_text("STUDY_TITLE,STUDY_ABSTRACT,IS_PRIMARY\nTest,,YES\n")
+        studies = load_input_file(str(csvfile))
+        assert len(studies) == 1
+        assert "STUDY_ABSTRACT" not in studies[0]
+        assert studies[0]["STUDY_TITLE"] == "Test"

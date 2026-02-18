@@ -35,7 +35,10 @@
       "WebFetch(domain:www.ebi.ac.uk)",
       "WebFetch(domain:biodiversitydata-se.github.io)",
       "WebFetch(domain:nbisweden.github.io)",
-      "WebFetch(domain:sib-swiss.github.io)"
+      "WebFetch(domain:sib-swiss.github.io)",
+      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/pytest scripts/test_submit_study.py -v)",
+      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/pip list:*)",
+      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/pip install:*)"
     ]
   }
 }

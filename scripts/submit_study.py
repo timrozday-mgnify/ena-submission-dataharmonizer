@@ -11,7 +11,7 @@ Usage:
         --username Webin-XXXXX --password SECRET \
         --input studies.json \
         --linkml schemas/SRA_study.yaml \
-        --xsd assets/ena_schema/SRA.study.xsd \
+        --xsd assets/ena_schema \
         --test
 
     # With hold date (private until specified date, max 2 years):
@@ -19,7 +19,7 @@ Usage:
         --username Webin-XXXXX --password SECRET \
         --input studies.json \
         --linkml schemas/SRA_study.yaml \
-        --xsd assets/ena_schema/SRA.study.xsd \
+        --xsd assets/ena_schema \
         --hold-until 2028-01-01
 
     # Log to file:
@@ -27,17 +27,20 @@ Usage:
         --username Webin-XXXXX --password SECRET \
         --input studies.json \
         --linkml schemas/SRA_study.yaml \
-        --xsd assets/ena_schema/SRA.study.xsd \
+        --xsd assets/ena_schema \
         --test --log submission.log
 """
 
-import argparse
+import click
+import csv
 import json
 import logging
+import os
 import sys
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from io import BytesIO
+from pathlib import Path
 
 import requests
 import yaml
@@ -428,35 +431,54 @@ def xml_to_bytes(root):
     return buf.getvalue()
 
 
-def validate_against_xsd(xml_bytes, xsd_path):
-    """Validate XML bytes against an XSD schema file.
+def validate_against_xsd(xml_bytes, xsd_dir):
+    """Validate XML bytes against ENA.project.xsd.
 
-    Uses lxml if available for full XSD validation. Falls back to
-    basic well-formedness check with stdlib xml.etree.
+    The submission XML has a <WEBIN> root wrapping <PROJECT_SET>, so we
+    extract the PROJECT_SET fragment and validate it against the
+    ENA.project.xsd schema (which defines the PROJECT_SET root element).
+
+    xsd_dir should be a directory containing ENA.project.xsd and its
+    dependency SRA.common.xsd. Uses lxml if available for full XSD
+    validation. Falls back to basic well-formedness check with
+    stdlib xml.etree.
     Returns (is_valid, messages).
     """
     messages = []
+    xsd_dir = os.path.abspath(xsd_dir)
+    xsd_path = os.path.join(xsd_dir, "ENA.project.xsd")
+
+    if not os.path.isfile(xsd_path):
+        messages.append(f"ERROR: ENA.project.xsd not found in {xsd_dir}")
+        return False, messages
+
+    common_path = os.path.join(xsd_dir, "SRA.common.xsd")
+    if not os.path.isfile(common_path):
+        messages.append(
+            f"WARNING: SRA.common.xsd not found in {xsd_dir} — "
+            "full XSD validation may fail"
+        )
 
     # Try lxml for proper XSD validation
     try:
         from lxml import etree as lxml_etree
 
-        with open(xsd_path, "rb") as f:
-            xsd_doc = lxml_etree.parse(f)
-
-        # The SRA.study.xsd imports SRA.common.xsd — we need to handle this.
-        # We set the base directory so lxml can resolve relative imports.
-        import os
-        xsd_dir = os.path.dirname(os.path.abspath(xsd_path))
-
-        # Re-parse with base_url so imports resolve
+        # Parse with base_url so lxml can resolve relative imports (SRA.common.xsd)
         with open(xsd_path, "rb") as f:
             xsd_doc = lxml_etree.parse(f, base_url=f"file://{xsd_dir}/")
 
         try:
             xsd_schema = lxml_etree.XMLSchema(xsd_doc)
-            xml_doc = lxml_etree.fromstring(xml_bytes)
-            if xsd_schema.validate(xml_doc):
+
+            # Extract PROJECT_SET from the WEBIN envelope for validation
+            full_doc = lxml_etree.fromstring(xml_bytes)
+            project_set = full_doc.find("PROJECT_SET")
+            if project_set is None:
+                messages.append("ERROR: No PROJECT_SET element found in XML")
+                return False, messages
+
+            # Validate the PROJECT_SET fragment
+            if xsd_schema.validate(project_set):
                 messages.append("XSD validation passed (lxml)")
                 return True, messages
             else:
@@ -464,8 +486,6 @@ def validate_against_xsd(xml_bytes, xsd_path):
                     messages.append(f"XSD ERROR: {error}")
                 return False, messages
         except lxml_etree.XMLSchemaParseError as e:
-            # XSD itself may fail to parse if SRA.common.xsd is not found.
-            # Fall through to basic check with a warning.
             messages.append(
                 f"WARNING: Could not build XSD schema (missing imports?): {e}. "
                 "Falling back to basic XML well-formedness check."
@@ -687,6 +707,125 @@ def parse_xml_receipt(receipt_root):
 
 
 # ---------------------------------------------------------------------------
+# Tabular file loading (CSV, TSV, XLS, XLSX)
+# ---------------------------------------------------------------------------
+
+def _is_metadata_row(row):
+    """Check if a row is a DataHarmonizer metadata/section label row.
+
+    These rows have a single non-empty cell (e.g. "Generic") with the rest empty.
+    """
+    non_empty = [c for c in row if c is not None and str(c).strip() != ""]
+    return len(non_empty) <= 1
+
+
+def extract_studies_from_tabular(filepath, delimiter=","):
+    """Extract study dicts from a CSV or TSV file.
+
+    Handles an optional metadata first row (auto-detected and skipped).
+    Returns a list of study dicts.
+    """
+    with open(filepath, newline="", encoding="utf-8") as f:
+        reader = csv.reader(f, delimiter=delimiter)
+        rows = list(reader)
+
+    if not rows:
+        return []
+
+    idx = 0
+    if _is_metadata_row(rows[idx]):
+        idx += 1
+
+    if idx >= len(rows):
+        return []
+
+    headers = rows[idx]
+    idx += 1
+
+    studies = []
+    for row in rows[idx:]:
+        study = {}
+        for col, val in zip(headers, row):
+            col = col.strip()
+            if col and val is not None and val.strip() != "":
+                study[col] = val.strip()
+        if study:
+            studies.append(study)
+
+    return studies
+
+
+def extract_studies_from_excel(filepath):
+    """Extract study dicts from an XLS or XLSX file.
+
+    Handles an optional metadata first row (auto-detected and skipped).
+    Returns a list of study dicts.
+    """
+    ext = Path(filepath).suffix.lower()
+
+    if ext == ".xls":
+        import xlrd
+        wb = xlrd.open_workbook(filepath)
+        ws = wb.sheet_by_index(0)
+        rows = []
+        for r in range(ws.nrows):
+            rows.append([ws.cell_value(r, c) for c in range(ws.ncols)])
+    else:
+        import openpyxl
+        wb = openpyxl.load_workbook(filepath, read_only=True, data_only=True)
+        ws = wb.active
+        rows = []
+        for row in ws.iter_rows(values_only=True):
+            rows.append(list(row))
+        wb.close()
+
+    if not rows:
+        return []
+
+    idx = 0
+    if _is_metadata_row(rows[idx]):
+        idx += 1
+
+    if idx >= len(rows):
+        return []
+
+    headers = [str(h).strip() if h is not None else "" for h in rows[idx]]
+    idx += 1
+
+    studies = []
+    for row in rows[idx:]:
+        study = {}
+        for col, val in zip(headers, row):
+            if not col:
+                continue
+            if val is not None and str(val).strip() != "":
+                study[col] = str(val).strip()
+        if study:
+            studies.append(study)
+
+    return studies
+
+
+def load_input_file(filepath):
+    """Load study data from JSON, CSV, TSV, XLS, or XLSX.
+
+    Returns a list of study dicts, or None if the format is unrecognised.
+    """
+    ext = Path(filepath).suffix.lower()
+    if ext == ".json":
+        with open(filepath) as f:
+            input_data = json.load(f)
+        return extract_studies_from_json(input_data)
+    elif ext == ".csv":
+        return extract_studies_from_tabular(filepath, delimiter=",")
+    elif ext == ".tsv":
+        return extract_studies_from_tabular(filepath, delimiter="\t")
+    elif ext in (".xlsx", ".xls"):
+        return extract_studies_from_excel(filepath)
+    return None
+
+
+# ---------------------------------------------------------------------------
 # JSON extraction
 # ---------------------------------------------------------------------------
 
@@ -733,66 +872,41 @@ def extract_studies_from_json(input_data):
 # Main
 # ---------------------------------------------------------------------------
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Submit studies to ENA via the Webin REST API v2.",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=__doc__,
-    )
-    parser.add_argument(
-        "--username", required=True, help="Webin submission account ID (e.g. Webin-XXXXX)"
-    )
-    parser.add_argument("--password", required=True, help="Webin account password")
-    parser.add_argument(
-        "--input", required=True, help="Path to DataHarmonizer JSON export with study metadata"
-    )
-    parser.add_argument(
-        "--linkml", required=True, help="Path to LinkML YAML schema (e.g. schemas/SRA_study.yaml)"
-    )
-    parser.add_argument(
-        "--xsd", required=True, help="Path to XSD schema (e.g. assets/ena_schema/SRA.study.xsd)"
-    )
-    parser.add_argument(
-        "--test",
-        action="store_true",
-        default=False,
-        help="Use the ENA test service (submissions are discarded daily)",
-    )
-    parser.add_argument(
-        "--hold-until",
-        default=None,
-        help="Hold studies private until this date (YYYY-MM-DD, max 2 years from now)",
-    )
-    parser.add_argument("--log", default=None, help="Path to log file")
-    parser.add_argument(
-        "--output",
-        default=None,
-        help="Path to write JSON accession results (default: stdout)",
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        default=False,
-        help="Validate and build XML but do not submit to ENA",
-    )
+@click.command(help="Submit studies to ENA via the Webin REST API v2.")
+@click.option("--username", required=True, help="Webin submission account ID (e.g. Webin-XXXXX)")
+@click.option("--password", required=True, help="Webin account password")
+@click.option("--input", "input_file", required=True, type=click.Path(exists=True),
+              help="Path to study metadata file (JSON, CSV, TSV, XLS, or XLSX)")
+@click.option("--linkml", required=True, type=click.Path(exists=True),
+              help="Path to LinkML YAML schema (e.g. schemas/SRA_study.yaml)")
+@click.option("--xsd", required=True, type=click.Path(exists=True, file_okay=False),
+              help="Directory containing ENA.project.xsd and SRA.common.xsd (e.g. assets/ena_schema)")
+@click.option("--test", is_flag=True, default=False,
+              help="Use the ENA test service (submissions are discarded daily)")
+@click.option("--hold-until", default=None,
+              help="Hold studies private until this date (YYYY-MM-DD, max 2 years from now)")
+@click.option("--log", default=None, type=click.Path(), help="Path to log file")
+@click.option("--output", default=None, type=click.Path(),
+              help="Path to write JSON accession results (default: stdout)")
+@click.option("--dry-run", is_flag=True, default=False,
+              help="Validate and build XML but do not submit to ENA")
+def main(username, password, input_file, linkml, xsd, test, hold_until, log, output, dry_run):
+    """Submit studies to ENA via the Webin REST API v2."""
+    setup_logging(log)
 
-    args = parser.parse_args()
-    setup_logging(args.log)
-
-    env_label = "TEST" if args.test else "PRODUCTION"
+    env_label = "TEST" if test else "PRODUCTION"
     logger.info(f"ENA Study Submission — environment: {env_label}")
-    base_url = get_base_url(args.test)
-    auth = HTTPBasicAuth(args.username, args.password)
+    base_url = get_base_url(test)
+    auth = HTTPBasicAuth(username, password)
     logger.debug(f"Auth: {auth}")
 
-    # ── Step 1: Load input JSON ──────────────────────────────────────────
-    logger.info(f"Loading input JSON: {args.input}")
-    with open(args.input) as f:
-        input_data = json.load(f)
-
-    studies = extract_studies_from_json(input_data)
+    # ── Step 1: Load input file ──────────────────────────────────────────
+    logger.info(f"Loading input: {input_file}")
+    studies = load_input_file(input_file)
     if studies is None:
-        logger.error("Input JSON must be a list of study objects or a dict containing them")
+        logger.error(
+            "Unsupported file format. Supported: .json, .csv, .tsv, .xlsx, .xls"
+        )
         sys.exit(1)
 
     logger.info(f"Loaded {len(studies)} study/studies from input")
@@ -800,7 +914,7 @@ def main():
     # ── Step 2: Check for duplicates ────────────────────────────────────
     # Fetch private studies from Webin Reports API (catches held/unreleased)
     logger.info("Fetching private studies from Webin account...")
-    private_studies = fetch_private_studies(auth, use_test=args.test)
+    private_studies = fetch_private_studies(auth, use_test=test)
     for ps in private_studies:
         logger.info(
             f"  Private: {ps['accession']} | alias={ps['alias']} | title={ps['title']}"
@@ -833,14 +947,14 @@ def main():
 
     if not studies_to_submit:
         logger.info("No new studies to submit (all are duplicates or input is empty)")
-        _write_results(results, args.output)
+        _write_results(results, output)
         return
 
     logger.info(f"{len(studies_to_submit)} study/studies to submit after duplicate check")
 
     # ── Step 4: Validate against LinkML ──────────────────────────────────
-    logger.info(f"Loading LinkML schema: {args.linkml}")
-    schema = load_linkml_schema(args.linkml)
+    logger.info(f"Loading LinkML schema: {linkml}")
+    schema = load_linkml_schema(linkml)
 
     logger.info("Validating input against LinkML schema...")
     linkml_valid, linkml_messages = validate_against_linkml(studies_to_submit, schema)
@@ -855,7 +969,7 @@ def main():
 
     # ── Step 5: Build submission XML ─────────────────────────────────────
     logger.info("Building XML submission document...")
-    xml_root = build_submission_xml(studies_to_submit, hold_until=args.hold_until)
+    xml_root = build_submission_xml(studies_to_submit, hold_until=hold_until)
     xml_bytes = xml_to_bytes(xml_root)
 
     # Log the XML for debugging
@@ -863,8 +977,8 @@ def main():
     logger.info(f"XML document size: {len(xml_bytes)} bytes")
 
     # ── Step 6: Validate against XSD ─────────────────────────────────────
-    logger.info(f"Validating XML against XSD: {args.xsd}")
-    xsd_valid, xsd_messages = validate_against_xsd(xml_bytes, args.xsd)
+    logger.info(f"Validating XML against XSD: {xsd}")
+    xsd_valid, xsd_messages = validate_against_xsd(xml_bytes, xsd)
     for msg in xsd_messages:
         logger.info(f"  {msg}")
 
@@ -875,10 +989,10 @@ def main():
     logger.info("XSD validation PASSED")
 
     # ── Step 7: Submit to ENA ────────────────────────────────────────────
-    if args.dry_run:
+    if dry_run:
         logger.info("DRY RUN — skipping actual submission")
         logger.info("Generated XML:\n" + xml_bytes.decode("utf-8"))
-        _write_results(results, args.output)
+        _write_results(results, output)
         return
 
     logger.info(f"Submitting to ENA ({env_label})...")
@@ -916,7 +1030,7 @@ def main():
         sys.exit(1)
 
     # ── Step 9: Output results ───────────────────────────────────────────
-    _write_results(results, args.output)
+    _write_results(results, output)
 
     # Summary
     logger.info("=" * 60)
