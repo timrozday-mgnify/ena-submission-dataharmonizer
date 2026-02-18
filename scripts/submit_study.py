@@ -31,7 +31,6 @@ Usage:
         --test --log submission.log
 """
 
-import click
 import csv
 import json
 import logging
@@ -41,10 +40,14 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
+from typing import Optional
 
 import requests
+import typer
 import yaml
 from requests.auth import HTTPBasicAuth
+
+app = typer.Typer(help="Submit studies to ENA via the Webin REST API v2.")
 
 # ---------------------------------------------------------------------------
 # Logging setup
@@ -872,25 +875,28 @@ def extract_studies_from_json(input_data):
 # Main
 # ---------------------------------------------------------------------------
 
-@click.command(help="Submit studies to ENA via the Webin REST API v2.")
-@click.option("--username", required=True, help="Webin submission account ID (e.g. Webin-XXXXX)")
-@click.option("--password", required=True, help="Webin account password")
-@click.option("--input", "input_file", required=True, type=click.Path(exists=True),
-              help="Path to study metadata file (JSON, CSV, TSV, XLS, or XLSX)")
-@click.option("--linkml", required=True, type=click.Path(exists=True),
-              help="Path to LinkML YAML schema (e.g. schemas/SRA_study.yaml)")
-@click.option("--xsd", required=True, type=click.Path(exists=True, file_okay=False),
-              help="Directory containing ENA.project.xsd and SRA.common.xsd (e.g. assets/ena_schema)")
-@click.option("--test", is_flag=True, default=False,
-              help="Use the ENA test service (submissions are discarded daily)")
-@click.option("--hold-until", default=None,
-              help="Hold studies private until this date (YYYY-MM-DD, max 2 years from now)")
-@click.option("--log", default=None, type=click.Path(), help="Path to log file")
-@click.option("--output", default=None, type=click.Path(),
-              help="Path to write JSON accession results (default: stdout)")
-@click.option("--dry-run", is_flag=True, default=False,
-              help="Validate and build XML but do not submit to ENA")
-def main(username, password, input_file, linkml, xsd, test, hold_until, log, output, dry_run):
+@app.command()
+def main(
+    username: str = typer.Option(..., help="Webin submission account ID (e.g. Webin-XXXXX)"),
+    password: str = typer.Option(..., help="Webin account password"),
+    input_file: Path = typer.Option(
+        ..., "--input", exists=True,
+        help="Path to study metadata file (JSON, CSV, TSV, XLS, or XLSX)",
+    ),
+    linkml: Path = typer.Option(
+        ..., exists=True,
+        help="Path to LinkML YAML schema (e.g. schemas/SRA_study.yaml)",
+    ),
+    xsd: Path = typer.Option(
+        ..., exists=True, file_okay=False, resolve_path=True,
+        help="Directory containing ENA.project.xsd and SRA.common.xsd (e.g. assets/ena_schema)",
+    ),
+    test: bool = typer.Option(False, "--test", help="Use the ENA test service (submissions are discarded daily)"),
+    hold_until: Optional[str] = typer.Option(None, "--hold-until", help="Hold studies private until this date (YYYY-MM-DD, max 2 years from now)"),
+    log: Optional[Path] = typer.Option(None, help="Path to log file"),
+    output: Optional[Path] = typer.Option(None, help="Path to write JSON accession results (default: stdout)"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Validate and build XML but do not submit to ENA"),
+):
     """Submit studies to ENA via the Webin REST API v2."""
     setup_logging(log)
 
@@ -1057,4 +1063,4 @@ def _write_results(results, output_path):
 
 
 if __name__ == "__main__":
-    main()
+    app()
