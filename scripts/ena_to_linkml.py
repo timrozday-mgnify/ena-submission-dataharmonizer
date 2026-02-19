@@ -69,6 +69,9 @@ def parse_checklist_xml(filepath):
 
     descriptor = checklist.find("DESCRIPTOR")
 
+    if descriptor is None:
+        return
+
     result = {
         "accession": accession,
         "checklist_type": checklist_type,
@@ -345,6 +348,9 @@ def main():
     for xml_path in xml_files:
         print(f"\n  Parsing: {xml_path}")
         checklist = parse_checklist_xml(xml_path)
+        if checklist is None:
+            print(f"No expected contents found in {xml_path}, skipping.")
+            continue
 
         schema = convert_to_linkml(checklist, args.base_uri)
 

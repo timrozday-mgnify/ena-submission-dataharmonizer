@@ -38,7 +38,14 @@
       "WebFetch(domain:sib-swiss.github.io)",
       "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/pytest scripts/test_submit_study.py -v)",
       "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/pip list:*)",
-      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/pip install:*)"
+      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/pip install:*)",
+      "WebFetch(domain:typing.python.org)",
+      "WebFetch(domain:peps.python.org)",
+      "Bash(awk:*)",
+      "Bash(for path in v3/api-docs v2/api-docs api-docs swagger.json openapi.json)",
+      "Bash(do echo \"=== $path ===\")",
+      "Bash(done)",
+      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/pip show:*)"
     ]
   }
 }
