@@ -1,6 +1,82 @@
 # ena-submission-dataharmonizer
 Generate DataHarmonizer schema to support data entry and generation of manifests for a ENA sample/run submission.
 
+## `scripts/submit_study.py` and `scripts/submit_sample.py`
+
+These scripts submit study and sample metadata to ENA via the Webin REST API v2.
+
+### Credentials
+
+Credentials are supplied via environment variables — **never** as command-line arguments — to prevent secrets appearing in shell history, process listings, or CI logs:
+
+```bash
+export ENA_USERNAME=Webin-XXXXX
+export ENA_PASSWORD=SECRET
+```
+
+Both variables must be set before running either script. The scripts exit immediately with an error if either is missing.
+
+### `submit_study.py`
+
+Reads a DataHarmonizer study export, validates it against a LinkML schema and ENA project XSD, checks for duplicates already registered under the account, builds a `WEBIN` XML document, and submits to ENA.
+
+**Usage:**
+
+```bash
+# Test submission (discarded daily)
+python scripts/submit_study.py \
+    --input studies.json \
+    --linkml schemas/SRA_study.yaml \
+    --xsd assets/ena_schema \
+    --test
+
+# Production submission with hold date (max 2 years from today)
+python scripts/submit_study.py \
+    --input studies.csv \
+    --linkml schemas/SRA_study.yaml \
+    --xsd assets/ena_schema \
+    --hold-until 2027-01-01
+
+# Validate and build XML without submitting
+python scripts/submit_study.py \
+    --input studies.xlsx \
+    --linkml schemas/SRA_study.yaml \
+    --xsd assets/ena_schema \
+    --dry-run --log submission.log
+```
+
+**Options:**
+
+| Flag | Description |
+|---|---|
+| `--input` | Study metadata file (JSON, CSV, TSV, XLS, XLSX) |
+| `--linkml` | LinkML YAML schema (e.g. `schemas/SRA_study.yaml`) |
+| `--xsd` | Directory containing `ENA.project.xsd` and `SRA.common.xsd` |
+| `--test` | Use the ENA test endpoint |
+| `--hold-until` | Keep studies private until date (`YYYY-MM-DD`) |
+| `--dry-run` | Validate and build XML but skip submission |
+| `--log` | Write debug log to file |
+| `--output` | Write JSON accession results to file (default: stdout) |
+| `--max-results` | Max projects to fetch for duplicate checking (default: 5000) |
+
+### `submit_sample.py`
+
+Same pipeline for samples. Non-reserved fields (`SAMPLE_TITLE`, `TAXON_ID`, `SCIENTIFIC_NAME`, `COMMON_NAME`, `SAMPLE_DESCRIPTION`, `alias`) are mapped to dedicated XML elements; all remaining fields become `<SAMPLE_ATTRIBUTE>` tag-value pairs, allowing any ENA checklist (ERC000015, ERC000025, etc.) to be submitted without code changes.
+
+**Usage:**
+
+```bash
+python scripts/submit_sample.py \
+    --input samples.csv \
+    --linkml schemas/ERC000015.yaml \
+    --xsd assets/ena_schema \
+    --test
+```
+
+**Options:** identical to `submit_study.py` except `--xsd` expects `SRA.sample.xsd` (and `SRA.common.xsd`) in the given directory.
+
+---
+
 ## `scripts/ena_to_linkml.py`
 The script has three main stages: parse XML, convert to LinkML, and write YAML. Here's how each works:
 

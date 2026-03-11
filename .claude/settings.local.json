@@ -45,7 +45,9 @@
       "Bash(for path in v3/api-docs v2/api-docs api-docs swagger.json openapi.json)",
       "Bash(do echo \"=== $path ===\")",
       "Bash(done)",
-      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/pip show:*)"
+      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/pip show:*)",
+      "WebFetch(domain:embl.atlassian.net)",
+      "Bash(pdftotext:*)"
     ]
   }
 }

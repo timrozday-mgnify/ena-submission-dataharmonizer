@@ -1,0 +1,14 @@
+{
+  "duplicates": [
+    {
+      "input_index": 0,
+      "title": "MIMICC",
+      "alias": "",
+      "existing_accession": "",
+      "existing_secondary_accession": "ERP189349",
+      "match_reason": "title 'MIMICC'"
+    }
+  ],
+  "submitted": [],
+  "failed": []
+}
