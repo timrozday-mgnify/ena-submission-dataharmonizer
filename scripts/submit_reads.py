@@ -1470,6 +1470,11 @@ def main(
         help="Validate and generate manifests but do not"
         " call webin-cli",
     ),
+    automated: bool = typer.Option(
+        False, "--automated",
+        help="Skip duplicate detection against the"
+        " Webin Reports API (for automated pipelines)",
+    ),
 ) -> None:
     """Submit reads to ENA via webin-cli (reads context)."""
     setup_logging(log)
@@ -1520,20 +1525,26 @@ def main(
     logger.info("Loaded %d run(s) from input", len(runs))
 
     # -- Step 2: Duplicate detection ---------------------
-    logger.info(
-        "Fetching account runs from Webin Reports API...",
-    )
-    account_runs = fetch_account_runs(
-        auth, use_test=test, max_results=max_results,
-    )
-    for r in account_runs:
+    if automated:
         logger.info(
-            "  Account run: %s | name=%s | status=%s",
-            r["accession"], r["name"], r["status"],
+            "Automated mode: skipping duplicate detection",
         )
+        duplicates: dict[int, dict[str, Any]] = {}
+    else:
+        logger.info(
+            "Fetching account runs from Webin Reports API...",
+        )
+        account_runs = fetch_account_runs(
+            auth, use_test=test, max_results=max_results,
+        )
+        for r in account_runs:
+            logger.info(
+                "  Account run: %s | name=%s | status=%s",
+                r["accession"], r["name"], r["status"],
+            )
 
-    logger.info("Checking for duplicate runs...")
-    duplicates = find_duplicate_runs(runs, account_runs)
+        logger.info("Checking for duplicate runs...")
+        duplicates = find_duplicate_runs(runs, account_runs)
 
     results: dict[str, list[dict[str, Any]]] = {
         "duplicates": [],

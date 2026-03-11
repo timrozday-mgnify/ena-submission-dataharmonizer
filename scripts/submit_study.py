@@ -1207,6 +1207,11 @@ def main(
         help="Validate and build XML but do not"
         " submit to ENA",
     ),
+    automated: bool = typer.Option(
+        False, "--automated",
+        help="Skip duplicate detection against the"
+        " Webin Reports API (for automated pipelines)",
+    ),
 ) -> None:
     """Submit studies to ENA via the Webin REST API v2."""
     setup_logging(log)
@@ -1249,26 +1254,32 @@ def main(
     )
 
     # -- Step 2: Check for duplicates --------------------
-    logger.info(
-        "Fetching account studies from"
-        " Webin Reports API...",
-    )
-    account_studies = fetch_account_studies(
-        auth, use_test=test,
-        max_results=max_results,
-    )
-    for ps in account_studies:
+    if automated:
         logger.info(
-            "  Account study: %s | alias=%s"
-            " | title=%s | status=%s",
-            ps["accession"], ps["alias"],
-            ps["title"], ps["status"],
+            "Automated mode: skipping duplicate detection",
         )
+        duplicates: dict[int, dict[str, Any]] = {}
+    else:
+        logger.info(
+            "Fetching account studies from"
+            " Webin Reports API...",
+        )
+        account_studies = fetch_account_studies(
+            auth, use_test=test,
+            max_results=max_results,
+        )
+        for ps in account_studies:
+            logger.info(
+                "  Account study: %s | alias=%s"
+                " | title=%s | status=%s",
+                ps["accession"], ps["alias"],
+                ps["title"], ps["status"],
+            )
 
-    logger.info("Checking for duplicate studies...")
-    duplicates = find_duplicate_studies(
-        studies, account_studies,
-    )
+        logger.info("Checking for duplicate studies...")
+        duplicates = find_duplicate_studies(
+            studies, account_studies,
+        )
     results: dict[str, list[dict[str, Any]]] = {
         "duplicates": [],
         "submitted": [],

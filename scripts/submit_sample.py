@@ -1188,6 +1188,11 @@ def main(
         help="Validate and build XML but do not"
         " submit to ENA",
     ),
+    automated: bool = typer.Option(
+        False, "--automated",
+        help="Skip duplicate detection against the"
+        " Webin Reports API (for automated pipelines)",
+    ),
 ) -> None:
     """Submit samples to ENA via the Webin REST API v2."""
     setup_logging(log)
@@ -1230,25 +1235,31 @@ def main(
     )
 
     # -- Step 2: Check for duplicates --------------------
-    logger.info(
-        "Fetching account samples from"
-        " Webin Reports API...",
-    )
-    account_samples = fetch_account_samples(
-        auth, use_test=test, max_results=max_results,
-    )
-    for ps in account_samples:
+    if automated:
         logger.info(
-            "  Account sample: %s | alias=%s"
-            " | title=%s | status=%s",
-            ps["accession"], ps["alias"],
-            ps["title"], ps["status"],
+            "Automated mode: skipping duplicate detection",
         )
+        duplicates: dict[int, dict[str, Any]] = {}
+    else:
+        logger.info(
+            "Fetching account samples from"
+            " Webin Reports API...",
+        )
+        account_samples = fetch_account_samples(
+            auth, use_test=test, max_results=max_results,
+        )
+        for ps in account_samples:
+            logger.info(
+                "  Account sample: %s | alias=%s"
+                " | title=%s | status=%s",
+                ps["accession"], ps["alias"],
+                ps["title"], ps["status"],
+            )
 
-    logger.info("Checking for duplicate samples...")
-    duplicates = find_duplicate_samples(
-        samples, account_samples,
-    )
+        logger.info("Checking for duplicate samples...")
+        duplicates = find_duplicate_samples(
+            samples, account_samples,
+        )
     results: dict[str, list[dict[str, Any]]] = {
         "duplicates": [],
         "submitted": [],
