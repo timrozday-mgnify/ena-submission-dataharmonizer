@@ -75,6 +75,80 @@ python scripts/submit_sample.py \
 
 **Options:** identical to `submit_study.py` except `--xsd` expects `SRA.sample.xsd` (and `SRA.common.xsd`) in the given directory.
 
+### `submit_reads.py`
+
+Submits reads (FASTQ/BAM/CRAM) to ENA using **webin-cli** (`-context reads`). Unlike the study/sample scripts, this script manages file upload — webin-cli transfers the data files to ENA as part of the submission. One row in the input file = one run submission.
+
+**Prerequisites:** `ena-webin-cli` installed in the active conda/mamba environment, OR use `--webin-cli-jar` / `--download-webin-cli`.
+
+**Required columns in the input file** (in addition to those validated by the `--linkml` schema):
+
+| Column | Description |
+|---|---|
+| `STUDY` | Study accession or alias (e.g. `PRJEB12345`) |
+| `SAMPLE` | Sample accession or alias (e.g. `SAMEA7687881`) |
+| `NAME` | Unique run name / alias within the account |
+| `INSTRUMENT` | Sequencing instrument model (e.g. `Illumina MiSeq`) |
+| `LIBRARY_SOURCE` | e.g. `METAGENOMIC` |
+| `LIBRARY_SELECTION` | e.g. `RANDOM` |
+| `LIBRARY_STRATEGY` | e.g. `WGS` |
+| `FASTQ` | Path to a single FASTQ file |
+| `FASTQ1` / `FASTQ2` | Paths to paired FASTQ files |
+| `BAM` or `CRAM` | Path to a BAM or CRAM file |
+
+At least one file field (`FASTQ`, `FASTQ1`, `BAM`, `CRAM`) must be present per row.
+
+**Usage:**
+
+```bash
+# Test submission
+python scripts/submit_reads.py \
+    --input runs.csv \
+    --linkml schemas/SRA_experiment.yaml \
+    --xsd assets/ena_schema \
+    --test
+
+# Validate and preview manifests without submitting
+python scripts/submit_reads.py \
+    --input runs.csv \
+    --linkml schemas/SRA_experiment.yaml \
+    --xsd assets/ena_schema \
+    --dry-run --log reads.log
+
+# With a pre-downloaded jar
+python scripts/submit_reads.py \
+    --input runs.csv \
+    --linkml schemas/SRA_experiment.yaml \
+    --xsd assets/ena_schema \
+    --webin-cli-jar /path/to/webin-cli.jar
+
+# Download the latest jar automatically
+python scripts/submit_reads.py \
+    --input runs.csv \
+    --linkml schemas/SRA_experiment.yaml \
+    --xsd assets/ena_schema \
+    --download-webin-cli
+```
+
+**Options:**
+
+| Flag | Description |
+|---|---|
+| `--input` | Run metadata file (JSON, CSV, TSV, XLS, XLSX) |
+| `--linkml` | LinkML YAML schema for pre-flight validation |
+| `--test` | Target the ENA test server |
+| `--dry-run` | Validate and generate manifests only |
+| `--log` | Write debug log to file |
+| `--output` | Write JSON accession results to file (default: stdout) |
+| `--workdir` | Directory for temporary manifest files |
+| `--webin-cli-jar` | Path to a pre-downloaded webin-cli jar |
+| `--download-webin-cli` | Download latest webin-cli jar automatically |
+| `--download-webin-cli-version` | Specific version to download |
+| `--download-webin-cli-dir` | Directory to save downloaded jar (default: `.`) |
+| `--retries` | webin-cli retry attempts (default: 3) |
+| `--retry-delay` | Initial retry delay in seconds (default: 5) |
+| `--max-results` | Max runs fetched from Reports API for duplicate checking |
+
 ---
 
 ## `scripts/ena_to_linkml.py`
