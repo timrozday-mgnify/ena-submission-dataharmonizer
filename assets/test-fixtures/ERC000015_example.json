@@ -1,0 +1,36 @@
+{
+  "schema": "https://github.com/timrozday/ena-submission-dataharmonizer/ERC000015",
+  "location": "/templates/erc000015",
+  "version": "1.0.0",
+  "in_language": "en",
+  "Container": {
+    "ERC000015s": [
+      {
+        "project name": "MIMICC",
+        "collection date": "2026-03-12",
+        "geographic location (latitude)": "0",
+        "geographic location (longitude)": "0",
+        "broad-scale environmental context": "Seminar room",
+        "local environmental context": "User's fingertips",
+        "environmental medium": "Laptop keyboard",
+        "geographic location (country and/or sea)": "United Kingdom",
+        "TAXON_ID": "408170",
+        "sample alias": "sample1",
+        "sample title": "sample1"
+      },
+      {
+        "project name": "MIMICC",
+        "collection date": "2026-03-12",
+        "geographic location (latitude)": "0",
+        "geographic location (longitude)": "0",
+        "broad-scale environmental context": "Seminar room",
+        "local environmental context": "User's fingertips",
+        "environmental medium": "Laptop keyboard",
+        "geographic location (country and/or sea)": "United Kingdom",
+        "TAXON_ID": "408170",
+        "sample alias": "sample2",
+        "sample title": "sample2"
+      }
+    ]
+  }
+}

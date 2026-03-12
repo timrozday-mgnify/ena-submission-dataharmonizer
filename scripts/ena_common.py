@@ -217,6 +217,54 @@ def validate_hold_until(hold_until: str) -> pendulum.Date:
 
 
 # -----------------------------------------------------------
+# ENA checklist XML parsing
+# -----------------------------------------------------------
+
+
+def parse_checklist_units(
+    xml_path: str | Path,
+) -> dict[str, str]:
+    """Parse an ENA checklist XML and return field units.
+
+    Reads the ``<FIELD>`` elements from an ENA checklist XML
+    file (e.g. ``ERC000015.xml``) and returns a mapping from
+    slot name to unit string for every field that declares a
+    ``<UNITS><UNIT>`` element.
+
+    Args:
+        xml_path: Path to the ENA checklist XML file.
+
+    Returns:
+        Dict mapping slot name (e.g. ``"geographic_location_
+        latitude"``) to unit string (e.g. ``"DD"``).
+        Fields without units are absent from the dict.
+    """
+    units: dict[str, str] = {}
+    try:
+        tree = ET.parse(str(xml_path))
+    except ET.ParseError as exc:
+        logger.warning(
+            "Could not parse checklist XML %s: %s",
+            xml_path, exc,
+        )
+        return units
+
+    for field in tree.iter("FIELD"):
+        name_el = field.find("NAME")
+        if name_el is None or not name_el.text:
+            continue
+        units_el = field.find("UNITS")
+        if units_el is None:
+            continue
+        unit_el = units_el.find("UNIT")
+        if unit_el is None or not unit_el.text:
+            continue
+        units[name_el.text.strip()] = unit_el.text.strip()
+
+    return units
+
+
+# -----------------------------------------------------------
 # LinkML validation
 # -----------------------------------------------------------
 
@@ -231,6 +279,81 @@ def load_linkml_schema(
     """
     with open(linkml_path) as fh:
         return yaml.safe_load(fh)
+
+
+def build_slot_to_title_map(
+    schema: dict[str, Any],
+) -> dict[str, str]:
+    """Build a mapping from slot name to slot title.
+
+    This is the reverse of :func:`build_title_to_slot_map`
+    and is used when writing XML SAMPLE_ATTRIBUTE tags so
+    that ENA receives the human-readable field name expected
+    by the checklist validator.
+
+    Args:
+        schema: Parsed LinkML schema dict.
+
+    Returns:
+        Dict mapping slot name string to title string.
+        Slots without a title are omitted.
+    """
+    mapping: dict[str, str] = {}
+    for slot_name, slot_def in schema.get("slots", {}).items():
+        title = (slot_def or {}).get("title", "")
+        if title:
+            mapping[slot_name] = title
+    return mapping
+
+
+def build_title_to_slot_map(
+    schema: dict[str, Any],
+) -> dict[str, str]:
+    """Build a mapping from slot title to slot name.
+
+    Args:
+        schema: Parsed LinkML schema dict.
+
+    Returns:
+        Dict mapping title string to slot name string.
+    """
+    mapping: dict[str, str] = {}
+    for slot_name, slot_def in schema.get("slots", {}).items():
+        title = (slot_def or {}).get("title", "")
+        if title:
+            mapping[title] = slot_name
+    return mapping
+
+
+def remap_records_by_title(
+    records: list[dict[str, Any]],
+    schema: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Remap record keys from slot titles to slot names.
+
+    DataHarmonizer exports use the slot ``title`` as the
+    column header.  This function translates those headers
+    back to the canonical slot name so that downstream
+    validation and XML building work correctly.  Keys that
+    do not match any title are left unchanged.
+
+    Args:
+        records: Record dicts with title-based keys.
+        schema: Parsed LinkML schema dict.
+
+    Returns:
+        New list of record dicts with slot-name keys.
+    """
+    title_to_slot = build_title_to_slot_map(schema)
+    if not title_to_slot:
+        return records
+    remapped: list[dict[str, Any]] = []
+    for record in records:
+        new_record: dict[str, Any] = {}
+        for key, val in record.items():
+            new_record[title_to_slot.get(key, key)] = val
+        remapped.append(new_record)
+    return remapped
 
 
 def validate_against_linkml(

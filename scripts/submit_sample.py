@@ -39,6 +39,7 @@ Usage::
 from __future__ import annotations
 
 import logging
+import re
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -166,17 +167,36 @@ def find_duplicate_samples(
 def build_submission_xml(
     samples: list[dict[str, Any]],
     hold_until: str | None = None,
+    checklist_id: str | None = None,
+    slot_to_title: dict[str, str] | None = None,
+    slot_to_unit: dict[str, str] | None = None,
+    action: str = "ADD",
 ) -> ET.Element:
     """Build a WEBIN XML document for submitting samples.
 
     Each sample in the input list is converted to a SAMPLE
     element.  Fields not consumed by dedicated XML elements
-    are emitted as ``<SAMPLE_ATTRIBUTE>`` tag-value pairs.
+    are emitted as ``<SAMPLE_ATTRIBUTE>`` tag-value pairs,
+    with tag names translated back to their human-readable
+    titles using *slot_to_title* and units appended where
+    defined in *slot_to_unit*.
 
     Args:
         samples: Sample metadata dicts.
         hold_until: Optional hold-until date string
             (``YYYY-MM-DD``).
+        checklist_id: ENA checklist identifier to embed as
+            an ``ENA-CHECKLIST`` SAMPLE_ATTRIBUTE
+            (e.g. ``"ERC000015"``).
+        slot_to_title: Mapping from slot name to human-
+            readable title used as the XML TAG value.
+            Keys absent from this map are used as-is.
+        slot_to_unit: Mapping from slot name to unit string
+            (e.g. ``{"geographic_location_latitude": "DD"}``).
+            When present, a ``<UNITS>`` child is added to the
+            ``<SAMPLE_ATTRIBUTE>`` element.
+        action: Submission action — ``"ADD"`` for new samples
+            or ``"MODIFY"`` to update existing ones.
 
     Returns:
         Root ``<WEBIN>`` element.
@@ -187,14 +207,14 @@ def build_submission_xml(
     submission = ET.SubElement(
         submission_set, "SUBMISSION",
     )
-    alias = (
+    sub_alias = (
         "sample-submission-"
         + pendulum.now().format("YYYYMMDD-HHmmss")
     )
-    submission.set("alias", alias)
+    submission.set("alias", sub_alias)
     actions = ET.SubElement(submission, "ACTIONS")
-    add_action = ET.SubElement(actions, "ACTION")
-    ET.SubElement(add_action, "ADD")
+    main_action = ET.SubElement(actions, "ACTION")
+    ET.SubElement(main_action, action.upper())
     if hold_until:
         hold_action = ET.SubElement(actions, "ACTION")
         hold_el = ET.SubElement(hold_action, "HOLD")
@@ -202,7 +222,10 @@ def build_submission_xml(
 
     sample_set = ET.SubElement(webin, "SAMPLE_SET")
     for sample in samples:
-        _add_sample_element(sample_set, sample)
+        _add_sample_element(
+            sample_set, sample, checklist_id,
+            slot_to_title, slot_to_unit,
+        )
 
     return webin
 
@@ -210,8 +233,24 @@ def build_submission_xml(
 def _add_sample_element(
     sample_set: ET.Element,
     sample: dict[str, Any],
+    checklist_id: str | None = None,
+    slot_to_title: dict[str, str] | None = None,
+    slot_to_unit: dict[str, str] | None = None,
 ) -> None:
-    """Append a ``<SAMPLE>`` element to *sample_set*."""
+    """Append a ``<SAMPLE>`` element to *sample_set*.
+
+    Args:
+        sample_set: Parent ``<SAMPLE_SET>`` element.
+        sample: Sample metadata dict (keys are slot names).
+        checklist_id: If provided, added as an
+            ``ENA-CHECKLIST`` SAMPLE_ATTRIBUTE.
+        slot_to_title: Mapping from slot name to the
+            human-readable title used as the XML TAG value.
+            ENA's checklist validator requires these titles.
+        slot_to_unit: Mapping from slot name to unit string.
+            When present for a field, a ``<UNITS>`` child
+            element is added to its ``<SAMPLE_ATTRIBUTE>``.
+    """
     alias = sample.get(
         "alias",
         (
@@ -254,19 +293,26 @@ def _add_sample_element(
         desc_el.text = desc
 
     # Remaining fields become SAMPLE_ATTRIBUTEs.
+    # ENA-CHECKLIST is always first when present.
     attrs = {
         k: v for k, v in sample.items()
         if k not in _RESERVED_FIELDS
         and v is not None
         and str(v).strip()
     }
-    if attrs:
+    if attrs or checklist_id:
         attrs_el = ET.SubElement(
             sample_el, "SAMPLE_ATTRIBUTES",
         )
-        for tag, value in attrs.items():
+        if checklist_id:
             _add_sample_attribute(
-                attrs_el, tag, str(value),
+                attrs_el, "ENA-CHECKLIST", checklist_id,
+            )
+        for tag, value in attrs.items():
+            tag_name = (slot_to_title or {}).get(tag, tag)
+            unit = (slot_to_unit or {}).get(tag)
+            _add_sample_attribute(
+                attrs_el, tag_name, str(value), unit,
             )
 
 
@@ -274,13 +320,24 @@ def _add_sample_attribute(
     parent: ET.Element,
     tag_text: str,
     value_text: str,
+    unit: str | None = None,
 ) -> None:
-    """Append a ``<SAMPLE_ATTRIBUTE>`` to *parent*."""
+    """Append a ``<SAMPLE_ATTRIBUTE>`` to *parent*.
+
+    Args:
+        parent: Parent ``<SAMPLE_ATTRIBUTES>`` element.
+        tag_text: Value for the ``<TAG>`` child.
+        value_text: Value for the ``<VALUE>`` child.
+        unit: If provided, added as a ``<UNITS>`` child.
+    """
     attr = ET.SubElement(parent, "SAMPLE_ATTRIBUTE")
     tag_el = ET.SubElement(attr, "TAG")
     tag_el.text = tag_text
     val_el = ET.SubElement(attr, "VALUE")
     val_el.text = value_text
+    if unit:
+        units_el = ET.SubElement(attr, "UNITS")
+        units_el.text = unit
 
 
 # -----------------------------------------------------------
@@ -415,6 +472,117 @@ def parse_xml_receipt(
 
 
 # -----------------------------------------------------------
+# Submission helper
+# -----------------------------------------------------------
+
+
+def _do_submission(
+    base_url: str,
+    auth: Any,
+    xml_bytes: bytes,
+    xsd: Path,
+    action: str,
+    results: dict[str, list[dict[str, Any]]],
+    result_key: str,
+    env_label: str,
+    dry_run: bool,
+) -> bool:
+    """Validate, optionally submit, and parse one batch.
+
+    Validates *xml_bytes* against the XSD, optionally submits
+    it to ENA, parses the receipt, and appends accession dicts
+    to ``results[result_key]`` or ``results["failed"]``.
+
+    Args:
+        base_url: ENA Webin v2 submission base URL.
+        auth: HTTP basic-auth credentials.
+        xml_bytes: Serialised XML submission document.
+        xsd: Directory containing the XSD files.
+        action: Human-readable label for log messages
+            (e.g. ``"ADD"`` or ``"MODIFY"``).
+        results: Results dict to accumulate into.
+        result_key: Key under which successes are stored
+            (e.g. ``"submitted"`` or ``"modified"``).
+        env_label: ``"TEST"`` or ``"PRODUCTION"``.
+        dry_run: If ``True``, skip the actual submission.
+
+    Returns:
+        ``True`` if the batch succeeded (or dry run).
+    """
+    xsd_valid, xsd_messages = validate_against_xsd(
+        xml_bytes, xsd,
+    )
+    for msg in xsd_messages:
+        logger.info("  %s", msg)
+    if not xsd_valid:
+        logger.error(
+            "XSD validation FAILED (%s)"
+            " — aborting submission", action,
+        )
+        return False
+
+    logger.info("XSD validation PASSED (%s)", action)
+
+    if dry_run:
+        logger.info(
+            "DRY RUN — skipping %s submission", action,
+        )
+        logger.info(
+            "Generated XML:\n%s",
+            xml_bytes.decode("utf-8"),
+        )
+        return True
+
+    logger.info(
+        "Submitting %s to ENA (%s)...", action, env_label,
+    )
+    try:
+        receipt_root = common.submit_xml(
+            base_url, auth, xml_bytes,
+        )
+    except requests.exceptions.HTTPError as exc:
+        logger.error(
+            "HTTP error during %s submission: %s",
+            action, exc,
+        )
+        if exc.response is not None:
+            logger.error(
+                "Response body: %s", exc.response.text,
+            )
+        return False
+
+    success, accessions, receipt_messages = (
+        parse_xml_receipt(receipt_root)
+    )
+    for msg in receipt_messages:
+        logger.info("  Receipt: %s", msg)
+
+    if success:
+        logger.info("%s SUCCESSFUL", action)
+        for acc in accessions:
+            ext = acc.get("external_accession", "")
+            ext_suffix = (
+                f" (biosample: {ext})" if ext else ""
+            )
+            logger.info(
+                "  %s: alias=%s accession=%s"
+                " status=%s%s",
+                action, acc["alias"], acc["accession"],
+                acc["status"], ext_suffix,
+            )
+            results[result_key].append(acc)
+    else:
+        logger.error("%s FAILED", action)
+        receipt_xml_str = ET.tostring(
+            receipt_root, encoding="unicode",
+        )
+        logger.error("Receipt XML: %s", receipt_xml_str)
+        results["failed"].extend(accessions)
+
+    return success
+
+
+# -----------------------------------------------------------
 # Main
 # -----------------------------------------------------------
 
@@ -473,6 +641,12 @@ def main(
         help="Skip duplicate detection against the"
         " Webin Reports API (for automated pipelines)",
     ),
+    force: bool = typer.Option(
+        False, "--force",
+        help="Submit duplicate samples using the MODIFY"
+        " action to overwrite existing ENA records,"
+        " instead of skipping them",
+    ),
 ) -> None:
     """Submit samples to ENA via the Webin REST API v2."""
     common.setup_logging(log)
@@ -506,6 +680,19 @@ def main(
         "Loaded %d sample(s) from input", len(samples),
     )
 
+    # -- Step 1b: Load LinkML schema and remap keys ------
+    # DataHarmonizer exports use slot titles as column
+    # headers (e.g. "project name") rather than slot names
+    # (e.g. "project_name").  Remap before any downstream
+    # processing so that duplicate detection, validation,
+    # and XML building all receive canonical slot names.
+    logger.info("Loading LinkML schema: %s", linkml)
+    schema = common.load_linkml_schema(linkml)
+    samples = common.remap_records_by_title(samples, schema)
+    logger.info(
+        "Remapped record keys using slot titles from schema",
+    )
+
     # -- Step 2: Check for duplicates --------------------
     if automated:
         logger.info(
@@ -531,14 +718,21 @@ def main(
     results: dict[str, list[dict[str, Any]]] = {
         "duplicates": [],
         "submitted": [],
+        "modified": [],
         "failed": [],
     }
 
+    # Build the MODIFY list (duplicates with --force) and
+    # log all duplicates regardless.
+    samples_to_modify: list[dict[str, Any]] = []
     if duplicates:
+        action_label = (
+            "will be re-submitted with MODIFY"
+            if force else "will NOT be submitted"
+        )
         logger.warning(
-            "Found %d duplicate(s)"
-            " — these will NOT be submitted:",
-            len(duplicates),
+            "Found %d duplicate(s) — %s:",
+            len(duplicates), action_label,
         )
         for idx, dup_info in duplicates.items():
             sample_title = samples[idx].get(
@@ -565,35 +759,41 @@ def main(
                 ),
                 "match_reason": dup_info["match_reason"],
             })
+            if force:
+                # Use the existing ENA alias so MODIFY
+                # targets the correct record.
+                sample_copy = dict(samples[idx])
+                existing_alias = dup_info.get("alias", "")
+                if existing_alias:
+                    sample_copy["alias"] = existing_alias
+                samples_to_modify.append(sample_copy)
 
     samples_to_submit = [
         s for i, s in enumerate(samples)
         if i not in duplicates
     ]
 
-    if not samples_to_submit:
+    if not samples_to_submit and not samples_to_modify:
         logger.info(
-            "No new samples to submit"
+            "No samples to submit"
             " (all are duplicates or input is empty)",
         )
         common.write_results(results, output)
         return
 
     logger.info(
-        "%d sample(s) to submit after duplicate check",
-        len(samples_to_submit),
+        "%d new sample(s) to ADD,"
+        " %d duplicate(s) to MODIFY",
+        len(samples_to_submit), len(samples_to_modify),
     )
 
     # -- Step 3: Validate against LinkML -----------------
-    logger.info("Loading LinkML schema: %s", linkml)
-    schema = common.load_linkml_schema(linkml)
-
     logger.info(
         "Validating input against LinkML schema...",
     )
     linkml_valid, linkml_messages = (
         common.validate_against_linkml(
-            samples_to_submit, schema,
+            samples_to_submit + samples_to_modify, schema,
             label_fields=["SAMPLE_TITLE", "alias"],
             entity_name="sample",
             unknown_field_note=(
@@ -613,94 +813,104 @@ def main(
 
     logger.info("LinkML validation PASSED")
 
-    # -- Step 4: Build submission XML --------------------
-    logger.info("Building XML submission document...")
-    xml_root = build_submission_xml(
-        samples_to_submit, hold_until=hold_until,
+    # -- Step 4: Prepare shared XML building state -------
+    schema_name = schema.get("name", "")
+    checklist_id: str | None = (
+        schema_name
+        if re.match(r"^ERC\d+$", schema_name)
+        else None
     )
-    xml_bytes = common.xml_to_bytes(xml_root)
-
-    logger.debug(
-        "Generated XML:\n%s",
-        xml_bytes.decode("utf-8"),
-    )
-    logger.info(
-        "XML document size: %d bytes", len(xml_bytes),
-    )
-
-    # -- Step 5: Validate against XSD --------------------
-    logger.info("Validating XML against XSD: %s", xsd)
-    xsd_valid, xsd_messages = validate_against_xsd(
-        xml_bytes, xsd,
-    )
-    for msg in xsd_messages:
-        logger.info("  %s", msg)
-
-    if not xsd_valid:
-        logger.error(
-            "XSD validation FAILED"
-            " — aborting submission",
-        )
-        sys.exit(1)
-
-    logger.info("XSD validation PASSED")
-
-    # -- Step 6: Submit to ENA ---------------------------
-    if dry_run:
+    if checklist_id:
         logger.info(
-            "DRY RUN — skipping actual submission",
+            "Checklist detected from schema: %s",
+            checklist_id,
         )
+    else:
         logger.info(
-            "Generated XML:\n%s",
-            xml_bytes.decode("utf-8"),
+            "No ERC checklist detected in schema name '%s'"
+            " — ENA-CHECKLIST attribute will be omitted",
+            schema_name,
         )
-        common.write_results(results, output)
-        return
 
-    logger.info("Submitting to ENA (%s)...", env_label)
-    try:
-        receipt_root = common.submit_xml(
-            base_url, auth, xml_bytes,
-        )
-    except requests.exceptions.HTTPError as exc:
-        logger.error(
-            "HTTP error during submission: %s", exc,
-        )
-        if exc.response is not None:
-            logger.error(
-                "Response body: %s", exc.response.text,
-            )
-        sys.exit(1)
+    slot_to_title = common.build_slot_to_title_map(schema)
 
-    # -- Step 7: Parse receipt ---------------------------
-    success, accessions, receipt_messages = (
-        parse_xml_receipt(receipt_root)
-    )
-
-    for msg in receipt_messages:
-        logger.info("  Receipt: %s", msg)
-
-    if success:
-        logger.info("Submission SUCCESSFUL")
-        for acc in accessions:
-            ext = acc.get("external_accession", "")
-            ext_suffix = (
-                f" (biosample: {ext})" if ext else ""
+    slot_to_unit: dict[str, str] = {}
+    if checklist_id:
+        checklist_xml = xsd / f"{checklist_id}.xml"
+        if checklist_xml.is_file():
+            slot_to_unit = common.parse_checklist_units(
+                checklist_xml,
             )
             logger.info(
-                "  SUBMITTED: alias=%s accession=%s"
-                " status=%s%s",
-                acc["alias"], acc["accession"],
-                acc["status"], ext_suffix,
+                "Loaded units for %d field(s) from %s",
+                len(slot_to_unit), checklist_xml,
             )
-            results["submitted"].append(acc)
-    else:
-        logger.error("Submission FAILED")
-        receipt_xml_str = ET.tostring(
-            receipt_root, encoding="unicode",
+        else:
+            logger.info(
+                "Checklist XML not found at %s"
+                " — UNITS elements will be omitted",
+                checklist_xml,
+            )
+
+    def _build_xml(
+        batch: list[dict[str, Any]],
+        batch_action: str,
+    ) -> bytes:
+        xml_root = build_submission_xml(
+            batch, hold_until=hold_until,
+            checklist_id=checklist_id,
+            slot_to_title=slot_to_title,
+            slot_to_unit=slot_to_unit,
+            action=batch_action,
         )
-        logger.error("Receipt XML: %s", receipt_xml_str)
-        results["failed"].extend(accessions)
+        xml_bytes = common.xml_to_bytes(xml_root)
+        logger.debug(
+            "Generated XML (%s):\n%s",
+            batch_action, xml_bytes.decode("utf-8"),
+        )
+        logger.info(
+            "XML document size (%s): %d bytes",
+            batch_action, len(xml_bytes),
+        )
+        return xml_bytes
+
+    overall_ok = True
+
+    # -- Step 5/6/7: ADD new samples ---------------------
+    if samples_to_submit:
+        logger.info(
+            "Building ADD XML for %d new sample(s)...",
+            len(samples_to_submit),
+        )
+        add_xml = _build_xml(samples_to_submit, "ADD")
+        ok = _do_submission(
+            base_url, auth, add_xml, xsd,
+            action="ADD",
+            results=results,
+            result_key="submitted",
+            env_label=env_label,
+            dry_run=dry_run,
+        )
+        overall_ok = overall_ok and ok
+
+    # -- Step 5/6/7: MODIFY duplicate samples (--force) --
+    if samples_to_modify:
+        logger.info(
+            "Building MODIFY XML for %d duplicate(s)...",
+            len(samples_to_modify),
+        )
+        mod_xml = _build_xml(samples_to_modify, "MODIFY")
+        ok = _do_submission(
+            base_url, auth, mod_xml, xsd,
+            action="MODIFY",
+            results=results,
+            result_key="modified",
+            env_label=env_label,
+            dry_run=dry_run,
+        )
+        overall_ok = overall_ok and ok
+
+    if not overall_ok:
         sys.exit(1)
 
     # -- Step 8: Output results --------------------------
@@ -709,8 +919,9 @@ def main(
     logger.info("=" * 60)
     logger.info("SUBMISSION SUMMARY")
     logger.info(
-        "  Duplicates (already in ENA): %d",
-        len(results["duplicates"]),
+        "  Duplicates skipped: %d",
+        len(results["duplicates"])
+        - len(results["modified"]),
     )
     for d in results["duplicates"]:
         logger.info(
@@ -718,7 +929,7 @@ def main(
             d["title"], d["existing_accession"],
         )
     logger.info(
-        "  Newly submitted: %d",
+        "  Newly submitted (ADD): %d",
         len(results["submitted"]),
     )
     for s in results["submitted"]:
@@ -727,6 +938,17 @@ def main(
         logger.info(
             "    %s -> %s%s",
             s["alias"], s["accession"], ext_suffix,
+        )
+    logger.info(
+        "  Modified (MODIFY): %d",
+        len(results["modified"]),
+    )
+    for m in results["modified"]:
+        ext = m.get("external_accession", "")
+        ext_suffix = f" ({ext})" if ext else ""
+        logger.info(
+            "    %s -> %s%s",
+            m["alias"], m["accession"], ext_suffix,
         )
     logger.info("=" * 60)
 

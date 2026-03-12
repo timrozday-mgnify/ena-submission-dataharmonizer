@@ -1,0 +1,1226 @@
+2026-03-12 10:11:54 [INFO] ENA Sample Submission — environment: TEST
+2026-03-12 10:11:54 [DEBUG] Auth username: Webin-72719
+2026-03-12 10:11:54 [INFO] Loading input: assets/test-fixtures/ERC000015_example.json
+2026-03-12 10:11:54 [INFO] Extracted records from Container.ERC000015s
+2026-03-12 10:11:54 [INFO] Loaded 2 sample(s) from input
+2026-03-12 10:11:54 [INFO] Fetching account samples from: https://wwwdev.ebi.ac.uk/ena/submit/report/samples
+2026-03-12 10:11:54 [DEBUG] curl -u Webin-72719:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/samples?format=json&max-results=5000"
+2026-03-12 10:11:54 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/samples returned 200
+2026-03-12 10:11:54 [INFO] Found 0 samples in account
+2026-03-12 10:11:54 [INFO] 2 sample(s) to submit after duplicate check
+2026-03-12 10:11:54 [INFO] Loading LinkML schema: schemas/ERC000015.yaml
+2026-03-12 10:11:54 [INFO] Validating input against LinkML schema...
+2026-03-12 10:11:54 [INFO]   LinkML schema defines 86 slots: trophic_level, observed_biotic_relationship, known_pathogenicity, relationship_to_oxygen, propagation, observed_host_symbionts, sample_collection_device, sample_collection_method, sample_storage_temperature, sample_storage_location, oxygenation_status_of_sample, medical_history_performed, project_name, ploidy, number_of_replicons, extrachromosomal_elements, estimated_size, target_gene, target_subfragment, multiplex_identifiers, sequence_quality_check, chimera_check_software, relevant_electronic_resources, relevant_standard_operating_procedures, collection_date, altitude, geographic_location_latitude, geographic_location_longitude, geographic_location_region_and_locality, broadscale_environmental_context, local_environmental_context, environmental_medium, elevation, amount_or_size_of_sample_collected, organism_count, sample_storage_duration, geographic_location_country_andor_sea, gastrointestinal_tract_disorder, liver_disorder, host_disease_status, host_subject_id, ihmc_medication_code, host_age, host_body_site, host_height, host_bodymass_index, ethnicity, host_occupation, host_total_mass, host_phenotype, host_body_temperature, host_sex, host_scientific_name, temperature, salinity, source_material_identifiers, special_diet, host_diet, host_last_meal, host_family_relationship, host_genotype, host_pulse, host_body_product, perturbation, negative_control_type, positive_control_type, experimental_factor, encoded_traits, subspecific_genetic_lineage, taxonomic_classification, isolation_and_growth_condition, annotation_source, reference_for_biomaterial, sample_material_processing, sample_volume_or_weight_for_dna_extraction, nucleic_acid_extraction, nucleic_acid_amplification, library_size, library_reads_sequenced, library_construction_method, library_vector, library_screening_strategy, pcr_conditions, pcr_primers, adapters, chemical_administration
+2026-03-12 10:11:54 [INFO]   Required slots: broadscale_environmental_context, collection_date, environmental_medium, geographic_location_country_andor_sea, geographic_location_latitude, geographic_location_longitude, local_environmental_context, project_name
+2026-03-12 10:11:54 [INFO]   
+--- Validating sample: sample[0] ---
+2026-03-12 10:11:54 [INFO]     WARNING: Unknown field 'project name' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:11:54 [INFO]     WARNING: Unknown field 'collection date' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:11:54 [INFO]     WARNING: Unknown field 'geographic location (latitude)' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:11:54 [INFO]     WARNING: Unknown field 'geographic location (longitude)' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:11:54 [INFO]     WARNING: Unknown field 'broad-scale environmental context' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:11:54 [INFO]     WARNING: Unknown field 'local environmental context' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:11:54 [INFO]     WARNING: Unknown field 'environmental medium' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:11:54 [INFO]     WARNING: Unknown field 'geographic location (country and/or sea)' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:11:54 [INFO]     ERROR: Required field 'project_name' is missing or empty
+2026-03-12 10:11:54 [INFO]     ERROR: Required field 'geographic_location_longitude' is missing or empty
+2026-03-12 10:11:54 [INFO]     ERROR: Required field 'environmental_medium' is missing or empty
+2026-03-12 10:11:54 [INFO]     ERROR: Required field 'broadscale_environmental_context' is missing or empty
+2026-03-12 10:11:54 [INFO]     ERROR: Required field 'geographic_location_latitude' is missing or empty
+2026-03-12 10:11:54 [INFO]     ERROR: Required field 'local_environmental_context' is missing or empty
+2026-03-12 10:11:54 [INFO]     ERROR: Required field 'geographic_location_country_andor_sea' is missing or empty
+2026-03-12 10:11:54 [INFO]     ERROR: Required field 'collection_date' is missing or empty
+2026-03-12 10:11:54 [INFO]   
+--- Validating sample: sample[1] ---
+2026-03-12 10:11:54 [INFO]     WARNING: Unknown field 'project name' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:11:54 [INFO]     WARNING: Unknown field 'collection date' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:11:54 [INFO]     WARNING: Unknown field 'geographic location (latitude)' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:11:54 [INFO]     WARNING: Unknown field 'geographic location (longitude)' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:11:54 [INFO]     WARNING: Unknown field 'broad-scale environmental context' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:11:54 [INFO]     WARNING: Unknown field 'local environmental context' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:11:54 [INFO]     WARNING: Unknown field 'environmental medium' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:11:54 [INFO]     WARNING: Unknown field 'geographic location (country and/or sea)' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:11:54 [INFO]     ERROR: Required field 'project_name' is missing or empty
+2026-03-12 10:11:54 [INFO]     ERROR: Required field 'geographic_location_longitude' is missing or empty
+2026-03-12 10:11:54 [INFO]     ERROR: Required field 'environmental_medium' is missing or empty
+2026-03-12 10:11:54 [INFO]     ERROR: Required field 'broadscale_environmental_context' is missing or empty
+2026-03-12 10:11:54 [INFO]     ERROR: Required field 'geographic_location_latitude' is missing or empty
+2026-03-12 10:11:54 [INFO]     ERROR: Required field 'local_environmental_context' is missing or empty
+2026-03-12 10:11:54 [INFO]     ERROR: Required field 'geographic_location_country_andor_sea' is missing or empty
+2026-03-12 10:11:54 [INFO]     ERROR: Required field 'collection_date' is missing or empty
+2026-03-12 10:11:54 [ERROR] LinkML validation FAILED — aborting submission
+2026-03-12 10:16:40 [INFO] ENA Sample Submission — environment: TEST
+2026-03-12 10:16:40 [DEBUG] Auth username: Webin-72719
+2026-03-12 10:16:40 [INFO] Loading input: ../assets/test-fixtures/ERC000015_example.json
+2026-03-12 10:16:40 [INFO] Extracted records from Container.ERC000015s
+2026-03-12 10:16:40 [INFO] Loaded 2 sample(s) from input
+2026-03-12 10:16:40 [INFO] Fetching account samples from: https://wwwdev.ebi.ac.uk/ena/submit/report/samples
+2026-03-12 10:16:40 [DEBUG] curl -u Webin-72719:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/samples?format=json&max-results=5000"
+2026-03-12 10:16:40 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/samples returned 200
+2026-03-12 10:16:40 [INFO] Found 0 samples in account
+2026-03-12 10:16:40 [INFO] 2 sample(s) to submit after duplicate check
+2026-03-12 10:16:40 [INFO] Loading LinkML schema: ../schemas/ERC000015.yaml
+2026-03-12 10:16:40 [INFO] Validating input against LinkML schema...
+2026-03-12 10:16:40 [INFO]   LinkML schema defines 86 slots: trophic_level, observed_biotic_relationship, known_pathogenicity, relationship_to_oxygen, propagation, observed_host_symbionts, sample_collection_device, sample_collection_method, sample_storage_temperature, sample_storage_location, oxygenation_status_of_sample, medical_history_performed, project_name, ploidy, number_of_replicons, extrachromosomal_elements, estimated_size, target_gene, target_subfragment, multiplex_identifiers, sequence_quality_check, chimera_check_software, relevant_electronic_resources, relevant_standard_operating_procedures, collection_date, altitude, geographic_location_latitude, geographic_location_longitude, geographic_location_region_and_locality, broadscale_environmental_context, local_environmental_context, environmental_medium, elevation, amount_or_size_of_sample_collected, organism_count, sample_storage_duration, geographic_location_country_andor_sea, gastrointestinal_tract_disorder, liver_disorder, host_disease_status, host_subject_id, ihmc_medication_code, host_age, host_body_site, host_height, host_bodymass_index, ethnicity, host_occupation, host_total_mass, host_phenotype, host_body_temperature, host_sex, host_scientific_name, temperature, salinity, source_material_identifiers, special_diet, host_diet, host_last_meal, host_family_relationship, host_genotype, host_pulse, host_body_product, perturbation, negative_control_type, positive_control_type, experimental_factor, encoded_traits, subspecific_genetic_lineage, taxonomic_classification, isolation_and_growth_condition, annotation_source, reference_for_biomaterial, sample_material_processing, sample_volume_or_weight_for_dna_extraction, nucleic_acid_extraction, nucleic_acid_amplification, library_size, library_reads_sequenced, library_construction_method, library_vector, library_screening_strategy, pcr_conditions, pcr_primers, adapters, chemical_administration
+2026-03-12 10:16:40 [INFO]   Required slots: broadscale_environmental_context, collection_date, environmental_medium, geographic_location_country_andor_sea, geographic_location_latitude, geographic_location_longitude, local_environmental_context, project_name
+2026-03-12 10:16:40 [INFO]   
+--- Validating sample: sample[0] ---
+2026-03-12 10:16:40 [INFO]     WARNING: Unknown field 'project name' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:16:40 [INFO]     WARNING: Unknown field 'collection date' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:16:40 [INFO]     WARNING: Unknown field 'geographic location (latitude)' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:16:40 [INFO]     WARNING: Unknown field 'geographic location (longitude)' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:16:40 [INFO]     WARNING: Unknown field 'broad-scale environmental context' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:16:40 [INFO]     WARNING: Unknown field 'local environmental context' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:16:40 [INFO]     WARNING: Unknown field 'environmental medium' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:16:40 [INFO]     WARNING: Unknown field 'geographic location (country and/or sea)' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:16:40 [INFO]     ERROR: Required field 'environmental_medium' is missing or empty
+2026-03-12 10:16:40 [INFO]     ERROR: Required field 'geographic_location_longitude' is missing or empty
+2026-03-12 10:16:40 [INFO]     ERROR: Required field 'geographic_location_country_andor_sea' is missing or empty
+2026-03-12 10:16:40 [INFO]     ERROR: Required field 'local_environmental_context' is missing or empty
+2026-03-12 10:16:40 [INFO]     ERROR: Required field 'geographic_location_latitude' is missing or empty
+2026-03-12 10:16:40 [INFO]     ERROR: Required field 'collection_date' is missing or empty
+2026-03-12 10:16:40 [INFO]     ERROR: Required field 'project_name' is missing or empty
+2026-03-12 10:16:40 [INFO]     ERROR: Required field 'broadscale_environmental_context' is missing or empty
+2026-03-12 10:16:40 [INFO]   
+--- Validating sample: sample[1] ---
+2026-03-12 10:16:40 [INFO]     WARNING: Unknown field 'project name' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:16:40 [INFO]     WARNING: Unknown field 'collection date' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:16:40 [INFO]     WARNING: Unknown field 'geographic location (latitude)' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:16:40 [INFO]     WARNING: Unknown field 'geographic location (longitude)' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:16:40 [INFO]     WARNING: Unknown field 'broad-scale environmental context' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:16:40 [INFO]     WARNING: Unknown field 'local environmental context' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:16:40 [INFO]     WARNING: Unknown field 'environmental medium' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:16:40 [INFO]     WARNING: Unknown field 'geographic location (country and/or sea)' not in LinkML schema (will be passed as SAMPLE_ATTRIBUTE)
+2026-03-12 10:16:40 [INFO]     ERROR: Required field 'environmental_medium' is missing or empty
+2026-03-12 10:16:40 [INFO]     ERROR: Required field 'geographic_location_longitude' is missing or empty
+2026-03-12 10:16:40 [INFO]     ERROR: Required field 'geographic_location_country_andor_sea' is missing or empty
+2026-03-12 10:16:40 [INFO]     ERROR: Required field 'local_environmental_context' is missing or empty
+2026-03-12 10:16:40 [INFO]     ERROR: Required field 'geographic_location_latitude' is missing or empty
+2026-03-12 10:16:40 [INFO]     ERROR: Required field 'collection_date' is missing or empty
+2026-03-12 10:16:40 [INFO]     ERROR: Required field 'project_name' is missing or empty
+2026-03-12 10:16:40 [INFO]     ERROR: Required field 'broadscale_environmental_context' is missing or empty
+2026-03-12 10:16:40 [ERROR] LinkML validation FAILED — aborting submission
+2026-03-12 10:20:54 [INFO] ENA Sample Submission — environment: TEST
+2026-03-12 10:20:54 [DEBUG] Auth username: Webin-72719
+2026-03-12 10:20:54 [INFO] Loading input: ../assets/test-fixtures/ERC000015_example.json
+2026-03-12 10:20:54 [INFO] Extracted records from Container.ERC000015s
+2026-03-12 10:20:54 [INFO] Loaded 2 sample(s) from input
+2026-03-12 10:20:54 [INFO] Loading LinkML schema: ../schemas/ERC000015.yaml
+2026-03-12 10:20:54 [INFO] Remapped record keys using slot titles from schema
+2026-03-12 10:20:54 [INFO] Fetching account samples from: https://wwwdev.ebi.ac.uk/ena/submit/report/samples
+2026-03-12 10:20:54 [DEBUG] curl -u Webin-72719:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/samples?format=json&max-results=5000"
+2026-03-12 10:20:54 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/samples returned 200
+2026-03-12 10:20:54 [INFO] Found 0 samples in account
+2026-03-12 10:20:54 [INFO] 2 sample(s) to submit after duplicate check
+2026-03-12 10:20:54 [INFO] Validating input against LinkML schema...
+2026-03-12 10:20:54 [INFO]   LinkML schema defines 86 slots: trophic_level, observed_biotic_relationship, known_pathogenicity, relationship_to_oxygen, propagation, observed_host_symbionts, sample_collection_device, sample_collection_method, sample_storage_temperature, sample_storage_location, oxygenation_status_of_sample, medical_history_performed, project_name, ploidy, number_of_replicons, extrachromosomal_elements, estimated_size, target_gene, target_subfragment, multiplex_identifiers, sequence_quality_check, chimera_check_software, relevant_electronic_resources, relevant_standard_operating_procedures, collection_date, altitude, geographic_location_latitude, geographic_location_longitude, geographic_location_region_and_locality, broadscale_environmental_context, local_environmental_context, environmental_medium, elevation, amount_or_size_of_sample_collected, organism_count, sample_storage_duration, geographic_location_country_andor_sea, gastrointestinal_tract_disorder, liver_disorder, host_disease_status, host_subject_id, ihmc_medication_code, host_age, host_body_site, host_height, host_bodymass_index, ethnicity, host_occupation, host_total_mass, host_phenotype, host_body_temperature, host_sex, host_scientific_name, temperature, salinity, source_material_identifiers, special_diet, host_diet, host_last_meal, host_family_relationship, host_genotype, host_pulse, host_body_product, perturbation, negative_control_type, positive_control_type, experimental_factor, encoded_traits, subspecific_genetic_lineage, taxonomic_classification, isolation_and_growth_condition, annotation_source, reference_for_biomaterial, sample_material_processing, sample_volume_or_weight_for_dna_extraction, nucleic_acid_extraction, nucleic_acid_amplification, library_size, library_reads_sequenced, library_construction_method, library_vector, library_screening_strategy, pcr_conditions, pcr_primers, adapters, chemical_administration
+2026-03-12 10:20:54 [INFO]   Required slots: broadscale_environmental_context, collection_date, environmental_medium, geographic_location_country_andor_sea, geographic_location_latitude, geographic_location_longitude, local_environmental_context, project_name
+2026-03-12 10:20:54 [INFO]   
+--- Validating sample: sample[0] ---
+2026-03-12 10:20:54 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 10:20:54 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 10:20:54 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 10:20:54 [INFO]     OK: Required field 'collection_date' = '12/3/2026'
+2026-03-12 10:20:54 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 10:20:54 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 10:20:54 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 10:20:54 [INFO]     OK: Required field 'local_environmental_context' = "User's finger-tips"
+2026-03-12 10:20:54 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 10:20:54 [INFO]     OK: Field 'collection_date' = '12/3/2026' (string)
+2026-03-12 10:20:54 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 10:20:54 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 10:20:54 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 10:20:54 [INFO]     OK: Field 'local_environmental_context' = "User's finger-tips" (string)
+2026-03-12 10:20:54 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 10:20:54 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 10:20:54 [INFO]   
+--- Validating sample: sample[1] ---
+2026-03-12 10:20:54 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 10:20:54 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 10:20:54 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 10:20:54 [INFO]     OK: Required field 'collection_date' = '12/3/2026'
+2026-03-12 10:20:54 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 10:20:54 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 10:20:54 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 10:20:54 [INFO]     OK: Required field 'local_environmental_context' = "User's finger-tips"
+2026-03-12 10:20:54 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 10:20:54 [INFO]     OK: Field 'collection_date' = '12/3/2026' (string)
+2026-03-12 10:20:54 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 10:20:54 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 10:20:54 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 10:20:54 [INFO]     OK: Field 'local_environmental_context' = "User's finger-tips" (string)
+2026-03-12 10:20:54 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 10:20:54 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 10:20:54 [INFO] LinkML validation PASSED
+2026-03-12 10:20:54 [INFO] Building XML submission document...
+2026-03-12 10:20:54 [DEBUG] Generated XML:
+<?xml version='1.0' encoding='UTF-8'?>
+<WEBIN><SUBMISSION_SET><SUBMISSION alias="sample-submission-20260312-102054"><ACTIONS><ACTION><ADD /></ACTION><ACTION><HOLD HoldUntilDate="2027-01-01" /></ACTION></ACTIONS></SUBMISSION></SUBMISSION_SET><SAMPLE_SET><SAMPLE alias=""><SAMPLE_NAME><TAXON_ID /></SAMPLE_NAME><SAMPLE_ATTRIBUTES><SAMPLE_ATTRIBUTE><TAG>project_name</TAG><VALUE>MIMICC</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>collection_date</TAG><VALUE>12/3/2026</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_latitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_longitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>broadscale_environmental_context</TAG><VALUE>Seminar room</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>local_environmental_context</TAG><VALUE>User's finger-tips</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>environmental_medium</TAG><VALUE>Laptop keyboard</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_country_andor_sea</TAG><VALUE>United Kingdom</VALUE></SAMPLE_ATTRIBUTE></SAMPLE_ATTRIBUTES></SAMPLE><SAMPLE alias=""><SAMPLE_NAME><TAXON_ID /></SAMPLE_NAME><SAMPLE_ATTRIBUTES><SAMPLE_ATTRIBUTE><TAG>project_name</TAG><VALUE>MIMICC</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>collection_date</TAG><VALUE>12/3/2026</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_latitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_longitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>broadscale_environmental_context</TAG><VALUE>Seminar room</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>local_environmental_context</TAG><VALUE>User's finger-tips</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>environmental_medium</TAG><VALUE>Laptop keyboard</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_country_andor_sea</TAG><VALUE>United Kingdom</VALUE></SAMPLE_ATTRIBUTE></SAMPLE_ATTRIBUTES></SAMPLE></SAMPLE_SET></WEBIN>
+2026-03-12 10:20:54 [INFO] XML document size: 2042 bytes
+2026-03-12 10:20:54 [INFO] Validating XML against XSD: /Users/timrozday/Documents/ena-submission-dataharmonizer/assets/ena_schema
+2026-03-12 10:20:54 [INFO]   XSD ERROR: <string>:2:0:ERROR:SCHEMASV:SCHEMAV_CVC_DATATYPE_VALID_1_2_1: Element 'TAXON_ID': '' is not a valid value of the atomic type 'xs:int'.
+2026-03-12 10:20:54 [INFO]   XSD ERROR: <string>:2:0:ERROR:SCHEMASV:SCHEMAV_CVC_DATATYPE_VALID_1_2_1: Element 'TAXON_ID': '' is not a valid value of the atomic type 'xs:int'.
+2026-03-12 10:20:54 [ERROR] XSD validation FAILED — aborting submission
+2026-03-12 10:21:34 [ERROR] ENA_USERNAME and ENA_PASSWORD environment variables must be set
+2026-03-12 10:21:46 [INFO] ENA Sample Submission — environment: TEST
+2026-03-12 10:21:46 [DEBUG] Auth username: Webin-00000
+2026-03-12 10:21:46 [INFO] Loading input: shell/../assets/test-fixtures/ERC000015_example.json
+2026-03-12 10:21:46 [INFO] Extracted records from Container.ERC000015s
+2026-03-12 10:21:46 [INFO] Loaded 2 sample(s) from input
+2026-03-12 10:21:46 [INFO] Loading LinkML schema: shell/../schemas/ERC000015.yaml
+2026-03-12 10:21:46 [INFO] Remapped record keys using slot titles from schema
+2026-03-12 10:21:46 [INFO] Fetching account samples from: https://wwwdev.ebi.ac.uk/ena/submit/report/samples
+2026-03-12 10:21:46 [DEBUG] curl -u Webin-00000:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/samples?format=json&max-results=5000"
+2026-03-12 10:21:46 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/samples returned 403
+2026-03-12 10:21:46 [WARNING] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/samples returned 403 — endpoint may not be available or credentials may differ
+2026-03-12 10:21:46 [INFO] Fetching account samples from: https://www.ebi.ac.uk/ena/submit/report/samples
+2026-03-12 10:21:46 [DEBUG] curl -u Webin-00000:*** "https://www.ebi.ac.uk/ena/submit/report/samples?format=json&max-results=5000"
+2026-03-12 10:21:47 [INFO] Reports API at https://www.ebi.ac.uk/ena/submit/report/samples returned 403
+2026-03-12 10:21:47 [WARNING] Reports API at https://www.ebi.ac.uk/ena/submit/report/samples returned 403 — endpoint may not be available or credentials may differ
+2026-03-12 10:21:47 [WARNING] Could not reach any Webin reports endpoint. Duplicate checking for samples will be skipped.
+2026-03-12 10:21:47 [INFO] 2 sample(s) to submit after duplicate check
+2026-03-12 10:21:47 [INFO] Validating input against LinkML schema...
+2026-03-12 10:21:47 [INFO]   LinkML schema defines 86 slots: trophic_level, observed_biotic_relationship, known_pathogenicity, relationship_to_oxygen, propagation, observed_host_symbionts, sample_collection_device, sample_collection_method, sample_storage_temperature, sample_storage_location, oxygenation_status_of_sample, medical_history_performed, project_name, ploidy, number_of_replicons, extrachromosomal_elements, estimated_size, target_gene, target_subfragment, multiplex_identifiers, sequence_quality_check, chimera_check_software, relevant_electronic_resources, relevant_standard_operating_procedures, collection_date, altitude, geographic_location_latitude, geographic_location_longitude, geographic_location_region_and_locality, broadscale_environmental_context, local_environmental_context, environmental_medium, elevation, amount_or_size_of_sample_collected, organism_count, sample_storage_duration, geographic_location_country_andor_sea, gastrointestinal_tract_disorder, liver_disorder, host_disease_status, host_subject_id, ihmc_medication_code, host_age, host_body_site, host_height, host_bodymass_index, ethnicity, host_occupation, host_total_mass, host_phenotype, host_body_temperature, host_sex, host_scientific_name, temperature, salinity, source_material_identifiers, special_diet, host_diet, host_last_meal, host_family_relationship, host_genotype, host_pulse, host_body_product, perturbation, negative_control_type, positive_control_type, experimental_factor, encoded_traits, subspecific_genetic_lineage, taxonomic_classification, isolation_and_growth_condition, annotation_source, reference_for_biomaterial, sample_material_processing, sample_volume_or_weight_for_dna_extraction, nucleic_acid_extraction, nucleic_acid_amplification, library_size, library_reads_sequenced, library_construction_method, library_vector, library_screening_strategy, pcr_conditions, pcr_primers, adapters, chemical_administration
+2026-03-12 10:21:47 [INFO]   Required slots: broadscale_environmental_context, collection_date, environmental_medium, geographic_location_country_andor_sea, geographic_location_latitude, geographic_location_longitude, local_environmental_context, project_name
+2026-03-12 10:21:47 [INFO]   
+--- Validating sample: sample[0] ---
+2026-03-12 10:21:47 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 10:21:47 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 10:21:47 [INFO]     OK: Required field 'collection_date' = '12/3/2026'
+2026-03-12 10:21:47 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 10:21:47 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 10:21:47 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 10:21:47 [INFO]     OK: Required field 'local_environmental_context' = "User's finger-tips"
+2026-03-12 10:21:47 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 10:21:47 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 10:21:47 [INFO]     OK: Field 'collection_date' = '12/3/2026' (string)
+2026-03-12 10:21:47 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 10:21:47 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 10:21:47 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 10:21:47 [INFO]     OK: Field 'local_environmental_context' = "User's finger-tips" (string)
+2026-03-12 10:21:47 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 10:21:47 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 10:21:47 [INFO]   
+--- Validating sample: sample[1] ---
+2026-03-12 10:21:47 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 10:21:47 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 10:21:47 [INFO]     OK: Required field 'collection_date' = '12/3/2026'
+2026-03-12 10:21:47 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 10:21:47 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 10:21:47 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 10:21:47 [INFO]     OK: Required field 'local_environmental_context' = "User's finger-tips"
+2026-03-12 10:21:47 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 10:21:47 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 10:21:47 [INFO]     OK: Field 'collection_date' = '12/3/2026' (string)
+2026-03-12 10:21:47 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 10:21:47 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 10:21:47 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 10:21:47 [INFO]     OK: Field 'local_environmental_context' = "User's finger-tips" (string)
+2026-03-12 10:21:47 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 10:21:47 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 10:21:47 [INFO] LinkML validation PASSED
+2026-03-12 10:21:47 [INFO] Building XML submission document...
+2026-03-12 10:21:47 [DEBUG] Generated XML:
+<?xml version='1.0' encoding='UTF-8'?>
+<WEBIN><SUBMISSION_SET><SUBMISSION alias="sample-submission-20260312-102147"><ACTIONS><ACTION><ADD /></ACTION><ACTION><HOLD HoldUntilDate="2027-01-01" /></ACTION></ACTIONS></SUBMISSION></SUBMISSION_SET><SAMPLE_SET><SAMPLE alias=""><SAMPLE_NAME><TAXON_ID /></SAMPLE_NAME><SAMPLE_ATTRIBUTES><SAMPLE_ATTRIBUTE><TAG>project_name</TAG><VALUE>MIMICC</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>collection_date</TAG><VALUE>12/3/2026</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_latitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_longitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>broadscale_environmental_context</TAG><VALUE>Seminar room</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>local_environmental_context</TAG><VALUE>User's finger-tips</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>environmental_medium</TAG><VALUE>Laptop keyboard</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_country_andor_sea</TAG><VALUE>United Kingdom</VALUE></SAMPLE_ATTRIBUTE></SAMPLE_ATTRIBUTES></SAMPLE><SAMPLE alias=""><SAMPLE_NAME><TAXON_ID /></SAMPLE_NAME><SAMPLE_ATTRIBUTES><SAMPLE_ATTRIBUTE><TAG>project_name</TAG><VALUE>MIMICC</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>collection_date</TAG><VALUE>12/3/2026</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_latitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_longitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>broadscale_environmental_context</TAG><VALUE>Seminar room</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>local_environmental_context</TAG><VALUE>User's finger-tips</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>environmental_medium</TAG><VALUE>Laptop keyboard</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_country_andor_sea</TAG><VALUE>United Kingdom</VALUE></SAMPLE_ATTRIBUTE></SAMPLE_ATTRIBUTES></SAMPLE></SAMPLE_SET></WEBIN>
+2026-03-12 10:21:47 [INFO] XML document size: 2042 bytes
+2026-03-12 10:21:47 [INFO] Validating XML against XSD: /Users/timrozday/Documents/ena-submission-dataharmonizer/assets/ena_schema
+2026-03-12 10:21:47 [INFO]   XSD ERROR: <string>:2:0:ERROR:SCHEMASV:SCHEMAV_CVC_DATATYPE_VALID_1_2_1: Element 'TAXON_ID': '' is not a valid value of the atomic type 'xs:int'.
+2026-03-12 10:21:47 [INFO]   XSD ERROR: <string>:2:0:ERROR:SCHEMASV:SCHEMAV_CVC_DATATYPE_VALID_1_2_1: Element 'TAXON_ID': '' is not a valid value of the atomic type 'xs:int'.
+2026-03-12 10:21:47 [ERROR] XSD validation FAILED — aborting submission
+2026-03-12 10:22:11 [INFO] ENA Sample Submission — environment: TEST
+2026-03-12 10:22:11 [DEBUG] Auth username: Webin-72719
+2026-03-12 10:22:11 [INFO] Loading input: /Users/timrozday/Documents/ena-submission-dataharmonizer/shell/../assets/test-fixtures/ERC000015_example.json
+2026-03-12 10:22:11 [INFO] Extracted records from Container.ERC000015s
+2026-03-12 10:22:11 [INFO] Loaded 2 sample(s) from input
+2026-03-12 10:22:11 [INFO] Loading LinkML schema: /Users/timrozday/Documents/ena-submission-dataharmonizer/shell/../schemas/ERC000015.yaml
+2026-03-12 10:22:11 [INFO] Remapped record keys using slot titles from schema
+2026-03-12 10:22:11 [INFO] Fetching account samples from: https://wwwdev.ebi.ac.uk/ena/submit/report/samples
+2026-03-12 10:22:11 [DEBUG] curl -u Webin-72719:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/samples?format=json&max-results=5000"
+2026-03-12 10:22:11 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/samples returned 200
+2026-03-12 10:22:11 [INFO] Found 0 samples in account
+2026-03-12 10:22:11 [INFO] 2 sample(s) to submit after duplicate check
+2026-03-12 10:22:11 [INFO] Validating input against LinkML schema...
+2026-03-12 10:22:11 [INFO]   LinkML schema defines 86 slots: trophic_level, observed_biotic_relationship, known_pathogenicity, relationship_to_oxygen, propagation, observed_host_symbionts, sample_collection_device, sample_collection_method, sample_storage_temperature, sample_storage_location, oxygenation_status_of_sample, medical_history_performed, project_name, ploidy, number_of_replicons, extrachromosomal_elements, estimated_size, target_gene, target_subfragment, multiplex_identifiers, sequence_quality_check, chimera_check_software, relevant_electronic_resources, relevant_standard_operating_procedures, collection_date, altitude, geographic_location_latitude, geographic_location_longitude, geographic_location_region_and_locality, broadscale_environmental_context, local_environmental_context, environmental_medium, elevation, amount_or_size_of_sample_collected, organism_count, sample_storage_duration, geographic_location_country_andor_sea, gastrointestinal_tract_disorder, liver_disorder, host_disease_status, host_subject_id, ihmc_medication_code, host_age, host_body_site, host_height, host_bodymass_index, ethnicity, host_occupation, host_total_mass, host_phenotype, host_body_temperature, host_sex, host_scientific_name, temperature, salinity, source_material_identifiers, special_diet, host_diet, host_last_meal, host_family_relationship, host_genotype, host_pulse, host_body_product, perturbation, negative_control_type, positive_control_type, experimental_factor, encoded_traits, subspecific_genetic_lineage, taxonomic_classification, isolation_and_growth_condition, annotation_source, reference_for_biomaterial, sample_material_processing, sample_volume_or_weight_for_dna_extraction, nucleic_acid_extraction, nucleic_acid_amplification, library_size, library_reads_sequenced, library_construction_method, library_vector, library_screening_strategy, pcr_conditions, pcr_primers, adapters, chemical_administration
+2026-03-12 10:22:11 [INFO]   Required slots: broadscale_environmental_context, collection_date, environmental_medium, geographic_location_country_andor_sea, geographic_location_latitude, geographic_location_longitude, local_environmental_context, project_name
+2026-03-12 10:22:11 [INFO]   
+--- Validating sample: sample[0] ---
+2026-03-12 10:22:11 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 10:22:11 [INFO]     OK: Required field 'local_environmental_context' = "User's finger-tips"
+2026-03-12 10:22:11 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 10:22:11 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 10:22:11 [INFO]     OK: Required field 'collection_date' = '12/3/2026'
+2026-03-12 10:22:11 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 10:22:11 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 10:22:11 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 10:22:11 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 10:22:11 [INFO]     OK: Field 'collection_date' = '12/3/2026' (string)
+2026-03-12 10:22:11 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 10:22:11 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 10:22:11 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 10:22:11 [INFO]     OK: Field 'local_environmental_context' = "User's finger-tips" (string)
+2026-03-12 10:22:11 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 10:22:11 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 10:22:11 [INFO]   
+--- Validating sample: sample[1] ---
+2026-03-12 10:22:11 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 10:22:11 [INFO]     OK: Required field 'local_environmental_context' = "User's finger-tips"
+2026-03-12 10:22:11 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 10:22:11 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 10:22:11 [INFO]     OK: Required field 'collection_date' = '12/3/2026'
+2026-03-12 10:22:11 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 10:22:11 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 10:22:11 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 10:22:11 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 10:22:11 [INFO]     OK: Field 'collection_date' = '12/3/2026' (string)
+2026-03-12 10:22:11 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 10:22:11 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 10:22:11 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 10:22:11 [INFO]     OK: Field 'local_environmental_context' = "User's finger-tips" (string)
+2026-03-12 10:22:11 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 10:22:11 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 10:22:11 [INFO] LinkML validation PASSED
+2026-03-12 10:22:11 [INFO] Building XML submission document...
+2026-03-12 10:22:11 [DEBUG] Generated XML:
+<?xml version='1.0' encoding='UTF-8'?>
+<WEBIN><SUBMISSION_SET><SUBMISSION alias="sample-submission-20260312-102211"><ACTIONS><ACTION><ADD /></ACTION><ACTION><HOLD HoldUntilDate="2027-01-01" /></ACTION></ACTIONS></SUBMISSION></SUBMISSION_SET><SAMPLE_SET><SAMPLE alias=""><SAMPLE_NAME><TAXON_ID /></SAMPLE_NAME><SAMPLE_ATTRIBUTES><SAMPLE_ATTRIBUTE><TAG>project_name</TAG><VALUE>MIMICC</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>collection_date</TAG><VALUE>12/3/2026</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_latitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_longitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>broadscale_environmental_context</TAG><VALUE>Seminar room</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>local_environmental_context</TAG><VALUE>User's finger-tips</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>environmental_medium</TAG><VALUE>Laptop keyboard</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_country_andor_sea</TAG><VALUE>United Kingdom</VALUE></SAMPLE_ATTRIBUTE></SAMPLE_ATTRIBUTES></SAMPLE><SAMPLE alias=""><SAMPLE_NAME><TAXON_ID /></SAMPLE_NAME><SAMPLE_ATTRIBUTES><SAMPLE_ATTRIBUTE><TAG>project_name</TAG><VALUE>MIMICC</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>collection_date</TAG><VALUE>12/3/2026</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_latitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_longitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>broadscale_environmental_context</TAG><VALUE>Seminar room</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>local_environmental_context</TAG><VALUE>User's finger-tips</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>environmental_medium</TAG><VALUE>Laptop keyboard</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_country_andor_sea</TAG><VALUE>United Kingdom</VALUE></SAMPLE_ATTRIBUTE></SAMPLE_ATTRIBUTES></SAMPLE></SAMPLE_SET></WEBIN>
+2026-03-12 10:22:11 [INFO] XML document size: 2042 bytes
+2026-03-12 10:22:11 [INFO] Validating XML against XSD: /Users/timrozday/Documents/ena-submission-dataharmonizer/assets/ena_schema
+2026-03-12 10:22:11 [INFO]   XSD ERROR: <string>:2:0:ERROR:SCHEMASV:SCHEMAV_CVC_DATATYPE_VALID_1_2_1: Element 'TAXON_ID': '' is not a valid value of the atomic type 'xs:int'.
+2026-03-12 10:22:11 [INFO]   XSD ERROR: <string>:2:0:ERROR:SCHEMASV:SCHEMAV_CVC_DATATYPE_VALID_1_2_1: Element 'TAXON_ID': '' is not a valid value of the atomic type 'xs:int'.
+2026-03-12 10:22:11 [ERROR] XSD validation FAILED — aborting submission
+2026-03-12 10:26:48 [INFO] ENA Sample Submission — environment: TEST
+2026-03-12 10:26:48 [DEBUG] Auth username: Webin-72719
+2026-03-12 10:26:48 [INFO] Loading input: ../assets/test-fixtures/ERC000015_example.json
+2026-03-12 10:26:48 [INFO] Extracted records from Container.ERC000015s
+2026-03-12 10:26:48 [INFO] Loaded 2 sample(s) from input
+2026-03-12 10:26:48 [INFO] Loading LinkML schema: ../schemas/ERC000015.yaml
+2026-03-12 10:26:48 [INFO] Remapped record keys using slot titles from schema
+2026-03-12 10:26:48 [INFO] Fetching account samples from: https://wwwdev.ebi.ac.uk/ena/submit/report/samples
+2026-03-12 10:26:48 [DEBUG] curl -u Webin-72719:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/samples?format=json&max-results=5000"
+2026-03-12 10:26:48 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/samples returned 200
+2026-03-12 10:26:48 [INFO] Found 0 samples in account
+2026-03-12 10:26:48 [INFO] 2 sample(s) to submit after duplicate check
+2026-03-12 10:26:48 [INFO] Validating input against LinkML schema...
+2026-03-12 10:26:48 [INFO]   LinkML schema defines 92 slots: trophic_level, observed_biotic_relationship, known_pathogenicity, relationship_to_oxygen, propagation, observed_host_symbionts, sample_collection_device, sample_collection_method, sample_storage_temperature, sample_storage_location, oxygenation_status_of_sample, medical_history_performed, project_name, ploidy, number_of_replicons, extrachromosomal_elements, estimated_size, target_gene, target_subfragment, multiplex_identifiers, sequence_quality_check, chimera_check_software, relevant_electronic_resources, relevant_standard_operating_procedures, collection_date, altitude, geographic_location_latitude, geographic_location_longitude, geographic_location_region_and_locality, broadscale_environmental_context, local_environmental_context, environmental_medium, elevation, amount_or_size_of_sample_collected, organism_count, sample_storage_duration, geographic_location_country_andor_sea, gastrointestinal_tract_disorder, liver_disorder, host_disease_status, host_subject_id, ihmc_medication_code, host_age, host_body_site, host_height, host_bodymass_index, ethnicity, host_occupation, host_total_mass, host_phenotype, host_body_temperature, host_sex, host_scientific_name, temperature, salinity, source_material_identifiers, special_diet, host_diet, host_last_meal, host_family_relationship, host_genotype, host_pulse, host_body_product, perturbation, negative_control_type, positive_control_type, experimental_factor, encoded_traits, subspecific_genetic_lineage, taxonomic_classification, isolation_and_growth_condition, annotation_source, reference_for_biomaterial, sample_material_processing, sample_volume_or_weight_for_dna_extraction, nucleic_acid_extraction, nucleic_acid_amplification, library_size, library_reads_sequenced, library_construction_method, library_vector, library_screening_strategy, pcr_conditions, pcr_primers, adapters, chemical_administration, TITLE, display_name, TAXON_ID, SCIENTIFIC_NAME, COMMON_NAME, DESCRIPTION
+2026-03-12 10:26:48 [INFO]   Required slots: TAXON_ID, broadscale_environmental_context, collection_date, environmental_medium, geographic_location_country_andor_sea, geographic_location_latitude, geographic_location_longitude, local_environmental_context, project_name
+2026-03-12 10:26:48 [INFO]   
+--- Validating sample: sample[0] ---
+2026-03-12 10:26:48 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 10:26:48 [INFO]     OK: Required field 'local_environmental_context' = "User's fingertips"
+2026-03-12 10:26:48 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 10:26:48 [INFO]     OK: Required field 'collection_date' = '12/3/2026'
+2026-03-12 10:26:48 [INFO]     OK: Required field 'TAXON_ID' = '0'
+2026-03-12 10:26:48 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 10:26:48 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 10:26:48 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 10:26:48 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 10:26:48 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 10:26:48 [INFO]     OK: Field 'collection_date' = '12/3/2026' (string)
+2026-03-12 10:26:48 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 10:26:48 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 10:26:48 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 10:26:48 [INFO]     OK: Field 'local_environmental_context' = "User's fingertips" (string)
+2026-03-12 10:26:48 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 10:26:48 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 10:26:48 [INFO]     OK: Field 'TAXON_ID' = '0' (integer)
+2026-03-12 10:26:48 [INFO]   
+--- Validating sample: sample[1] ---
+2026-03-12 10:26:48 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 10:26:48 [INFO]     OK: Required field 'local_environmental_context' = "User's fingertips"
+2026-03-12 10:26:48 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 10:26:48 [INFO]     OK: Required field 'collection_date' = '12/3/2026'
+2026-03-12 10:26:48 [INFO]     OK: Required field 'TAXON_ID' = '0'
+2026-03-12 10:26:48 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 10:26:48 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 10:26:48 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 10:26:48 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 10:26:48 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 10:26:48 [INFO]     OK: Field 'collection_date' = '12/3/2026' (string)
+2026-03-12 10:26:48 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 10:26:48 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 10:26:48 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 10:26:48 [INFO]     OK: Field 'local_environmental_context' = "User's fingertips" (string)
+2026-03-12 10:26:48 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 10:26:48 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 10:26:48 [INFO]     OK: Field 'TAXON_ID' = '0' (integer)
+2026-03-12 10:26:48 [INFO] LinkML validation PASSED
+2026-03-12 10:26:48 [INFO] Building XML submission document...
+2026-03-12 10:26:48 [DEBUG] Generated XML:
+<?xml version='1.0' encoding='UTF-8'?>
+<WEBIN><SUBMISSION_SET><SUBMISSION alias="sample-submission-20260312-102648"><ACTIONS><ACTION><ADD /></ACTION><ACTION><HOLD HoldUntilDate="2027-01-01" /></ACTION></ACTIONS></SUBMISSION></SUBMISSION_SET><SAMPLE_SET><SAMPLE alias=""><SAMPLE_NAME><TAXON_ID>0</TAXON_ID></SAMPLE_NAME><SAMPLE_ATTRIBUTES><SAMPLE_ATTRIBUTE><TAG>project_name</TAG><VALUE>MIMICC</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>collection_date</TAG><VALUE>12/3/2026</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_latitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_longitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>broadscale_environmental_context</TAG><VALUE>Seminar room</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>local_environmental_context</TAG><VALUE>User's fingertips</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>environmental_medium</TAG><VALUE>Laptop keyboard</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_country_andor_sea</TAG><VALUE>United Kingdom</VALUE></SAMPLE_ATTRIBUTE></SAMPLE_ATTRIBUTES></SAMPLE><SAMPLE alias=""><SAMPLE_NAME><TAXON_ID>0</TAXON_ID></SAMPLE_NAME><SAMPLE_ATTRIBUTES><SAMPLE_ATTRIBUTE><TAG>project_name</TAG><VALUE>MIMICC</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>collection_date</TAG><VALUE>12/3/2026</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_latitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_longitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>broadscale_environmental_context</TAG><VALUE>Seminar room</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>local_environmental_context</TAG><VALUE>User's fingertips</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>environmental_medium</TAG><VALUE>Laptop keyboard</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_country_andor_sea</TAG><VALUE>United Kingdom</VALUE></SAMPLE_ATTRIBUTE></SAMPLE_ATTRIBUTES></SAMPLE></SAMPLE_SET></WEBIN>
+2026-03-12 10:26:48 [INFO] XML document size: 2060 bytes
+2026-03-12 10:26:48 [INFO] Validating XML against XSD: /Users/timrozday/Documents/ena-submission-dataharmonizer/assets/ena_schema
+2026-03-12 10:26:48 [INFO]   XSD validation passed (lxml)
+2026-03-12 10:26:48 [INFO] XSD validation PASSED
+2026-03-12 10:26:48 [INFO] Submitting to ENA (TEST)...
+2026-03-12 10:26:48 [INFO]   Receipt: INFO: This submission is a TEST submission and will be discarded within 24 hours
+2026-03-12 10:26:48 [INFO]   Receipt: ERROR: In sample. Missing alias. 
+2026-03-12 10:26:48 [INFO]   Receipt: ERROR: In sample. Missing alias. 
+2026-03-12 10:26:48 [INFO]   Receipt: ERROR: In sample. No taxonomic information specified in sample.
+2026-03-12 10:26:48 [INFO]   Receipt: ERROR: In sample. No taxonomic information specified in sample.
+2026-03-12 10:26:48 [ERROR] Submission FAILED
+2026-03-12 10:26:48 [ERROR] Receipt XML: <RECEIPT receiptDate="2026-03-12T10:26:48.494Z" submissionFile="submission-EMBL-EBI_1773311208494.xml" success="false">
+     <SUBMISSION alias="sample-submission-20260312-102648" />
+     <MESSAGES>
+          <ERROR>In sample. Missing alias. </ERROR>
+          <ERROR>In sample. Missing alias. </ERROR>
+          <ERROR>In sample. No taxonomic information specified in sample.</ERROR>
+          <ERROR>In sample. No taxonomic information specified in sample.</ERROR>
+          <INFO>This submission is a TEST submission and will be discarded within 24 hours</INFO>
+     </MESSAGES>
+     <ACTIONS>ADD</ACTIONS>
+     <ACTIONS>HOLD</ACTIONS>
+</RECEIPT>
+2026-03-12 10:47:19 [INFO] ENA Sample Submission — environment: TEST
+2026-03-12 10:47:19 [DEBUG] Auth username: Webin-72719
+2026-03-12 10:47:19 [INFO] Loading input: shell/../assets/test-fixtures/ERC000015_example.json
+2026-03-12 10:47:19 [INFO] Extracted records from Container.ERC000015s
+2026-03-12 10:47:19 [INFO] Loaded 2 sample(s) from input
+2026-03-12 10:47:19 [INFO] Loading LinkML schema: shell/../schemas/ERC000015.yaml
+2026-03-12 10:47:19 [INFO] Remapped record keys using slot titles from schema
+2026-03-12 10:47:19 [INFO] Fetching account samples from: https://wwwdev.ebi.ac.uk/ena/submit/report/samples
+2026-03-12 10:47:19 [DEBUG] curl -u Webin-72719:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/samples?format=json&max-results=5000"
+2026-03-12 10:47:19 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/samples returned 200
+2026-03-12 10:47:19 [INFO] Found 0 samples in account
+2026-03-12 10:47:19 [INFO] 2 sample(s) to submit after duplicate check
+2026-03-12 10:47:19 [INFO] Validating input against LinkML schema...
+2026-03-12 10:47:19 [INFO]   LinkML schema defines 95 slots: trophic_level, observed_biotic_relationship, known_pathogenicity, relationship_to_oxygen, propagation, observed_host_symbionts, sample_collection_device, sample_collection_method, sample_storage_temperature, sample_storage_location, oxygenation_status_of_sample, medical_history_performed, project_name, ploidy, number_of_replicons, extrachromosomal_elements, estimated_size, target_gene, target_subfragment, multiplex_identifiers, sequence_quality_check, chimera_check_software, relevant_electronic_resources, relevant_standard_operating_procedures, collection_date, altitude, geographic_location_latitude, geographic_location_longitude, geographic_location_region_and_locality, broadscale_environmental_context, local_environmental_context, environmental_medium, elevation, amount_or_size_of_sample_collected, organism_count, sample_storage_duration, geographic_location_country_andor_sea, gastrointestinal_tract_disorder, liver_disorder, host_disease_status, host_subject_id, ihmc_medication_code, host_age, host_body_site, host_height, host_bodymass_index, ethnicity, host_occupation, host_total_mass, host_phenotype, host_body_temperature, host_sex, host_scientific_name, temperature, salinity, source_material_identifiers, special_diet, host_diet, host_last_meal, host_family_relationship, host_genotype, host_pulse, host_body_product, perturbation, negative_control_type, positive_control_type, experimental_factor, encoded_traits, subspecific_genetic_lineage, taxonomic_classification, isolation_and_growth_condition, annotation_source, reference_for_biomaterial, sample_material_processing, sample_volume_or_weight_for_dna_extraction, nucleic_acid_extraction, nucleic_acid_amplification, library_size, library_reads_sequenced, library_construction_method, library_vector, library_screening_strategy, pcr_conditions, pcr_primers, adapters, chemical_administration, TITLE, display_name, TAXON_ID, SCIENTIFIC_NAME, COMMON_NAME, DESCRIPTION, alias, SAMPLE_TITLE, SAMPLE_DESCRIPTION
+2026-03-12 10:47:19 [INFO]   Required slots: SAMPLE_TITLE, TAXON_ID, alias, broadscale_environmental_context, collection_date, environmental_medium, geographic_location_country_andor_sea, geographic_location_latitude, geographic_location_longitude, local_environmental_context, project_name
+2026-03-12 10:47:19 [INFO]   
+--- Validating sample: sample[0] ---
+2026-03-12 10:47:19 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 10:47:19 [INFO]     OK: Required field 'TAXON_ID' = '0'
+2026-03-12 10:47:19 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 10:47:19 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 10:47:19 [INFO]     OK: Required field 'local_environmental_context' = "User's fingertips"
+2026-03-12 10:47:19 [INFO]     ERROR: Required field 'SAMPLE_TITLE' is missing or empty
+2026-03-12 10:47:19 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 10:47:19 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 10:47:19 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 10:47:19 [INFO]     OK: Required field 'collection_date' = '12/3/2026'
+2026-03-12 10:47:19 [INFO]     ERROR: Required field 'alias' is missing or empty
+2026-03-12 10:47:19 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 10:47:19 [INFO]     OK: Field 'collection_date' = '12/3/2026' (string)
+2026-03-12 10:47:19 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 10:47:19 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 10:47:19 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 10:47:19 [INFO]     OK: Field 'local_environmental_context' = "User's fingertips" (string)
+2026-03-12 10:47:19 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 10:47:19 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 10:47:19 [INFO]     OK: Field 'TAXON_ID' = '0' (integer)
+2026-03-12 10:47:19 [INFO]   
+--- Validating sample: sample[1] ---
+2026-03-12 10:47:19 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 10:47:19 [INFO]     OK: Required field 'TAXON_ID' = '0'
+2026-03-12 10:47:19 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 10:47:19 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 10:47:19 [INFO]     OK: Required field 'local_environmental_context' = "User's fingertips"
+2026-03-12 10:47:19 [INFO]     ERROR: Required field 'SAMPLE_TITLE' is missing or empty
+2026-03-12 10:47:19 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 10:47:19 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 10:47:19 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 10:47:19 [INFO]     OK: Required field 'collection_date' = '12/3/2026'
+2026-03-12 10:47:19 [INFO]     ERROR: Required field 'alias' is missing or empty
+2026-03-12 10:47:19 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 10:47:19 [INFO]     OK: Field 'collection_date' = '12/3/2026' (string)
+2026-03-12 10:47:19 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 10:47:19 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 10:47:19 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 10:47:19 [INFO]     OK: Field 'local_environmental_context' = "User's fingertips" (string)
+2026-03-12 10:47:19 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 10:47:19 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 10:47:19 [INFO]     OK: Field 'TAXON_ID' = '0' (integer)
+2026-03-12 10:47:19 [ERROR] LinkML validation FAILED — aborting submission
+2026-03-12 10:47:59 [INFO] ENA Sample Submission — environment: TEST
+2026-03-12 10:47:59 [DEBUG] Auth username: Webin-72719
+2026-03-12 10:47:59 [INFO] Loading input: shell/../assets/test-fixtures/ERC000015_example.json
+2026-03-12 10:47:59 [INFO] Extracted records from Container.ERC000015s
+2026-03-12 10:47:59 [INFO] Loaded 2 sample(s) from input
+2026-03-12 10:47:59 [INFO] Loading LinkML schema: shell/../schemas/ERC000015.yaml
+2026-03-12 10:47:59 [INFO] Remapped record keys using slot titles from schema
+2026-03-12 10:47:59 [INFO] Fetching account samples from: https://wwwdev.ebi.ac.uk/ena/submit/report/samples
+2026-03-12 10:47:59 [DEBUG] curl -u Webin-72719:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/samples?format=json&max-results=5000"
+2026-03-12 10:47:59 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/samples returned 200
+2026-03-12 10:47:59 [INFO] Found 0 samples in account
+2026-03-12 10:47:59 [INFO] 2 sample(s) to submit after duplicate check
+2026-03-12 10:47:59 [INFO] Validating input against LinkML schema...
+2026-03-12 10:47:59 [INFO]   LinkML schema defines 95 slots: trophic_level, observed_biotic_relationship, known_pathogenicity, relationship_to_oxygen, propagation, observed_host_symbionts, sample_collection_device, sample_collection_method, sample_storage_temperature, sample_storage_location, oxygenation_status_of_sample, medical_history_performed, project_name, ploidy, number_of_replicons, extrachromosomal_elements, estimated_size, target_gene, target_subfragment, multiplex_identifiers, sequence_quality_check, chimera_check_software, relevant_electronic_resources, relevant_standard_operating_procedures, collection_date, altitude, geographic_location_latitude, geographic_location_longitude, geographic_location_region_and_locality, broadscale_environmental_context, local_environmental_context, environmental_medium, elevation, amount_or_size_of_sample_collected, organism_count, sample_storage_duration, geographic_location_country_andor_sea, gastrointestinal_tract_disorder, liver_disorder, host_disease_status, host_subject_id, ihmc_medication_code, host_age, host_body_site, host_height, host_bodymass_index, ethnicity, host_occupation, host_total_mass, host_phenotype, host_body_temperature, host_sex, host_scientific_name, temperature, salinity, source_material_identifiers, special_diet, host_diet, host_last_meal, host_family_relationship, host_genotype, host_pulse, host_body_product, perturbation, negative_control_type, positive_control_type, experimental_factor, encoded_traits, subspecific_genetic_lineage, taxonomic_classification, isolation_and_growth_condition, annotation_source, reference_for_biomaterial, sample_material_processing, sample_volume_or_weight_for_dna_extraction, nucleic_acid_extraction, nucleic_acid_amplification, library_size, library_reads_sequenced, library_construction_method, library_vector, library_screening_strategy, pcr_conditions, pcr_primers, adapters, chemical_administration, TITLE, display_name, TAXON_ID, SCIENTIFIC_NAME, COMMON_NAME, DESCRIPTION, alias, SAMPLE_TITLE, SAMPLE_DESCRIPTION
+2026-03-12 10:47:59 [INFO]   Required slots: SAMPLE_TITLE, TAXON_ID, alias, broadscale_environmental_context, collection_date, environmental_medium, geographic_location_country_andor_sea, geographic_location_latitude, geographic_location_longitude, local_environmental_context, project_name
+2026-03-12 10:47:59 [INFO]   
+--- Validating sample: sample1 ---
+2026-03-12 10:47:59 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 10:47:59 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 10:47:59 [INFO]     OK: Required field 'alias' = 'sample1'
+2026-03-12 10:47:59 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 10:47:59 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 10:47:59 [INFO]     OK: Required field 'local_environmental_context' = "User's fingertips"
+2026-03-12 10:47:59 [INFO]     OK: Required field 'TAXON_ID' = '408170'
+2026-03-12 10:47:59 [INFO]     OK: Required field 'collection_date' = '12/3/2026'
+2026-03-12 10:47:59 [INFO]     OK: Required field 'SAMPLE_TITLE' = 'sample1'
+2026-03-12 10:47:59 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 10:47:59 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 10:47:59 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 10:47:59 [INFO]     OK: Field 'collection_date' = '12/3/2026' (string)
+2026-03-12 10:47:59 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 10:47:59 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 10:47:59 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 10:47:59 [INFO]     OK: Field 'local_environmental_context' = "User's fingertips" (string)
+2026-03-12 10:47:59 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 10:47:59 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 10:47:59 [INFO]     OK: Field 'TAXON_ID' = '408170' (integer)
+2026-03-12 10:47:59 [INFO]     OK: Field 'alias' = 'sample1' (string)
+2026-03-12 10:47:59 [INFO]     OK: Field 'SAMPLE_TITLE' = 'sample1' (string)
+2026-03-12 10:47:59 [INFO]   
+--- Validating sample: sample2 ---
+2026-03-12 10:47:59 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 10:47:59 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 10:47:59 [INFO]     OK: Required field 'alias' = 'sample2'
+2026-03-12 10:47:59 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 10:47:59 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 10:47:59 [INFO]     OK: Required field 'local_environmental_context' = "User's fingertips"
+2026-03-12 10:47:59 [INFO]     OK: Required field 'TAXON_ID' = '408170'
+2026-03-12 10:47:59 [INFO]     OK: Required field 'collection_date' = '12/3/2026'
+2026-03-12 10:47:59 [INFO]     OK: Required field 'SAMPLE_TITLE' = 'sample2'
+2026-03-12 10:47:59 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 10:47:59 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 10:47:59 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 10:47:59 [INFO]     OK: Field 'collection_date' = '12/3/2026' (string)
+2026-03-12 10:47:59 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 10:47:59 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 10:47:59 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 10:47:59 [INFO]     OK: Field 'local_environmental_context' = "User's fingertips" (string)
+2026-03-12 10:47:59 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 10:47:59 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 10:47:59 [INFO]     OK: Field 'TAXON_ID' = '408170' (integer)
+2026-03-12 10:47:59 [INFO]     OK: Field 'alias' = 'sample2' (string)
+2026-03-12 10:47:59 [INFO]     OK: Field 'SAMPLE_TITLE' = 'sample2' (string)
+2026-03-12 10:47:59 [INFO] LinkML validation PASSED
+2026-03-12 10:47:59 [INFO] Checklist detected from schema: ERC000015
+2026-03-12 10:47:59 [INFO] Building XML submission document...
+2026-03-12 10:47:59 [DEBUG] Generated XML:
+<?xml version='1.0' encoding='UTF-8'?>
+<WEBIN><SUBMISSION_SET><SUBMISSION alias="sample-submission-20260312-104759"><ACTIONS><ACTION><ADD /></ACTION><ACTION><HOLD HoldUntilDate="2027-01-01" /></ACTION></ACTIONS></SUBMISSION></SUBMISSION_SET><SAMPLE_SET><SAMPLE alias="sample1"><TITLE>sample1</TITLE><SAMPLE_NAME><TAXON_ID>408170</TAXON_ID></SAMPLE_NAME><SAMPLE_ATTRIBUTES><SAMPLE_ATTRIBUTE><TAG>ENA-CHECKLIST</TAG><VALUE>ERC000015</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>project_name</TAG><VALUE>MIMICC</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>collection_date</TAG><VALUE>12/3/2026</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_latitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_longitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>broadscale_environmental_context</TAG><VALUE>Seminar room</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>local_environmental_context</TAG><VALUE>User's fingertips</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>environmental_medium</TAG><VALUE>Laptop keyboard</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_country_andor_sea</TAG><VALUE>United Kingdom</VALUE></SAMPLE_ATTRIBUTE></SAMPLE_ATTRIBUTES></SAMPLE><SAMPLE alias="sample2"><TITLE>sample2</TITLE><SAMPLE_NAME><TAXON_ID>408170</TAXON_ID></SAMPLE_NAME><SAMPLE_ATTRIBUTES><SAMPLE_ATTRIBUTE><TAG>ENA-CHECKLIST</TAG><VALUE>ERC000015</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>project_name</TAG><VALUE>MIMICC</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>collection_date</TAG><VALUE>12/3/2026</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_latitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_longitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>broadscale_environmental_context</TAG><VALUE>Seminar room</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>local_environmental_context</TAG><VALUE>User's fingertips</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>environmental_medium</TAG><VALUE>Laptop keyboard</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_country_andor_sea</TAG><VALUE>United Kingdom</VALUE></SAMPLE_ATTRIBUTE></SAMPLE_ATTRIBUTES></SAMPLE></SAMPLE_SET></WEBIN>
+2026-03-12 10:47:59 [INFO] XML document size: 2298 bytes
+2026-03-12 10:47:59 [INFO] Validating XML against XSD: /Users/timrozday/Documents/ena-submission-dataharmonizer/assets/ena_schema
+2026-03-12 10:47:59 [INFO]   XSD validation passed (lxml)
+2026-03-12 10:47:59 [INFO] XSD validation PASSED
+2026-03-12 10:47:59 [INFO] Submitting to ENA (TEST)...
+2026-03-12 10:48:00 [INFO]   Receipt: INFO: All objects in this submission are set to private status (HOLD).
+2026-03-12 10:48:00 [INFO]   Receipt: INFO: This submission is a TEST submission and will be discarded within 24 hours
+2026-03-12 10:48:00 [INFO]   Receipt: ERROR: Sample: sample1; Attribute: project name; Reason: must have required property 'project name'
+2026-03-12 10:48:00 [INFO]   Receipt: ERROR: Sample: sample1; Attribute: collection date; Reason: must have required property 'collection date'
+2026-03-12 10:48:00 [INFO]   Receipt: ERROR: Sample: sample1; Attribute: geographic location (latitude); Reason: must have required property 'geographic location (latitude)'
+2026-03-12 10:48:00 [INFO]   Receipt: ERROR: Sample: sample1; Attribute: geographic location (longitude); Reason: must have required property 'geographic location (longitude)'
+2026-03-12 10:48:00 [INFO]   Receipt: ERROR: Sample: sample1; Attribute: broad-scale environmental context; Reason: must have required property 'broad-scale environmental context'
+2026-03-12 10:48:00 [INFO]   Receipt: ERROR: Sample: sample1; Attribute: local environmental context; Reason: must have required property 'local environmental context'
+2026-03-12 10:48:00 [INFO]   Receipt: ERROR: Sample: sample1; Attribute: environmental medium; Reason: must have required property 'environmental medium'
+2026-03-12 10:48:00 [INFO]   Receipt: ERROR: Sample: sample1; Attribute: geographic location (country and; Reason: must have required property 'geographic location (country and/or sea)'
+2026-03-12 10:48:00 [INFO]   Receipt: ERROR: Sample: sample2; Attribute: project name; Reason: must have required property 'project name'
+2026-03-12 10:48:00 [INFO]   Receipt: ERROR: Sample: sample2; Attribute: collection date; Reason: must have required property 'collection date'
+2026-03-12 10:48:00 [INFO]   Receipt: ERROR: Sample: sample2; Attribute: geographic location (latitude); Reason: must have required property 'geographic location (latitude)'
+2026-03-12 10:48:00 [INFO]   Receipt: ERROR: Sample: sample2; Attribute: geographic location (longitude); Reason: must have required property 'geographic location (longitude)'
+2026-03-12 10:48:00 [INFO]   Receipt: ERROR: Sample: sample2; Attribute: broad-scale environmental context; Reason: must have required property 'broad-scale environmental context'
+2026-03-12 10:48:00 [INFO]   Receipt: ERROR: Sample: sample2; Attribute: local environmental context; Reason: must have required property 'local environmental context'
+2026-03-12 10:48:00 [INFO]   Receipt: ERROR: Sample: sample2; Attribute: environmental medium; Reason: must have required property 'environmental medium'
+2026-03-12 10:48:00 [INFO]   Receipt: ERROR: Sample: sample2; Attribute: geographic location (country and; Reason: must have required property 'geographic location (country and/or sea)'
+2026-03-12 10:48:00 [INFO]   Receipt: ERROR: Failed to submit samples to BioSamples
+2026-03-12 10:48:00 [INFO]   Receipt: ERROR: No new BioSample was created for sample with alias sample1
+2026-03-12 10:48:00 [INFO]   Receipt: ERROR: No new BioSample was created for sample with alias sample2
+2026-03-12 10:48:00 [ERROR] Submission FAILED
+2026-03-12 10:48:00 [ERROR] Receipt XML: <RECEIPT receiptDate="2026-03-12T10:48:00.623Z" submissionFile="submission-EMBL-EBI_1773312480623.xml" success="false">
+     <SAMPLE alias="sample1" status="PRIVATE" holdUntilDate="2027-01-01Z" />
+     <SAMPLE alias="sample2" status="PRIVATE" holdUntilDate="2027-01-01Z" />
+     <SUBMISSION alias="sample-submission-20260312-104759" />
+     <MESSAGES>
+          <ERROR>Sample: sample1; Attribute: project name; Reason: must have required property 'project name'</ERROR>
+          <ERROR>Sample: sample1; Attribute: collection date; Reason: must have required property 'collection date'</ERROR>
+          <ERROR>Sample: sample1; Attribute: geographic location (latitude); Reason: must have required property 'geographic location (latitude)'</ERROR>
+          <ERROR>Sample: sample1; Attribute: geographic location (longitude); Reason: must have required property 'geographic location (longitude)'</ERROR>
+          <ERROR>Sample: sample1; Attribute: broad-scale environmental context; Reason: must have required property 'broad-scale environmental context'</ERROR>
+          <ERROR>Sample: sample1; Attribute: local environmental context; Reason: must have required property 'local environmental context'</ERROR>
+          <ERROR>Sample: sample1; Attribute: environmental medium; Reason: must have required property 'environmental medium'</ERROR>
+          <ERROR>Sample: sample1; Attribute: geographic location (country and; Reason: must have required property 'geographic location (country and/or sea)'</ERROR>
+          <ERROR>Sample: sample2; Attribute: project name; Reason: must have required property 'project name'</ERROR>
+          <ERROR>Sample: sample2; Attribute: collection date; Reason: must have required property 'collection date'</ERROR>
+          <ERROR>Sample: sample2; Attribute: geographic location (latitude); Reason: must have required property 'geographic location (latitude)'</ERROR>
+          <ERROR>Sample: sample2; Attribute: geographic location (longitude); Reason: must have required property 'geographic location (longitude)'</ERROR>
+          <ERROR>Sample: sample2; Attribute: broad-scale environmental context; Reason: must have required property 'broad-scale environmental context'</ERROR>
+          <ERROR>Sample: sample2; Attribute: local environmental context; Reason: must have required property 'local environmental context'</ERROR>
+          <ERROR>Sample: sample2; Attribute: environmental medium; Reason: must have required property 'environmental medium'</ERROR>
+          <ERROR>Sample: sample2; Attribute: geographic location (country and; Reason: must have required property 'geographic location (country and/or sea)'</ERROR>
+          <ERROR>Failed to submit samples to BioSamples</ERROR>
+          <ERROR>No new BioSample was created for sample with alias sample1</ERROR>
+          <ERROR>No new BioSample was created for sample with alias sample2</ERROR>
+          <INFO>All objects in this submission are set to private status (HOLD).</INFO>
+          <INFO>This submission is a TEST submission and will be discarded within 24 hours</INFO>
+     </MESSAGES>
+     <ACTIONS>ADD</ACTIONS>
+     <ACTIONS>HOLD</ACTIONS>
+</RECEIPT>
+2026-03-12 10:49:17 [INFO] ENA Sample Submission — environment: TEST
+2026-03-12 10:49:17 [DEBUG] Auth username: Webin-72719
+2026-03-12 10:49:17 [INFO] Loading input: shell/../assets/test-fixtures/ERC000015_example.json
+2026-03-12 10:49:17 [INFO] Extracted records from Container.ERC000015s
+2026-03-12 10:49:17 [INFO] Loaded 2 sample(s) from input
+2026-03-12 10:49:17 [INFO] Loading LinkML schema: shell/../schemas/ERC000015.yaml
+2026-03-12 10:49:17 [INFO] Remapped record keys using slot titles from schema
+2026-03-12 10:49:17 [INFO] Fetching account samples from: https://wwwdev.ebi.ac.uk/ena/submit/report/samples
+2026-03-12 10:49:17 [DEBUG] curl -u Webin-72719:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/samples?format=json&max-results=5000"
+2026-03-12 10:49:18 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/samples returned 200
+2026-03-12 10:49:18 [INFO] Found 0 samples in account
+2026-03-12 10:49:18 [INFO] 2 sample(s) to submit after duplicate check
+2026-03-12 10:49:18 [INFO] Validating input against LinkML schema...
+2026-03-12 10:49:18 [INFO]   LinkML schema defines 95 slots: trophic_level, observed_biotic_relationship, known_pathogenicity, relationship_to_oxygen, propagation, observed_host_symbionts, sample_collection_device, sample_collection_method, sample_storage_temperature, sample_storage_location, oxygenation_status_of_sample, medical_history_performed, project_name, ploidy, number_of_replicons, extrachromosomal_elements, estimated_size, target_gene, target_subfragment, multiplex_identifiers, sequence_quality_check, chimera_check_software, relevant_electronic_resources, relevant_standard_operating_procedures, collection_date, altitude, geographic_location_latitude, geographic_location_longitude, geographic_location_region_and_locality, broadscale_environmental_context, local_environmental_context, environmental_medium, elevation, amount_or_size_of_sample_collected, organism_count, sample_storage_duration, geographic_location_country_andor_sea, gastrointestinal_tract_disorder, liver_disorder, host_disease_status, host_subject_id, ihmc_medication_code, host_age, host_body_site, host_height, host_bodymass_index, ethnicity, host_occupation, host_total_mass, host_phenotype, host_body_temperature, host_sex, host_scientific_name, temperature, salinity, source_material_identifiers, special_diet, host_diet, host_last_meal, host_family_relationship, host_genotype, host_pulse, host_body_product, perturbation, negative_control_type, positive_control_type, experimental_factor, encoded_traits, subspecific_genetic_lineage, taxonomic_classification, isolation_and_growth_condition, annotation_source, reference_for_biomaterial, sample_material_processing, sample_volume_or_weight_for_dna_extraction, nucleic_acid_extraction, nucleic_acid_amplification, library_size, library_reads_sequenced, library_construction_method, library_vector, library_screening_strategy, pcr_conditions, pcr_primers, adapters, chemical_administration, TITLE, display_name, TAXON_ID, SCIENTIFIC_NAME, COMMON_NAME, DESCRIPTION, alias, SAMPLE_TITLE, SAMPLE_DESCRIPTION
+2026-03-12 10:49:18 [INFO]   Required slots: SAMPLE_TITLE, TAXON_ID, alias, broadscale_environmental_context, collection_date, environmental_medium, geographic_location_country_andor_sea, geographic_location_latitude, geographic_location_longitude, local_environmental_context, project_name
+2026-03-12 10:49:18 [INFO]   
+--- Validating sample: sample1 ---
+2026-03-12 10:49:18 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 10:49:18 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 10:49:18 [INFO]     OK: Required field 'alias' = 'sample1'
+2026-03-12 10:49:18 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 10:49:18 [INFO]     OK: Required field 'local_environmental_context' = "User's fingertips"
+2026-03-12 10:49:18 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 10:49:18 [INFO]     OK: Required field 'TAXON_ID' = '408170'
+2026-03-12 10:49:18 [INFO]     OK: Required field 'SAMPLE_TITLE' = 'sample1'
+2026-03-12 10:49:18 [INFO]     OK: Required field 'collection_date' = '12/3/2026'
+2026-03-12 10:49:18 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 10:49:18 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 10:49:18 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 10:49:18 [INFO]     OK: Field 'collection_date' = '12/3/2026' (string)
+2026-03-12 10:49:18 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 10:49:18 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 10:49:18 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 10:49:18 [INFO]     OK: Field 'local_environmental_context' = "User's fingertips" (string)
+2026-03-12 10:49:18 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 10:49:18 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 10:49:18 [INFO]     OK: Field 'TAXON_ID' = '408170' (integer)
+2026-03-12 10:49:18 [INFO]     OK: Field 'alias' = 'sample1' (string)
+2026-03-12 10:49:18 [INFO]     OK: Field 'SAMPLE_TITLE' = 'sample1' (string)
+2026-03-12 10:49:18 [INFO]   
+--- Validating sample: sample2 ---
+2026-03-12 10:49:18 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 10:49:18 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 10:49:18 [INFO]     OK: Required field 'alias' = 'sample2'
+2026-03-12 10:49:18 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 10:49:18 [INFO]     OK: Required field 'local_environmental_context' = "User's fingertips"
+2026-03-12 10:49:18 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 10:49:18 [INFO]     OK: Required field 'TAXON_ID' = '408170'
+2026-03-12 10:49:18 [INFO]     OK: Required field 'SAMPLE_TITLE' = 'sample2'
+2026-03-12 10:49:18 [INFO]     OK: Required field 'collection_date' = '12/3/2026'
+2026-03-12 10:49:18 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 10:49:18 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 10:49:18 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 10:49:18 [INFO]     OK: Field 'collection_date' = '12/3/2026' (string)
+2026-03-12 10:49:18 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 10:49:18 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 10:49:18 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 10:49:18 [INFO]     OK: Field 'local_environmental_context' = "User's fingertips" (string)
+2026-03-12 10:49:18 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 10:49:18 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 10:49:18 [INFO]     OK: Field 'TAXON_ID' = '408170' (integer)
+2026-03-12 10:49:18 [INFO]     OK: Field 'alias' = 'sample2' (string)
+2026-03-12 10:49:18 [INFO]     OK: Field 'SAMPLE_TITLE' = 'sample2' (string)
+2026-03-12 10:49:18 [INFO] LinkML validation PASSED
+2026-03-12 10:49:18 [INFO] Checklist detected from schema: ERC000015
+2026-03-12 10:49:18 [INFO] Building XML submission document...
+2026-03-12 10:49:18 [DEBUG] Generated XML:
+<?xml version='1.0' encoding='UTF-8'?>
+<WEBIN><SUBMISSION_SET><SUBMISSION alias="sample-submission-20260312-104918"><ACTIONS><ACTION><ADD /></ACTION><ACTION><HOLD HoldUntilDate="2027-01-01" /></ACTION></ACTIONS></SUBMISSION></SUBMISSION_SET><SAMPLE_SET><SAMPLE alias="sample1"><TITLE>sample1</TITLE><SAMPLE_NAME><TAXON_ID>408170</TAXON_ID></SAMPLE_NAME><SAMPLE_ATTRIBUTES><SAMPLE_ATTRIBUTE><TAG>ENA-CHECKLIST</TAG><VALUE>ERC000015</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>project_name</TAG><VALUE>MIMICC</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>collection_date</TAG><VALUE>12/3/2026</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_latitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_longitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>broadscale_environmental_context</TAG><VALUE>Seminar room</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>local_environmental_context</TAG><VALUE>User's fingertips</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>environmental_medium</TAG><VALUE>Laptop keyboard</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_country_andor_sea</TAG><VALUE>United Kingdom</VALUE></SAMPLE_ATTRIBUTE></SAMPLE_ATTRIBUTES></SAMPLE><SAMPLE alias="sample2"><TITLE>sample2</TITLE><SAMPLE_NAME><TAXON_ID>408170</TAXON_ID></SAMPLE_NAME><SAMPLE_ATTRIBUTES><SAMPLE_ATTRIBUTE><TAG>ENA-CHECKLIST</TAG><VALUE>ERC000015</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>project_name</TAG><VALUE>MIMICC</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>collection_date</TAG><VALUE>12/3/2026</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_latitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_longitude</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>broadscale_environmental_context</TAG><VALUE>Seminar room</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>local_environmental_context</TAG><VALUE>User's fingertips</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>environmental_medium</TAG><VALUE>Laptop keyboard</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic_location_country_andor_sea</TAG><VALUE>United Kingdom</VALUE></SAMPLE_ATTRIBUTE></SAMPLE_ATTRIBUTES></SAMPLE></SAMPLE_SET></WEBIN>
+2026-03-12 10:49:18 [INFO] XML document size: 2298 bytes
+2026-03-12 10:49:18 [INFO] Validating XML against XSD: /Users/timrozday/Documents/ena-submission-dataharmonizer/assets/ena_schema
+2026-03-12 10:49:18 [INFO]   XSD validation passed (lxml)
+2026-03-12 10:49:18 [INFO] XSD validation PASSED
+2026-03-12 10:49:18 [INFO] Submitting to ENA (TEST)...
+2026-03-12 10:49:18 [INFO]   Receipt: INFO: All objects in this submission are set to private status (HOLD).
+2026-03-12 10:49:18 [INFO]   Receipt: INFO: This submission is a TEST submission and will be discarded within 24 hours
+2026-03-12 10:49:18 [INFO]   Receipt: ERROR: Sample: sample1; Attribute: project name; Reason: must have required property 'project name'
+2026-03-12 10:49:18 [INFO]   Receipt: ERROR: Sample: sample1; Attribute: collection date; Reason: must have required property 'collection date'
+2026-03-12 10:49:18 [INFO]   Receipt: ERROR: Sample: sample1; Attribute: geographic location (latitude); Reason: must have required property 'geographic location (latitude)'
+2026-03-12 10:49:18 [INFO]   Receipt: ERROR: Sample: sample1; Attribute: geographic location (longitude); Reason: must have required property 'geographic location (longitude)'
+2026-03-12 10:49:18 [INFO]   Receipt: ERROR: Sample: sample1; Attribute: broad-scale environmental context; Reason: must have required property 'broad-scale environmental context'
+2026-03-12 10:49:18 [INFO]   Receipt: ERROR: Sample: sample1; Attribute: local environmental context; Reason: must have required property 'local environmental context'
+2026-03-12 10:49:18 [INFO]   Receipt: ERROR: Sample: sample1; Attribute: environmental medium; Reason: must have required property 'environmental medium'
+2026-03-12 10:49:18 [INFO]   Receipt: ERROR: Sample: sample1; Attribute: geographic location (country and; Reason: must have required property 'geographic location (country and/or sea)'
+2026-03-12 10:49:18 [INFO]   Receipt: ERROR: Sample: sample2; Attribute: project name; Reason: must have required property 'project name'
+2026-03-12 10:49:18 [INFO]   Receipt: ERROR: Sample: sample2; Attribute: collection date; Reason: must have required property 'collection date'
+2026-03-12 10:49:18 [INFO]   Receipt: ERROR: Sample: sample2; Attribute: geographic location (latitude); Reason: must have required property 'geographic location (latitude)'
+2026-03-12 10:49:18 [INFO]   Receipt: ERROR: Sample: sample2; Attribute: geographic location (longitude); Reason: must have required property 'geographic location (longitude)'
+2026-03-12 10:49:18 [INFO]   Receipt: ERROR: Sample: sample2; Attribute: broad-scale environmental context; Reason: must have required property 'broad-scale environmental context'
+2026-03-12 10:49:18 [INFO]   Receipt: ERROR: Sample: sample2; Attribute: local environmental context; Reason: must have required property 'local environmental context'
+2026-03-12 10:49:18 [INFO]   Receipt: ERROR: Sample: sample2; Attribute: environmental medium; Reason: must have required property 'environmental medium'
+2026-03-12 10:49:18 [INFO]   Receipt: ERROR: Sample: sample2; Attribute: geographic location (country and; Reason: must have required property 'geographic location (country and/or sea)'
+2026-03-12 10:49:18 [INFO]   Receipt: ERROR: Failed to submit samples to BioSamples
+2026-03-12 10:49:18 [INFO]   Receipt: ERROR: No new BioSample was created for sample with alias sample1
+2026-03-12 10:49:18 [INFO]   Receipt: ERROR: No new BioSample was created for sample with alias sample2
+2026-03-12 10:49:18 [ERROR] Submission FAILED
+2026-03-12 10:49:18 [ERROR] Receipt XML: <RECEIPT receiptDate="2026-03-12T10:49:18.257Z" submissionFile="submission-EMBL-EBI_1773312558257.xml" success="false">
+     <SAMPLE alias="sample1" status="PRIVATE" holdUntilDate="2027-01-01Z" />
+     <SAMPLE alias="sample2" status="PRIVATE" holdUntilDate="2027-01-01Z" />
+     <SUBMISSION alias="sample-submission-20260312-104918" />
+     <MESSAGES>
+          <ERROR>Sample: sample1; Attribute: project name; Reason: must have required property 'project name'</ERROR>
+          <ERROR>Sample: sample1; Attribute: collection date; Reason: must have required property 'collection date'</ERROR>
+          <ERROR>Sample: sample1; Attribute: geographic location (latitude); Reason: must have required property 'geographic location (latitude)'</ERROR>
+          <ERROR>Sample: sample1; Attribute: geographic location (longitude); Reason: must have required property 'geographic location (longitude)'</ERROR>
+          <ERROR>Sample: sample1; Attribute: broad-scale environmental context; Reason: must have required property 'broad-scale environmental context'</ERROR>
+          <ERROR>Sample: sample1; Attribute: local environmental context; Reason: must have required property 'local environmental context'</ERROR>
+          <ERROR>Sample: sample1; Attribute: environmental medium; Reason: must have required property 'environmental medium'</ERROR>
+          <ERROR>Sample: sample1; Attribute: geographic location (country and; Reason: must have required property 'geographic location (country and/or sea)'</ERROR>
+          <ERROR>Sample: sample2; Attribute: project name; Reason: must have required property 'project name'</ERROR>
+          <ERROR>Sample: sample2; Attribute: collection date; Reason: must have required property 'collection date'</ERROR>
+          <ERROR>Sample: sample2; Attribute: geographic location (latitude); Reason: must have required property 'geographic location (latitude)'</ERROR>
+          <ERROR>Sample: sample2; Attribute: geographic location (longitude); Reason: must have required property 'geographic location (longitude)'</ERROR>
+          <ERROR>Sample: sample2; Attribute: broad-scale environmental context; Reason: must have required property 'broad-scale environmental context'</ERROR>
+          <ERROR>Sample: sample2; Attribute: local environmental context; Reason: must have required property 'local environmental context'</ERROR>
+          <ERROR>Sample: sample2; Attribute: environmental medium; Reason: must have required property 'environmental medium'</ERROR>
+          <ERROR>Sample: sample2; Attribute: geographic location (country and; Reason: must have required property 'geographic location (country and/or sea)'</ERROR>
+          <ERROR>Failed to submit samples to BioSamples</ERROR>
+          <ERROR>No new BioSample was created for sample with alias sample1</ERROR>
+          <ERROR>No new BioSample was created for sample with alias sample2</ERROR>
+          <INFO>All objects in this submission are set to private status (HOLD).</INFO>
+          <INFO>This submission is a TEST submission and will be discarded within 24 hours</INFO>
+     </MESSAGES>
+     <ACTIONS>ADD</ACTIONS>
+     <ACTIONS>HOLD</ACTIONS>
+</RECEIPT>
+2026-03-12 10:50:12 [INFO] ENA Sample Submission — environment: TEST
+2026-03-12 10:50:12 [DEBUG] Auth username: Webin-72719
+2026-03-12 10:50:12 [INFO] Loading input: shell/../assets/test-fixtures/ERC000015_example.json
+2026-03-12 10:50:12 [INFO] Extracted records from Container.ERC000015s
+2026-03-12 10:50:12 [INFO] Loaded 2 sample(s) from input
+2026-03-12 10:50:12 [INFO] Loading LinkML schema: shell/../schemas/ERC000015.yaml
+2026-03-12 10:50:12 [INFO] Remapped record keys using slot titles from schema
+2026-03-12 10:50:12 [INFO] Fetching account samples from: https://wwwdev.ebi.ac.uk/ena/submit/report/samples
+2026-03-12 10:50:12 [DEBUG] curl -u Webin-72719:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/samples?format=json&max-results=5000"
+2026-03-12 10:50:12 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/samples returned 200
+2026-03-12 10:50:12 [INFO] Found 0 samples in account
+2026-03-12 10:50:12 [INFO] 2 sample(s) to submit after duplicate check
+2026-03-12 10:50:12 [INFO] Validating input against LinkML schema...
+2026-03-12 10:50:12 [INFO]   LinkML schema defines 95 slots: trophic_level, observed_biotic_relationship, known_pathogenicity, relationship_to_oxygen, propagation, observed_host_symbionts, sample_collection_device, sample_collection_method, sample_storage_temperature, sample_storage_location, oxygenation_status_of_sample, medical_history_performed, project_name, ploidy, number_of_replicons, extrachromosomal_elements, estimated_size, target_gene, target_subfragment, multiplex_identifiers, sequence_quality_check, chimera_check_software, relevant_electronic_resources, relevant_standard_operating_procedures, collection_date, altitude, geographic_location_latitude, geographic_location_longitude, geographic_location_region_and_locality, broadscale_environmental_context, local_environmental_context, environmental_medium, elevation, amount_or_size_of_sample_collected, organism_count, sample_storage_duration, geographic_location_country_andor_sea, gastrointestinal_tract_disorder, liver_disorder, host_disease_status, host_subject_id, ihmc_medication_code, host_age, host_body_site, host_height, host_bodymass_index, ethnicity, host_occupation, host_total_mass, host_phenotype, host_body_temperature, host_sex, host_scientific_name, temperature, salinity, source_material_identifiers, special_diet, host_diet, host_last_meal, host_family_relationship, host_genotype, host_pulse, host_body_product, perturbation, negative_control_type, positive_control_type, experimental_factor, encoded_traits, subspecific_genetic_lineage, taxonomic_classification, isolation_and_growth_condition, annotation_source, reference_for_biomaterial, sample_material_processing, sample_volume_or_weight_for_dna_extraction, nucleic_acid_extraction, nucleic_acid_amplification, library_size, library_reads_sequenced, library_construction_method, library_vector, library_screening_strategy, pcr_conditions, pcr_primers, adapters, chemical_administration, TITLE, display_name, TAXON_ID, SCIENTIFIC_NAME, COMMON_NAME, DESCRIPTION, alias, SAMPLE_TITLE, SAMPLE_DESCRIPTION
+2026-03-12 10:50:12 [INFO]   Required slots: SAMPLE_TITLE, TAXON_ID, alias, broadscale_environmental_context, collection_date, environmental_medium, geographic_location_country_andor_sea, geographic_location_latitude, geographic_location_longitude, local_environmental_context, project_name
+2026-03-12 10:50:12 [INFO]   
+--- Validating sample: sample1 ---
+2026-03-12 10:50:12 [INFO]     OK: Required field 'alias' = 'sample1'
+2026-03-12 10:50:12 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 10:50:12 [INFO]     OK: Required field 'TAXON_ID' = '408170'
+2026-03-12 10:50:12 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 10:50:12 [INFO]     OK: Required field 'SAMPLE_TITLE' = 'sample1'
+2026-03-12 10:50:12 [INFO]     OK: Required field 'collection_date' = '12/3/2026'
+2026-03-12 10:50:12 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 10:50:12 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 10:50:12 [INFO]     OK: Required field 'local_environmental_context' = "User's fingertips"
+2026-03-12 10:50:12 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 10:50:12 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 10:50:12 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 10:50:12 [INFO]     OK: Field 'collection_date' = '12/3/2026' (string)
+2026-03-12 10:50:12 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 10:50:12 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 10:50:12 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 10:50:12 [INFO]     OK: Field 'local_environmental_context' = "User's fingertips" (string)
+2026-03-12 10:50:12 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 10:50:12 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 10:50:12 [INFO]     OK: Field 'TAXON_ID' = '408170' (integer)
+2026-03-12 10:50:12 [INFO]     OK: Field 'alias' = 'sample1' (string)
+2026-03-12 10:50:12 [INFO]     OK: Field 'SAMPLE_TITLE' = 'sample1' (string)
+2026-03-12 10:50:12 [INFO]   
+--- Validating sample: sample2 ---
+2026-03-12 10:50:12 [INFO]     OK: Required field 'alias' = 'sample2'
+2026-03-12 10:50:12 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 10:50:12 [INFO]     OK: Required field 'TAXON_ID' = '408170'
+2026-03-12 10:50:12 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 10:50:12 [INFO]     OK: Required field 'SAMPLE_TITLE' = 'sample2'
+2026-03-12 10:50:12 [INFO]     OK: Required field 'collection_date' = '12/3/2026'
+2026-03-12 10:50:12 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 10:50:12 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 10:50:12 [INFO]     OK: Required field 'local_environmental_context' = "User's fingertips"
+2026-03-12 10:50:12 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 10:50:12 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 10:50:12 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 10:50:12 [INFO]     OK: Field 'collection_date' = '12/3/2026' (string)
+2026-03-12 10:50:12 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 10:50:12 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 10:50:12 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 10:50:12 [INFO]     OK: Field 'local_environmental_context' = "User's fingertips" (string)
+2026-03-12 10:50:12 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 10:50:12 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 10:50:12 [INFO]     OK: Field 'TAXON_ID' = '408170' (integer)
+2026-03-12 10:50:12 [INFO]     OK: Field 'alias' = 'sample2' (string)
+2026-03-12 10:50:12 [INFO]     OK: Field 'SAMPLE_TITLE' = 'sample2' (string)
+2026-03-12 10:50:12 [INFO] LinkML validation PASSED
+2026-03-12 10:50:12 [INFO] Checklist detected from schema: ERC000015
+2026-03-12 10:50:12 [INFO] Building XML submission document...
+2026-03-12 10:50:12 [DEBUG] Generated XML:
+<?xml version='1.0' encoding='UTF-8'?>
+<WEBIN><SUBMISSION_SET><SUBMISSION alias="sample-submission-20260312-105012"><ACTIONS><ACTION><ADD /></ACTION><ACTION><HOLD HoldUntilDate="2027-01-01" /></ACTION></ACTIONS></SUBMISSION></SUBMISSION_SET><SAMPLE_SET><SAMPLE alias="sample1"><TITLE>sample1</TITLE><SAMPLE_NAME><TAXON_ID>408170</TAXON_ID></SAMPLE_NAME><SAMPLE_ATTRIBUTES><SAMPLE_ATTRIBUTE><TAG>ENA-CHECKLIST</TAG><VALUE>ERC000015</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>project name</TAG><VALUE>MIMICC</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>collection date</TAG><VALUE>12/3/2026</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (latitude)</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (longitude)</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>broad-scale environmental context</TAG><VALUE>Seminar room</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>local environmental context</TAG><VALUE>User's fingertips</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>environmental medium</TAG><VALUE>Laptop keyboard</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (country and/or sea)</TAG><VALUE>United Kingdom</VALUE></SAMPLE_ATTRIBUTE></SAMPLE_ATTRIBUTES></SAMPLE><SAMPLE alias="sample2"><TITLE>sample2</TITLE><SAMPLE_NAME><TAXON_ID>408170</TAXON_ID></SAMPLE_NAME><SAMPLE_ATTRIBUTES><SAMPLE_ATTRIBUTE><TAG>ENA-CHECKLIST</TAG><VALUE>ERC000015</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>project name</TAG><VALUE>MIMICC</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>collection date</TAG><VALUE>12/3/2026</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (latitude)</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (longitude)</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>broad-scale environmental context</TAG><VALUE>Seminar room</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>local environmental context</TAG><VALUE>User's fingertips</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>environmental medium</TAG><VALUE>Laptop keyboard</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (country and/or sea)</TAG><VALUE>United Kingdom</VALUE></SAMPLE_ATTRIBUTE></SAMPLE_ATTRIBUTES></SAMPLE></SAMPLE_SET></WEBIN>
+2026-03-12 10:50:12 [INFO] XML document size: 2314 bytes
+2026-03-12 10:50:12 [INFO] Validating XML against XSD: /Users/timrozday/Documents/ena-submission-dataharmonizer/assets/ena_schema
+2026-03-12 10:50:12 [INFO]   XSD validation passed (lxml)
+2026-03-12 10:50:12 [INFO] XSD validation PASSED
+2026-03-12 10:50:12 [INFO] Submitting to ENA (TEST)...
+2026-03-12 10:50:12 [INFO]   Receipt: INFO: All objects in this submission are set to private status (HOLD).
+2026-03-12 10:50:12 [INFO]   Receipt: INFO: This submission is a TEST submission and will be discarded within 24 hours
+2026-03-12 10:50:12 [INFO]   Receipt: ERROR: Sample: sample1; Attribute: collection date; Reason: must match pattern "(^[12][0-9]{3}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01])(T[0-9]{2}:[0-9]{2}(:[0-9]{2})?Z?([+-][0-9]{1,2})?)?)?)?(/[0-9]{4}(-[0-9]{2}(-[0-9]{2}(T[0-9]{2}:[0-9]{2}(:[0-9]{2})?Z?([+-][0-9]{1,2})?)?)?)?)?$)|(^not applicable$)|(^not collected$)|(^not provided$)|(^restricted access$)|(^missing: control sample$)|(^missing: sample group$)|(^missing: synthetic construct$)|(^missing: lab stock$)|(^missing: third party data$)|(^missing: data agreement established pre-2023$)|(^missing: endangered species$)|(^missing: human-identifiable$)|(^missing$)"
+2026-03-12 10:50:12 [INFO]   Receipt: ERROR: Sample: sample1; Attribute: geographic location (latitude); Reason: must have required property 'unit'
+2026-03-12 10:50:12 [INFO]   Receipt: ERROR: Sample: sample1; Attribute: geographic location (longitude); Reason: must have required property 'unit'
+2026-03-12 10:50:12 [INFO]   Receipt: ERROR: Sample: sample2; Attribute: collection date; Reason: must match pattern "(^[12][0-9]{3}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01])(T[0-9]{2}:[0-9]{2}(:[0-9]{2})?Z?([+-][0-9]{1,2})?)?)?)?(/[0-9]{4}(-[0-9]{2}(-[0-9]{2}(T[0-9]{2}:[0-9]{2}(:[0-9]{2})?Z?([+-][0-9]{1,2})?)?)?)?)?$)|(^not applicable$)|(^not collected$)|(^not provided$)|(^restricted access$)|(^missing: control sample$)|(^missing: sample group$)|(^missing: synthetic construct$)|(^missing: lab stock$)|(^missing: third party data$)|(^missing: data agreement established pre-2023$)|(^missing: endangered species$)|(^missing: human-identifiable$)|(^missing$)"
+2026-03-12 10:50:12 [INFO]   Receipt: ERROR: Sample: sample2; Attribute: geographic location (latitude); Reason: must have required property 'unit'
+2026-03-12 10:50:12 [INFO]   Receipt: ERROR: Sample: sample2; Attribute: geographic location (longitude); Reason: must have required property 'unit'
+2026-03-12 10:50:12 [INFO]   Receipt: ERROR: Failed to submit samples to BioSamples
+2026-03-12 10:50:12 [INFO]   Receipt: ERROR: No new BioSample was created for sample with alias sample1
+2026-03-12 10:50:12 [INFO]   Receipt: ERROR: No new BioSample was created for sample with alias sample2
+2026-03-12 10:50:12 [ERROR] Submission FAILED
+2026-03-12 10:50:12 [ERROR] Receipt XML: <RECEIPT receiptDate="2026-03-12T10:50:12.356Z" submissionFile="submission-EMBL-EBI_1773312612356.xml" success="false">
+     <SAMPLE alias="sample1" status="PRIVATE" holdUntilDate="2027-01-01Z" />
+     <SAMPLE alias="sample2" status="PRIVATE" holdUntilDate="2027-01-01Z" />
+     <SUBMISSION alias="sample-submission-20260312-105012" />
+     <MESSAGES>
+          <ERROR>Sample: sample1; Attribute: collection date; Reason: must match pattern "(^[12][0-9]{3}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01])(T[0-9]{2}:[0-9]{2}(:[0-9]{2})?Z?([+-][0-9]{1,2})?)?)?)?(/[0-9]{4}(-[0-9]{2}(-[0-9]{2}(T[0-9]{2}:[0-9]{2}(:[0-9]{2})?Z?([+-][0-9]{1,2})?)?)?)?)?$)|(^not applicable$)|(^not collected$)|(^not provided$)|(^restricted access$)|(^missing: control sample$)|(^missing: sample group$)|(^missing: synthetic construct$)|(^missing: lab stock$)|(^missing: third party data$)|(^missing: data agreement established pre-2023$)|(^missing: endangered species$)|(^missing: human-identifiable$)|(^missing$)"</ERROR>
+          <ERROR>Sample: sample1; Attribute: geographic location (latitude); Reason: must have required property 'unit'</ERROR>
+          <ERROR>Sample: sample1; Attribute: geographic location (longitude); Reason: must have required property 'unit'</ERROR>
+          <ERROR>Sample: sample2; Attribute: collection date; Reason: must match pattern "(^[12][0-9]{3}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01])(T[0-9]{2}:[0-9]{2}(:[0-9]{2})?Z?([+-][0-9]{1,2})?)?)?)?(/[0-9]{4}(-[0-9]{2}(-[0-9]{2}(T[0-9]{2}:[0-9]{2}(:[0-9]{2})?Z?([+-][0-9]{1,2})?)?)?)?)?$)|(^not applicable$)|(^not collected$)|(^not provided$)|(^restricted access$)|(^missing: control sample$)|(^missing: sample group$)|(^missing: synthetic construct$)|(^missing: lab stock$)|(^missing: third party data$)|(^missing: data agreement established pre-2023$)|(^missing: endangered species$)|(^missing: human-identifiable$)|(^missing$)"</ERROR>
+          <ERROR>Sample: sample2; Attribute: geographic location (latitude); Reason: must have required property 'unit'</ERROR>
+          <ERROR>Sample: sample2; Attribute: geographic location (longitude); Reason: must have required property 'unit'</ERROR>
+          <ERROR>Failed to submit samples to BioSamples</ERROR>
+          <ERROR>No new BioSample was created for sample with alias sample1</ERROR>
+          <ERROR>No new BioSample was created for sample with alias sample2</ERROR>
+          <INFO>All objects in this submission are set to private status (HOLD).</INFO>
+          <INFO>This submission is a TEST submission and will be discarded within 24 hours</INFO>
+     </MESSAGES>
+     <ACTIONS>ADD</ACTIONS>
+     <ACTIONS>HOLD</ACTIONS>
+</RECEIPT>
+2026-03-12 10:51:57 [INFO] ENA Sample Submission — environment: TEST
+2026-03-12 10:51:57 [DEBUG] Auth username: Webin-72719
+2026-03-12 10:51:57 [INFO] Loading input: shell/../assets/test-fixtures/ERC000015_example.json
+2026-03-12 10:51:57 [INFO] Extracted records from Container.ERC000015s
+2026-03-12 10:51:57 [INFO] Loaded 2 sample(s) from input
+2026-03-12 10:51:57 [INFO] Loading LinkML schema: shell/../schemas/ERC000015.yaml
+2026-03-12 10:51:57 [INFO] Remapped record keys using slot titles from schema
+2026-03-12 10:51:57 [INFO] Fetching account samples from: https://wwwdev.ebi.ac.uk/ena/submit/report/samples
+2026-03-12 10:51:57 [DEBUG] curl -u Webin-72719:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/samples?format=json&max-results=5000"
+2026-03-12 10:51:57 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/samples returned 200
+2026-03-12 10:51:57 [INFO] Found 0 samples in account
+2026-03-12 10:51:57 [INFO] 2 sample(s) to submit after duplicate check
+2026-03-12 10:51:57 [INFO] Validating input against LinkML schema...
+2026-03-12 10:51:57 [INFO]   LinkML schema defines 95 slots: trophic_level, observed_biotic_relationship, known_pathogenicity, relationship_to_oxygen, propagation, observed_host_symbionts, sample_collection_device, sample_collection_method, sample_storage_temperature, sample_storage_location, oxygenation_status_of_sample, medical_history_performed, project_name, ploidy, number_of_replicons, extrachromosomal_elements, estimated_size, target_gene, target_subfragment, multiplex_identifiers, sequence_quality_check, chimera_check_software, relevant_electronic_resources, relevant_standard_operating_procedures, collection_date, altitude, geographic_location_latitude, geographic_location_longitude, geographic_location_region_and_locality, broadscale_environmental_context, local_environmental_context, environmental_medium, elevation, amount_or_size_of_sample_collected, organism_count, sample_storage_duration, geographic_location_country_andor_sea, gastrointestinal_tract_disorder, liver_disorder, host_disease_status, host_subject_id, ihmc_medication_code, host_age, host_body_site, host_height, host_bodymass_index, ethnicity, host_occupation, host_total_mass, host_phenotype, host_body_temperature, host_sex, host_scientific_name, temperature, salinity, source_material_identifiers, special_diet, host_diet, host_last_meal, host_family_relationship, host_genotype, host_pulse, host_body_product, perturbation, negative_control_type, positive_control_type, experimental_factor, encoded_traits, subspecific_genetic_lineage, taxonomic_classification, isolation_and_growth_condition, annotation_source, reference_for_biomaterial, sample_material_processing, sample_volume_or_weight_for_dna_extraction, nucleic_acid_extraction, nucleic_acid_amplification, library_size, library_reads_sequenced, library_construction_method, library_vector, library_screening_strategy, pcr_conditions, pcr_primers, adapters, chemical_administration, TITLE, display_name, TAXON_ID, SCIENTIFIC_NAME, COMMON_NAME, DESCRIPTION, alias, SAMPLE_TITLE, SAMPLE_DESCRIPTION
+2026-03-12 10:51:57 [INFO]   Required slots: SAMPLE_TITLE, TAXON_ID, alias, broadscale_environmental_context, collection_date, environmental_medium, geographic_location_country_andor_sea, geographic_location_latitude, geographic_location_longitude, local_environmental_context, project_name
+2026-03-12 10:51:57 [INFO]   
+--- Validating sample: sample1 ---
+2026-03-12 10:51:57 [INFO]     OK: Required field 'TAXON_ID' = '408170'
+2026-03-12 10:51:57 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 10:51:57 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 10:51:57 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 10:51:57 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 10:51:57 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 10:51:57 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 10:51:57 [INFO]     OK: Required field 'local_environmental_context' = "User's fingertips"
+2026-03-12 10:51:57 [INFO]     OK: Required field 'collection_date' = '2026-03-12'
+2026-03-12 10:51:57 [INFO]     OK: Required field 'SAMPLE_TITLE' = 'sample1'
+2026-03-12 10:51:57 [INFO]     OK: Required field 'alias' = 'sample1'
+2026-03-12 10:51:57 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 10:51:57 [INFO]     OK: Field 'collection_date' = '2026-03-12' (string)
+2026-03-12 10:51:57 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 10:51:57 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 10:51:57 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 10:51:57 [INFO]     OK: Field 'local_environmental_context' = "User's fingertips" (string)
+2026-03-12 10:51:57 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 10:51:57 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 10:51:57 [INFO]     OK: Field 'TAXON_ID' = '408170' (integer)
+2026-03-12 10:51:57 [INFO]     OK: Field 'alias' = 'sample1' (string)
+2026-03-12 10:51:57 [INFO]     OK: Field 'SAMPLE_TITLE' = 'sample1' (string)
+2026-03-12 10:51:57 [INFO]   
+--- Validating sample: sample2 ---
+2026-03-12 10:51:57 [INFO]     OK: Required field 'TAXON_ID' = '408170'
+2026-03-12 10:51:57 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 10:51:57 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 10:51:57 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 10:51:57 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 10:51:57 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 10:51:57 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 10:51:57 [INFO]     OK: Required field 'local_environmental_context' = "User's fingertips"
+2026-03-12 10:51:57 [INFO]     OK: Required field 'collection_date' = '2026-03-12'
+2026-03-12 10:51:57 [INFO]     OK: Required field 'SAMPLE_TITLE' = 'sample2'
+2026-03-12 10:51:57 [INFO]     OK: Required field 'alias' = 'sample2'
+2026-03-12 10:51:57 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 10:51:57 [INFO]     OK: Field 'collection_date' = '2026-03-12' (string)
+2026-03-12 10:51:57 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 10:51:57 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 10:51:57 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 10:51:57 [INFO]     OK: Field 'local_environmental_context' = "User's fingertips" (string)
+2026-03-12 10:51:57 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 10:51:57 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 10:51:57 [INFO]     OK: Field 'TAXON_ID' = '408170' (integer)
+2026-03-12 10:51:57 [INFO]     OK: Field 'alias' = 'sample2' (string)
+2026-03-12 10:51:57 [INFO]     OK: Field 'SAMPLE_TITLE' = 'sample2' (string)
+2026-03-12 10:51:57 [INFO] LinkML validation PASSED
+2026-03-12 10:51:57 [INFO] Checklist detected from schema: ERC000015
+2026-03-12 10:51:57 [INFO] Building XML submission document...
+2026-03-12 10:51:57 [DEBUG] Generated XML:
+<?xml version='1.0' encoding='UTF-8'?>
+<WEBIN><SUBMISSION_SET><SUBMISSION alias="sample-submission-20260312-105157"><ACTIONS><ACTION><ADD /></ACTION><ACTION><HOLD HoldUntilDate="2027-01-01" /></ACTION></ACTIONS></SUBMISSION></SUBMISSION_SET><SAMPLE_SET><SAMPLE alias="sample1"><TITLE>sample1</TITLE><SAMPLE_NAME><TAXON_ID>408170</TAXON_ID></SAMPLE_NAME><SAMPLE_ATTRIBUTES><SAMPLE_ATTRIBUTE><TAG>ENA-CHECKLIST</TAG><VALUE>ERC000015</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>project name</TAG><VALUE>MIMICC</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>collection date</TAG><VALUE>2026-03-12</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (latitude)</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (longitude)</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>broad-scale environmental context</TAG><VALUE>Seminar room</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>local environmental context</TAG><VALUE>User's fingertips</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>environmental medium</TAG><VALUE>Laptop keyboard</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (country and/or sea)</TAG><VALUE>United Kingdom</VALUE></SAMPLE_ATTRIBUTE></SAMPLE_ATTRIBUTES></SAMPLE><SAMPLE alias="sample2"><TITLE>sample2</TITLE><SAMPLE_NAME><TAXON_ID>408170</TAXON_ID></SAMPLE_NAME><SAMPLE_ATTRIBUTES><SAMPLE_ATTRIBUTE><TAG>ENA-CHECKLIST</TAG><VALUE>ERC000015</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>project name</TAG><VALUE>MIMICC</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>collection date</TAG><VALUE>2026-03-12</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (latitude)</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (longitude)</TAG><VALUE>0</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>broad-scale environmental context</TAG><VALUE>Seminar room</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>local environmental context</TAG><VALUE>User's fingertips</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>environmental medium</TAG><VALUE>Laptop keyboard</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (country and/or sea)</TAG><VALUE>United Kingdom</VALUE></SAMPLE_ATTRIBUTE></SAMPLE_ATTRIBUTES></SAMPLE></SAMPLE_SET></WEBIN>
+2026-03-12 10:51:57 [INFO] XML document size: 2316 bytes
+2026-03-12 10:51:57 [INFO] Validating XML against XSD: /Users/timrozday/Documents/ena-submission-dataharmonizer/assets/ena_schema
+2026-03-12 10:51:57 [INFO]   XSD validation passed (lxml)
+2026-03-12 10:51:57 [INFO] XSD validation PASSED
+2026-03-12 10:51:57 [INFO] Submitting to ENA (TEST)...
+2026-03-12 10:51:58 [INFO]   Receipt: INFO: All objects in this submission are set to private status (HOLD).
+2026-03-12 10:51:58 [INFO]   Receipt: INFO: This submission is a TEST submission and will be discarded within 24 hours
+2026-03-12 10:51:58 [INFO]   Receipt: ERROR: Sample: sample1; Attribute: geographic location (latitude); Reason: must have required property 'unit'
+2026-03-12 10:51:58 [INFO]   Receipt: ERROR: Sample: sample1; Attribute: geographic location (longitude); Reason: must have required property 'unit'
+2026-03-12 10:51:58 [INFO]   Receipt: ERROR: Sample: sample2; Attribute: geographic location (latitude); Reason: must have required property 'unit'
+2026-03-12 10:51:58 [INFO]   Receipt: ERROR: Sample: sample2; Attribute: geographic location (longitude); Reason: must have required property 'unit'
+2026-03-12 10:51:58 [INFO]   Receipt: ERROR: Failed to submit samples to BioSamples
+2026-03-12 10:51:58 [INFO]   Receipt: ERROR: No new BioSample was created for sample with alias sample1
+2026-03-12 10:51:58 [INFO]   Receipt: ERROR: No new BioSample was created for sample with alias sample2
+2026-03-12 10:51:58 [ERROR] Submission FAILED
+2026-03-12 10:51:58 [ERROR] Receipt XML: <RECEIPT receiptDate="2026-03-12T10:51:58.149Z" submissionFile="submission-EMBL-EBI_1773312718149.xml" success="false">
+     <SAMPLE alias="sample1" status="PRIVATE" holdUntilDate="2027-01-01Z" />
+     <SAMPLE alias="sample2" status="PRIVATE" holdUntilDate="2027-01-01Z" />
+     <SUBMISSION alias="sample-submission-20260312-105157" />
+     <MESSAGES>
+          <ERROR>Sample: sample1; Attribute: geographic location (latitude); Reason: must have required property 'unit'</ERROR>
+          <ERROR>Sample: sample1; Attribute: geographic location (longitude); Reason: must have required property 'unit'</ERROR>
+          <ERROR>Sample: sample2; Attribute: geographic location (latitude); Reason: must have required property 'unit'</ERROR>
+          <ERROR>Sample: sample2; Attribute: geographic location (longitude); Reason: must have required property 'unit'</ERROR>
+          <ERROR>Failed to submit samples to BioSamples</ERROR>
+          <ERROR>No new BioSample was created for sample with alias sample1</ERROR>
+          <ERROR>No new BioSample was created for sample with alias sample2</ERROR>
+          <INFO>All objects in this submission are set to private status (HOLD).</INFO>
+          <INFO>This submission is a TEST submission and will be discarded within 24 hours</INFO>
+     </MESSAGES>
+     <ACTIONS>ADD</ACTIONS>
+     <ACTIONS>HOLD</ACTIONS>
+</RECEIPT>
+2026-03-12 11:05:27 [INFO] ENA Sample Submission — environment: TEST
+2026-03-12 11:05:27 [DEBUG] Auth username: Webin-72719
+2026-03-12 11:05:27 [INFO] Loading input: shell/../assets/test-fixtures/ERC000015_example.json
+2026-03-12 11:05:27 [INFO] Extracted records from Container.ERC000015s
+2026-03-12 11:05:27 [INFO] Loaded 2 sample(s) from input
+2026-03-12 11:05:27 [INFO] Loading LinkML schema: shell/../schemas/ERC000015.yaml
+2026-03-12 11:05:27 [INFO] Remapped record keys using slot titles from schema
+2026-03-12 11:05:27 [INFO] Fetching account samples from: https://wwwdev.ebi.ac.uk/ena/submit/report/samples
+2026-03-12 11:05:27 [DEBUG] curl -u Webin-72719:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/samples?format=json&max-results=5000"
+2026-03-12 11:05:28 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/samples returned 200
+2026-03-12 11:05:28 [INFO] Found 0 samples in account
+2026-03-12 11:05:28 [INFO] 2 sample(s) to submit after duplicate check
+2026-03-12 11:05:28 [INFO] Validating input against LinkML schema...
+2026-03-12 11:05:28 [INFO]   LinkML schema defines 95 slots: trophic_level, observed_biotic_relationship, known_pathogenicity, relationship_to_oxygen, propagation, observed_host_symbionts, sample_collection_device, sample_collection_method, sample_storage_temperature, sample_storage_location, oxygenation_status_of_sample, medical_history_performed, project_name, ploidy, number_of_replicons, extrachromosomal_elements, estimated_size, target_gene, target_subfragment, multiplex_identifiers, sequence_quality_check, chimera_check_software, relevant_electronic_resources, relevant_standard_operating_procedures, collection_date, altitude, geographic_location_latitude, geographic_location_longitude, geographic_location_region_and_locality, broadscale_environmental_context, local_environmental_context, environmental_medium, elevation, amount_or_size_of_sample_collected, organism_count, sample_storage_duration, geographic_location_country_andor_sea, gastrointestinal_tract_disorder, liver_disorder, host_disease_status, host_subject_id, ihmc_medication_code, host_age, host_body_site, host_height, host_bodymass_index, ethnicity, host_occupation, host_total_mass, host_phenotype, host_body_temperature, host_sex, host_scientific_name, temperature, salinity, source_material_identifiers, special_diet, host_diet, host_last_meal, host_family_relationship, host_genotype, host_pulse, host_body_product, perturbation, negative_control_type, positive_control_type, experimental_factor, encoded_traits, subspecific_genetic_lineage, taxonomic_classification, isolation_and_growth_condition, annotation_source, reference_for_biomaterial, sample_material_processing, sample_volume_or_weight_for_dna_extraction, nucleic_acid_extraction, nucleic_acid_amplification, library_size, library_reads_sequenced, library_construction_method, library_vector, library_screening_strategy, pcr_conditions, pcr_primers, adapters, chemical_administration, TITLE, display_name, TAXON_ID, SCIENTIFIC_NAME, COMMON_NAME, DESCRIPTION, alias, SAMPLE_TITLE, SAMPLE_DESCRIPTION
+2026-03-12 11:05:28 [INFO]   Required slots: SAMPLE_TITLE, TAXON_ID, alias, broadscale_environmental_context, collection_date, environmental_medium, geographic_location_country_andor_sea, geographic_location_latitude, geographic_location_longitude, local_environmental_context, project_name
+2026-03-12 11:05:28 [INFO]   
+--- Validating sample: sample1 ---
+2026-03-12 11:05:28 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 11:05:28 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 11:05:28 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 11:05:28 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 11:05:28 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 11:05:28 [INFO]     OK: Required field 'alias' = 'sample1'
+2026-03-12 11:05:28 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 11:05:28 [INFO]     OK: Required field 'collection_date' = '2026-03-12'
+2026-03-12 11:05:28 [INFO]     OK: Required field 'SAMPLE_TITLE' = 'sample1'
+2026-03-12 11:05:28 [INFO]     OK: Required field 'TAXON_ID' = '408170'
+2026-03-12 11:05:28 [INFO]     OK: Required field 'local_environmental_context' = "User's fingertips"
+2026-03-12 11:05:28 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 11:05:28 [INFO]     OK: Field 'collection_date' = '2026-03-12' (string)
+2026-03-12 11:05:28 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 11:05:28 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 11:05:28 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 11:05:28 [INFO]     OK: Field 'local_environmental_context' = "User's fingertips" (string)
+2026-03-12 11:05:28 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 11:05:28 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 11:05:28 [INFO]     OK: Field 'TAXON_ID' = '408170' (integer)
+2026-03-12 11:05:28 [INFO]     OK: Field 'alias' = 'sample1' (string)
+2026-03-12 11:05:28 [INFO]     OK: Field 'SAMPLE_TITLE' = 'sample1' (string)
+2026-03-12 11:05:28 [INFO]   
+--- Validating sample: sample2 ---
+2026-03-12 11:05:28 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 11:05:28 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 11:05:28 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 11:05:28 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 11:05:28 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 11:05:28 [INFO]     OK: Required field 'alias' = 'sample2'
+2026-03-12 11:05:28 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 11:05:28 [INFO]     OK: Required field 'collection_date' = '2026-03-12'
+2026-03-12 11:05:28 [INFO]     OK: Required field 'SAMPLE_TITLE' = 'sample2'
+2026-03-12 11:05:28 [INFO]     OK: Required field 'TAXON_ID' = '408170'
+2026-03-12 11:05:28 [INFO]     OK: Required field 'local_environmental_context' = "User's fingertips"
+2026-03-12 11:05:28 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 11:05:28 [INFO]     OK: Field 'collection_date' = '2026-03-12' (string)
+2026-03-12 11:05:28 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 11:05:28 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 11:05:28 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 11:05:28 [INFO]     OK: Field 'local_environmental_context' = "User's fingertips" (string)
+2026-03-12 11:05:28 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 11:05:28 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 11:05:28 [INFO]     OK: Field 'TAXON_ID' = '408170' (integer)
+2026-03-12 11:05:28 [INFO]     OK: Field 'alias' = 'sample2' (string)
+2026-03-12 11:05:28 [INFO]     OK: Field 'SAMPLE_TITLE' = 'sample2' (string)
+2026-03-12 11:05:28 [INFO] LinkML validation PASSED
+2026-03-12 11:05:28 [INFO] Checklist detected from schema: ERC000015
+2026-03-12 11:05:28 [INFO] Loaded units for 15 field(s) from /Users/timrozday/Documents/ena-submission-dataharmonizer/assets/ena_schema/ERC000015.xml
+2026-03-12 11:05:28 [INFO] Building XML submission document...
+2026-03-12 11:05:28 [DEBUG] Generated XML:
+<?xml version='1.0' encoding='UTF-8'?>
+<WEBIN><SUBMISSION_SET><SUBMISSION alias="sample-submission-20260312-110528"><ACTIONS><ACTION><ADD /></ACTION><ACTION><HOLD HoldUntilDate="2027-01-01" /></ACTION></ACTIONS></SUBMISSION></SUBMISSION_SET><SAMPLE_SET><SAMPLE alias="sample1"><TITLE>sample1</TITLE><SAMPLE_NAME><TAXON_ID>408170</TAXON_ID></SAMPLE_NAME><SAMPLE_ATTRIBUTES><SAMPLE_ATTRIBUTE><TAG>ENA-CHECKLIST</TAG><VALUE>ERC000015</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>project name</TAG><VALUE>MIMICC</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>collection date</TAG><VALUE>2026-03-12</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (latitude)</TAG><VALUE>0</VALUE><UNITS>DD</UNITS></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (longitude)</TAG><VALUE>0</VALUE><UNITS>DD</UNITS></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>broad-scale environmental context</TAG><VALUE>Seminar room</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>local environmental context</TAG><VALUE>User's fingertips</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>environmental medium</TAG><VALUE>Laptop keyboard</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (country and/or sea)</TAG><VALUE>United Kingdom</VALUE></SAMPLE_ATTRIBUTE></SAMPLE_ATTRIBUTES></SAMPLE><SAMPLE alias="sample2"><TITLE>sample2</TITLE><SAMPLE_NAME><TAXON_ID>408170</TAXON_ID></SAMPLE_NAME><SAMPLE_ATTRIBUTES><SAMPLE_ATTRIBUTE><TAG>ENA-CHECKLIST</TAG><VALUE>ERC000015</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>project name</TAG><VALUE>MIMICC</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>collection date</TAG><VALUE>2026-03-12</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (latitude)</TAG><VALUE>0</VALUE><UNITS>DD</UNITS></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (longitude)</TAG><VALUE>0</VALUE><UNITS>DD</UNITS></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>broad-scale environmental context</TAG><VALUE>Seminar room</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>local environmental context</TAG><VALUE>User's fingertips</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>environmental medium</TAG><VALUE>Laptop keyboard</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (country and/or sea)</TAG><VALUE>United Kingdom</VALUE></SAMPLE_ATTRIBUTE></SAMPLE_ATTRIBUTES></SAMPLE></SAMPLE_SET></WEBIN>
+2026-03-12 11:05:28 [INFO] XML document size: 2384 bytes
+2026-03-12 11:05:28 [INFO] Validating XML against XSD: /Users/timrozday/Documents/ena-submission-dataharmonizer/assets/ena_schema
+2026-03-12 11:05:28 [INFO]   XSD validation passed (lxml)
+2026-03-12 11:05:28 [INFO] XSD validation PASSED
+2026-03-12 11:05:28 [INFO] Submitting to ENA (TEST)...
+2026-03-12 11:05:28 [INFO]   Receipt: INFO: All objects in this submission are set to private status (HOLD).
+2026-03-12 11:05:28 [INFO]   Receipt: INFO: This submission is a TEST submission and will be discarded within 24 hours
+2026-03-12 11:05:28 [INFO] Submission SUCCESSFUL
+2026-03-12 11:05:28 [INFO]   SUBMITTED: alias=sample1 accession=ERS32179569 status=PRIVATE (biosample: SAMEA131991503)
+2026-03-12 11:05:28 [INFO]   SUBMITTED: alias=sample2 accession=ERS32179570 status=PRIVATE (biosample: SAMEA131991504)
+2026-03-12 11:05:28 [INFO] Results written to shell/../sample_submit_test.out
+2026-03-12 11:05:28 [INFO] ============================================================
+2026-03-12 11:05:28 [INFO] SUBMISSION SUMMARY
+2026-03-12 11:05:28 [INFO]   Duplicates (already in ENA): 0
+2026-03-12 11:05:28 [INFO]   Newly submitted: 2
+2026-03-12 11:05:28 [INFO]     sample1 -> ERS32179569 (SAMEA131991503)
+2026-03-12 11:05:28 [INFO]     sample2 -> ERS32179570 (SAMEA131991504)
+2026-03-12 11:05:28 [INFO] ============================================================
+2026-03-12 11:05:47 [INFO] ENA Sample Submission — environment: TEST
+2026-03-12 11:05:47 [DEBUG] Auth username: Webin-72719
+2026-03-12 11:05:47 [INFO] Loading input: shell/../assets/test-fixtures/ERC000015_example.json
+2026-03-12 11:05:47 [INFO] Extracted records from Container.ERC000015s
+2026-03-12 11:05:47 [INFO] Loaded 2 sample(s) from input
+2026-03-12 11:05:47 [INFO] Loading LinkML schema: shell/../schemas/ERC000015.yaml
+2026-03-12 11:05:47 [INFO] Remapped record keys using slot titles from schema
+2026-03-12 11:05:47 [INFO] Fetching account samples from: https://wwwdev.ebi.ac.uk/ena/submit/report/samples
+2026-03-12 11:05:47 [DEBUG] curl -u Webin-72719:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/samples?format=json&max-results=5000"
+2026-03-12 11:05:47 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/samples returned 200
+2026-03-12 11:05:47 [INFO] Found 2 samples in account
+2026-03-12 11:05:47 [INFO]   Account sample:  | alias=sample2 | title=sample2 | status=PRIVATE
+2026-03-12 11:05:47 [INFO]   Account sample:  | alias=sample1 | title=sample1 | status=PRIVATE
+2026-03-12 11:05:47 [INFO] Checking 2 new samples against 2 existing account samples...
+2026-03-12 11:05:47 [INFO]   Duplicate: 'sample1' matches alias 'sample1' ->  (PRIVATE)
+2026-03-12 11:05:47 [INFO]   Duplicate: 'sample2' matches alias 'sample2' ->  (PRIVATE)
+2026-03-12 11:05:47 [INFO] All samples are duplicates — skipping further checks
+2026-03-12 11:05:47 [WARNING] Found 2 duplicate(s) — these will NOT be submitted:
+2026-03-12 11:05:47 [WARNING]   DUPLICATE: 'sample1' matches existing alias 'sample1' (accession: )
+2026-03-12 11:05:47 [WARNING]   DUPLICATE: 'sample2' matches existing alias 'sample2' (accession: )
+2026-03-12 11:05:47 [INFO] No new samples to submit (all are duplicates or input is empty)
+2026-03-12 11:05:47 [INFO] Results written to shell/../sample_submit_test.out
+2026-03-12 11:10:34 [INFO] ENA Sample Submission — environment: TEST
+2026-03-12 11:10:34 [DEBUG] Auth username: Webin-72719
+2026-03-12 11:10:34 [INFO] Loading input: shell/../assets/test-fixtures/ERC000015_example.json
+2026-03-12 11:10:34 [INFO] Extracted records from Container.ERC000015s
+2026-03-12 11:10:34 [INFO] Loaded 2 sample(s) from input
+2026-03-12 11:10:34 [INFO] Loading LinkML schema: shell/../schemas/ERC000015.yaml
+2026-03-12 11:10:34 [INFO] Remapped record keys using slot titles from schema
+2026-03-12 11:10:34 [INFO] Fetching account samples from: https://wwwdev.ebi.ac.uk/ena/submit/report/samples
+2026-03-12 11:10:34 [DEBUG] curl -u Webin-72719:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/samples?format=json&max-results=5000"
+2026-03-12 11:10:34 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/samples returned 200
+2026-03-12 11:10:34 [INFO] Found 2 samples in account
+2026-03-12 11:10:34 [INFO]   Account sample:  | alias=sample2 | title=sample2 | status=PRIVATE
+2026-03-12 11:10:34 [INFO]   Account sample:  | alias=sample1 | title=sample1 | status=PRIVATE
+2026-03-12 11:10:34 [INFO] Checking 2 new samples against 2 existing account samples...
+2026-03-12 11:10:34 [INFO]   Duplicate: 'sample1' matches alias 'sample1' ->  (PRIVATE)
+2026-03-12 11:10:34 [INFO]   Duplicate: 'sample2' matches alias 'sample2' ->  (PRIVATE)
+2026-03-12 11:10:34 [INFO] All samples are duplicates — skipping further checks
+2026-03-12 11:10:34 [WARNING] Found 2 duplicate(s) — will be re-submitted with MODIFY:
+2026-03-12 11:10:34 [WARNING]   DUPLICATE: 'sample1' matches existing alias 'sample1' (accession: )
+2026-03-12 11:10:34 [WARNING]   DUPLICATE: 'sample2' matches existing alias 'sample2' (accession: )
+2026-03-12 11:10:34 [INFO] 0 new sample(s) to ADD, 2 duplicate(s) to MODIFY
+2026-03-12 11:10:34 [INFO] Validating input against LinkML schema...
+2026-03-12 11:10:34 [INFO]   LinkML schema defines 95 slots: trophic_level, observed_biotic_relationship, known_pathogenicity, relationship_to_oxygen, propagation, observed_host_symbionts, sample_collection_device, sample_collection_method, sample_storage_temperature, sample_storage_location, oxygenation_status_of_sample, medical_history_performed, project_name, ploidy, number_of_replicons, extrachromosomal_elements, estimated_size, target_gene, target_subfragment, multiplex_identifiers, sequence_quality_check, chimera_check_software, relevant_electronic_resources, relevant_standard_operating_procedures, collection_date, altitude, geographic_location_latitude, geographic_location_longitude, geographic_location_region_and_locality, broadscale_environmental_context, local_environmental_context, environmental_medium, elevation, amount_or_size_of_sample_collected, organism_count, sample_storage_duration, geographic_location_country_andor_sea, gastrointestinal_tract_disorder, liver_disorder, host_disease_status, host_subject_id, ihmc_medication_code, host_age, host_body_site, host_height, host_bodymass_index, ethnicity, host_occupation, host_total_mass, host_phenotype, host_body_temperature, host_sex, host_scientific_name, temperature, salinity, source_material_identifiers, special_diet, host_diet, host_last_meal, host_family_relationship, host_genotype, host_pulse, host_body_product, perturbation, negative_control_type, positive_control_type, experimental_factor, encoded_traits, subspecific_genetic_lineage, taxonomic_classification, isolation_and_growth_condition, annotation_source, reference_for_biomaterial, sample_material_processing, sample_volume_or_weight_for_dna_extraction, nucleic_acid_extraction, nucleic_acid_amplification, library_size, library_reads_sequenced, library_construction_method, library_vector, library_screening_strategy, pcr_conditions, pcr_primers, adapters, chemical_administration, TITLE, display_name, TAXON_ID, SCIENTIFIC_NAME, COMMON_NAME, DESCRIPTION, alias, SAMPLE_TITLE, SAMPLE_DESCRIPTION
+2026-03-12 11:10:34 [INFO]   Required slots: SAMPLE_TITLE, TAXON_ID, alias, broadscale_environmental_context, collection_date, environmental_medium, geographic_location_country_andor_sea, geographic_location_latitude, geographic_location_longitude, local_environmental_context, project_name
+2026-03-12 11:10:34 [INFO]   
+--- Validating sample: sample1 ---
+2026-03-12 11:10:34 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 11:10:34 [INFO]     OK: Required field 'local_environmental_context' = "User's fingertips"
+2026-03-12 11:10:34 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 11:10:34 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 11:10:34 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 11:10:34 [INFO]     OK: Required field 'TAXON_ID' = '408170'
+2026-03-12 11:10:34 [INFO]     OK: Required field 'SAMPLE_TITLE' = 'sample1'
+2026-03-12 11:10:34 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 11:10:34 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 11:10:34 [INFO]     OK: Required field 'collection_date' = '2026-03-12'
+2026-03-12 11:10:34 [INFO]     OK: Required field 'alias' = 'sample1'
+2026-03-12 11:10:34 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 11:10:34 [INFO]     OK: Field 'collection_date' = '2026-03-12' (string)
+2026-03-12 11:10:34 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 11:10:34 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 11:10:34 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 11:10:34 [INFO]     OK: Field 'local_environmental_context' = "User's fingertips" (string)
+2026-03-12 11:10:34 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 11:10:34 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 11:10:34 [INFO]     OK: Field 'TAXON_ID' = '408170' (integer)
+2026-03-12 11:10:34 [INFO]     OK: Field 'alias' = 'sample1' (string)
+2026-03-12 11:10:34 [INFO]     OK: Field 'SAMPLE_TITLE' = 'sample1' (string)
+2026-03-12 11:10:34 [INFO]   
+--- Validating sample: sample2 ---
+2026-03-12 11:10:34 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 11:10:34 [INFO]     OK: Required field 'local_environmental_context' = "User's fingertips"
+2026-03-12 11:10:34 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 11:10:34 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 11:10:34 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 11:10:34 [INFO]     OK: Required field 'TAXON_ID' = '408170'
+2026-03-12 11:10:34 [INFO]     OK: Required field 'SAMPLE_TITLE' = 'sample2'
+2026-03-12 11:10:34 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 11:10:34 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 11:10:34 [INFO]     OK: Required field 'collection_date' = '2026-03-12'
+2026-03-12 11:10:34 [INFO]     OK: Required field 'alias' = 'sample2'
+2026-03-12 11:10:34 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 11:10:34 [INFO]     OK: Field 'collection_date' = '2026-03-12' (string)
+2026-03-12 11:10:34 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 11:10:34 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 11:10:34 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 11:10:34 [INFO]     OK: Field 'local_environmental_context' = "User's fingertips" (string)
+2026-03-12 11:10:34 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 11:10:34 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 11:10:34 [INFO]     OK: Field 'TAXON_ID' = '408170' (integer)
+2026-03-12 11:10:34 [INFO]     OK: Field 'alias' = 'sample2' (string)
+2026-03-12 11:10:34 [INFO]     OK: Field 'SAMPLE_TITLE' = 'sample2' (string)
+2026-03-12 11:10:34 [INFO] LinkML validation PASSED
+2026-03-12 11:10:34 [INFO] Checklist detected from schema: ERC000015
+2026-03-12 11:10:34 [INFO] Loaded units for 15 field(s) from /Users/timrozday/Documents/ena-submission-dataharmonizer/assets/ena_schema/ERC000015.xml
+2026-03-12 11:10:34 [INFO] Building MODIFY XML for 2 duplicate(s)...
+2026-03-12 11:10:34 [DEBUG] Generated XML (MODIFY):
+<?xml version='1.0' encoding='UTF-8'?>
+<WEBIN><SUBMISSION_SET><SUBMISSION alias="sample-submission-20260312-111034"><ACTIONS><ACTION><MODIFY /></ACTION><ACTION><HOLD HoldUntilDate="2027-01-01" /></ACTION></ACTIONS></SUBMISSION></SUBMISSION_SET><SAMPLE_SET><SAMPLE alias="sample1"><TITLE>sample1</TITLE><SAMPLE_NAME><TAXON_ID>408170</TAXON_ID></SAMPLE_NAME><SAMPLE_ATTRIBUTES><SAMPLE_ATTRIBUTE><TAG>ENA-CHECKLIST</TAG><VALUE>ERC000015</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>project name</TAG><VALUE>MIMICC</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>collection date</TAG><VALUE>2026-03-12</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (latitude)</TAG><VALUE>0</VALUE><UNITS>DD</UNITS></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (longitude)</TAG><VALUE>0</VALUE><UNITS>DD</UNITS></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>broad-scale environmental context</TAG><VALUE>Seminar room</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>local environmental context</TAG><VALUE>User's fingertips</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>environmental medium</TAG><VALUE>Laptop keyboard</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (country and/or sea)</TAG><VALUE>United Kingdom</VALUE></SAMPLE_ATTRIBUTE></SAMPLE_ATTRIBUTES></SAMPLE><SAMPLE alias="sample2"><TITLE>sample2</TITLE><SAMPLE_NAME><TAXON_ID>408170</TAXON_ID></SAMPLE_NAME><SAMPLE_ATTRIBUTES><SAMPLE_ATTRIBUTE><TAG>ENA-CHECKLIST</TAG><VALUE>ERC000015</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>project name</TAG><VALUE>MIMICC</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>collection date</TAG><VALUE>2026-03-12</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (latitude)</TAG><VALUE>0</VALUE><UNITS>DD</UNITS></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (longitude)</TAG><VALUE>0</VALUE><UNITS>DD</UNITS></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>broad-scale environmental context</TAG><VALUE>Seminar room</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>local environmental context</TAG><VALUE>User's fingertips</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>environmental medium</TAG><VALUE>Laptop keyboard</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (country and/or sea)</TAG><VALUE>United Kingdom</VALUE></SAMPLE_ATTRIBUTE></SAMPLE_ATTRIBUTES></SAMPLE></SAMPLE_SET></WEBIN>
+2026-03-12 11:10:34 [INFO] XML document size (MODIFY): 2387 bytes
+2026-03-12 11:10:34 [INFO]   XSD validation passed (lxml)
+2026-03-12 11:10:34 [INFO] XSD validation PASSED (MODIFY)
+2026-03-12 11:10:34 [INFO] Submitting MODIFY to ENA (TEST)...
+2026-03-12 11:10:35 [INFO]   Receipt: INFO: The XML md5 checksum for the object being updated has not changed. No update required for ERS32179569.
+2026-03-12 11:10:35 [INFO]   Receipt: INFO: The XML md5 checksum for the object being updated has not changed. No update required for ERS32179570.
+2026-03-12 11:10:35 [INFO]   Receipt: INFO: This submission is a TEST submission and will be discarded within 24 hours
+2026-03-12 11:10:35 [INFO] MODIFY SUCCESSFUL
+2026-03-12 11:10:35 [INFO]   MODIFY: alias=sample1 accession=ERS32179569 status=PRIVATE (biosample: SAMEA131991503)
+2026-03-12 11:10:35 [INFO]   MODIFY: alias=sample2 accession=ERS32179570 status=PRIVATE (biosample: SAMEA131991504)
+2026-03-12 11:10:35 [INFO] Results written to shell/../sample_submit_test.out
+2026-03-12 11:10:35 [INFO] ============================================================
+2026-03-12 11:10:35 [INFO] SUBMISSION SUMMARY
+2026-03-12 11:10:35 [INFO]   Duplicates skipped: 0
+2026-03-12 11:10:35 [INFO]     sample1 -> 
+2026-03-12 11:10:35 [INFO]     sample2 -> 
+2026-03-12 11:10:35 [INFO]   Newly submitted (ADD): 0
+2026-03-12 11:10:35 [INFO]   Modified (MODIFY): 2
+2026-03-12 11:10:35 [INFO]     sample1 -> ERS32179569 (SAMEA131991503)
+2026-03-12 11:10:35 [INFO]     sample2 -> ERS32179570 (SAMEA131991504)
+2026-03-12 11:10:35 [INFO] ============================================================
+2026-03-12 11:10:35 [INFO] ENA Sample Submission — environment: TEST
+2026-03-12 11:10:35 [DEBUG] Auth username: Webin-72719
+2026-03-12 11:10:35 [INFO] Loading input: shell/../assets/test-fixtures/ERC000015_example.json
+2026-03-12 11:10:35 [INFO] Extracted records from Container.ERC000015s
+2026-03-12 11:10:35 [INFO] Loaded 2 sample(s) from input
+2026-03-12 11:10:35 [INFO] Loading LinkML schema: shell/../schemas/ERC000015.yaml
+2026-03-12 11:10:36 [INFO] Remapped record keys using slot titles from schema
+2026-03-12 11:10:36 [INFO] Fetching account samples from: https://wwwdev.ebi.ac.uk/ena/submit/report/samples
+2026-03-12 11:10:36 [DEBUG] curl -u Webin-72719:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/samples?format=json&max-results=5000"
+2026-03-12 11:10:36 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/samples returned 200
+2026-03-12 11:10:36 [INFO] Found 2 samples in account
+2026-03-12 11:10:36 [INFO]   Account sample:  | alias=sample2 | title=sample2 | status=PRIVATE
+2026-03-12 11:10:36 [INFO]   Account sample:  | alias=sample1 | title=sample1 | status=PRIVATE
+2026-03-12 11:10:36 [INFO] Checking 2 new samples against 2 existing account samples...
+2026-03-12 11:10:36 [INFO]   Duplicate: 'sample1' matches alias 'sample1' ->  (PRIVATE)
+2026-03-12 11:10:36 [INFO]   Duplicate: 'sample2' matches alias 'sample2' ->  (PRIVATE)
+2026-03-12 11:10:36 [INFO] All samples are duplicates — skipping further checks
+2026-03-12 11:10:36 [WARNING] Found 2 duplicate(s) — will be re-submitted with MODIFY:
+2026-03-12 11:10:36 [WARNING]   DUPLICATE: 'sample1' matches existing alias 'sample1' (accession: )
+2026-03-12 11:10:36 [WARNING]   DUPLICATE: 'sample2' matches existing alias 'sample2' (accession: )
+2026-03-12 11:10:36 [INFO] 0 new sample(s) to ADD, 2 duplicate(s) to MODIFY
+2026-03-12 11:10:36 [INFO] Validating input against LinkML schema...
+2026-03-12 11:10:36 [INFO]   LinkML schema defines 95 slots: trophic_level, observed_biotic_relationship, known_pathogenicity, relationship_to_oxygen, propagation, observed_host_symbionts, sample_collection_device, sample_collection_method, sample_storage_temperature, sample_storage_location, oxygenation_status_of_sample, medical_history_performed, project_name, ploidy, number_of_replicons, extrachromosomal_elements, estimated_size, target_gene, target_subfragment, multiplex_identifiers, sequence_quality_check, chimera_check_software, relevant_electronic_resources, relevant_standard_operating_procedures, collection_date, altitude, geographic_location_latitude, geographic_location_longitude, geographic_location_region_and_locality, broadscale_environmental_context, local_environmental_context, environmental_medium, elevation, amount_or_size_of_sample_collected, organism_count, sample_storage_duration, geographic_location_country_andor_sea, gastrointestinal_tract_disorder, liver_disorder, host_disease_status, host_subject_id, ihmc_medication_code, host_age, host_body_site, host_height, host_bodymass_index, ethnicity, host_occupation, host_total_mass, host_phenotype, host_body_temperature, host_sex, host_scientific_name, temperature, salinity, source_material_identifiers, special_diet, host_diet, host_last_meal, host_family_relationship, host_genotype, host_pulse, host_body_product, perturbation, negative_control_type, positive_control_type, experimental_factor, encoded_traits, subspecific_genetic_lineage, taxonomic_classification, isolation_and_growth_condition, annotation_source, reference_for_biomaterial, sample_material_processing, sample_volume_or_weight_for_dna_extraction, nucleic_acid_extraction, nucleic_acid_amplification, library_size, library_reads_sequenced, library_construction_method, library_vector, library_screening_strategy, pcr_conditions, pcr_primers, adapters, chemical_administration, TITLE, display_name, TAXON_ID, SCIENTIFIC_NAME, COMMON_NAME, DESCRIPTION, alias, SAMPLE_TITLE, SAMPLE_DESCRIPTION
+2026-03-12 11:10:36 [INFO]   Required slots: SAMPLE_TITLE, TAXON_ID, alias, broadscale_environmental_context, collection_date, environmental_medium, geographic_location_country_andor_sea, geographic_location_latitude, geographic_location_longitude, local_environmental_context, project_name
+2026-03-12 11:10:36 [INFO]   
+--- Validating sample: sample1 ---
+2026-03-12 11:10:36 [INFO]     OK: Required field 'SAMPLE_TITLE' = 'sample1'
+2026-03-12 11:10:36 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 11:10:36 [INFO]     OK: Required field 'alias' = 'sample1'
+2026-03-12 11:10:36 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 11:10:36 [INFO]     OK: Required field 'TAXON_ID' = '408170'
+2026-03-12 11:10:36 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 11:10:36 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 11:10:36 [INFO]     OK: Required field 'local_environmental_context' = "User's fingertips"
+2026-03-12 11:10:36 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 11:10:36 [INFO]     OK: Required field 'collection_date' = '2026-03-12'
+2026-03-12 11:10:36 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 11:10:36 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 11:10:36 [INFO]     OK: Field 'collection_date' = '2026-03-12' (string)
+2026-03-12 11:10:36 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 11:10:36 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 11:10:36 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 11:10:36 [INFO]     OK: Field 'local_environmental_context' = "User's fingertips" (string)
+2026-03-12 11:10:36 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 11:10:36 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 11:10:36 [INFO]     OK: Field 'TAXON_ID' = '408170' (integer)
+2026-03-12 11:10:36 [INFO]     OK: Field 'alias' = 'sample1' (string)
+2026-03-12 11:10:36 [INFO]     OK: Field 'SAMPLE_TITLE' = 'sample1' (string)
+2026-03-12 11:10:36 [INFO]   
+--- Validating sample: sample2 ---
+2026-03-12 11:10:36 [INFO]     OK: Required field 'SAMPLE_TITLE' = 'sample2'
+2026-03-12 11:10:36 [INFO]     OK: Required field 'broadscale_environmental_context' = 'Seminar room'
+2026-03-12 11:10:36 [INFO]     OK: Required field 'alias' = 'sample2'
+2026-03-12 11:10:36 [INFO]     OK: Required field 'environmental_medium' = 'Laptop keyboard'
+2026-03-12 11:10:36 [INFO]     OK: Required field 'TAXON_ID' = '408170'
+2026-03-12 11:10:36 [INFO]     OK: Required field 'geographic_location_longitude' = '0'
+2026-03-12 11:10:36 [INFO]     OK: Required field 'geographic_location_country_andor_sea' = 'United Kingdom'
+2026-03-12 11:10:36 [INFO]     OK: Required field 'local_environmental_context' = "User's fingertips"
+2026-03-12 11:10:36 [INFO]     OK: Required field 'project_name' = 'MIMICC'
+2026-03-12 11:10:36 [INFO]     OK: Required field 'collection_date' = '2026-03-12'
+2026-03-12 11:10:36 [INFO]     OK: Required field 'geographic_location_latitude' = '0'
+2026-03-12 11:10:36 [INFO]     OK: Field 'project_name' = 'MIMICC' (string)
+2026-03-12 11:10:36 [INFO]     OK: Field 'collection_date' = '2026-03-12' (string)
+2026-03-12 11:10:36 [INFO]     OK: Field 'geographic_location_latitude' = '0' (string)
+2026-03-12 11:10:36 [INFO]     OK: Field 'geographic_location_longitude' = '0' (string)
+2026-03-12 11:10:36 [INFO]     OK: Field 'broadscale_environmental_context' = 'Seminar room' (string)
+2026-03-12 11:10:36 [INFO]     OK: Field 'local_environmental_context' = "User's fingertips" (string)
+2026-03-12 11:10:36 [INFO]     OK: Field 'environmental_medium' = 'Laptop keyboard' (string)
+2026-03-12 11:10:36 [INFO]     OK: Field 'geographic_location_country_andor_sea' = 'United Kingdom' (valid enum)
+2026-03-12 11:10:36 [INFO]     OK: Field 'TAXON_ID' = '408170' (integer)
+2026-03-12 11:10:36 [INFO]     OK: Field 'alias' = 'sample2' (string)
+2026-03-12 11:10:36 [INFO]     OK: Field 'SAMPLE_TITLE' = 'sample2' (string)
+2026-03-12 11:10:36 [INFO] LinkML validation PASSED
+2026-03-12 11:10:36 [INFO] Checklist detected from schema: ERC000015
+2026-03-12 11:10:36 [INFO] Loaded units for 15 field(s) from /Users/timrozday/Documents/ena-submission-dataharmonizer/assets/ena_schema/ERC000015.xml
+2026-03-12 11:10:36 [INFO] Building MODIFY XML for 2 duplicate(s)...
+2026-03-12 11:10:36 [DEBUG] Generated XML (MODIFY):
+<?xml version='1.0' encoding='UTF-8'?>
+<WEBIN><SUBMISSION_SET><SUBMISSION alias="sample-submission-20260312-111036"><ACTIONS><ACTION><MODIFY /></ACTION><ACTION><HOLD HoldUntilDate="2027-01-01" /></ACTION></ACTIONS></SUBMISSION></SUBMISSION_SET><SAMPLE_SET><SAMPLE alias="sample1"><TITLE>sample1</TITLE><SAMPLE_NAME><TAXON_ID>408170</TAXON_ID></SAMPLE_NAME><SAMPLE_ATTRIBUTES><SAMPLE_ATTRIBUTE><TAG>ENA-CHECKLIST</TAG><VALUE>ERC000015</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>project name</TAG><VALUE>MIMICC</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>collection date</TAG><VALUE>2026-03-12</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (latitude)</TAG><VALUE>0</VALUE><UNITS>DD</UNITS></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (longitude)</TAG><VALUE>0</VALUE><UNITS>DD</UNITS></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>broad-scale environmental context</TAG><VALUE>Seminar room</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>local environmental context</TAG><VALUE>User's fingertips</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>environmental medium</TAG><VALUE>Laptop keyboard</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (country and/or sea)</TAG><VALUE>United Kingdom</VALUE></SAMPLE_ATTRIBUTE></SAMPLE_ATTRIBUTES></SAMPLE><SAMPLE alias="sample2"><TITLE>sample2</TITLE><SAMPLE_NAME><TAXON_ID>408170</TAXON_ID></SAMPLE_NAME><SAMPLE_ATTRIBUTES><SAMPLE_ATTRIBUTE><TAG>ENA-CHECKLIST</TAG><VALUE>ERC000015</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>project name</TAG><VALUE>MIMICC</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>collection date</TAG><VALUE>2026-03-12</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (latitude)</TAG><VALUE>0</VALUE><UNITS>DD</UNITS></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (longitude)</TAG><VALUE>0</VALUE><UNITS>DD</UNITS></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>broad-scale environmental context</TAG><VALUE>Seminar room</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>local environmental context</TAG><VALUE>User's fingertips</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>environmental medium</TAG><VALUE>Laptop keyboard</VALUE></SAMPLE_ATTRIBUTE><SAMPLE_ATTRIBUTE><TAG>geographic location (country and/or sea)</TAG><VALUE>United Kingdom</VALUE></SAMPLE_ATTRIBUTE></SAMPLE_ATTRIBUTES></SAMPLE></SAMPLE_SET></WEBIN>
+2026-03-12 11:10:36 [INFO] XML document size (MODIFY): 2387 bytes
+2026-03-12 11:10:36 [INFO]   XSD validation passed (lxml)
+2026-03-12 11:10:36 [INFO] XSD validation PASSED (MODIFY)
+2026-03-12 11:10:36 [INFO] Submitting MODIFY to ENA (TEST)...
+2026-03-12 11:10:36 [INFO]   Receipt: INFO: The XML md5 checksum for the object being updated has not changed. No update required for ERS32179569.
+2026-03-12 11:10:36 [INFO]   Receipt: INFO: The XML md5 checksum for the object being updated has not changed. No update required for ERS32179570.
+2026-03-12 11:10:36 [INFO]   Receipt: INFO: This submission is a TEST submission and will be discarded within 24 hours
+2026-03-12 11:10:36 [INFO] MODIFY SUCCESSFUL
+2026-03-12 11:10:36 [INFO]   MODIFY: alias=sample1 accession=ERS32179569 status=PRIVATE (biosample: SAMEA131991503)
+2026-03-12 11:10:36 [INFO]   MODIFY: alias=sample2 accession=ERS32179570 status=PRIVATE (biosample: SAMEA131991504)
+2026-03-12 11:10:36 [INFO] Results written to shell/../sample_submit_test.out
+2026-03-12 11:10:36 [INFO] ============================================================
+2026-03-12 11:10:36 [INFO] SUBMISSION SUMMARY
+2026-03-12 11:10:36 [INFO]   Duplicates skipped: 0
+2026-03-12 11:10:36 [INFO]     sample1 -> 
+2026-03-12 11:10:36 [INFO]     sample2 -> 
+2026-03-12 11:10:36 [INFO]   Newly submitted (ADD): 0
+2026-03-12 11:10:36 [INFO]   Modified (MODIFY): 2
+2026-03-12 11:10:36 [INFO]     sample1 -> ERS32179569 (SAMEA131991503)
+2026-03-12 11:10:36 [INFO]     sample2 -> ERS32179570 (SAMEA131991504)
+2026-03-12 11:10:36 [INFO] ============================================================
+2026-03-12 11:11:29 [INFO] ENA Sample Submission — environment: TEST
+2026-03-12 11:11:29 [DEBUG] Auth username: Webin-72719
+2026-03-12 11:11:29 [INFO] Loading input: shell/../assets/test-fixtures/ERC000015_example.json
+2026-03-12 11:11:29 [INFO] Extracted records from Container.ERC000015s
+2026-03-12 11:11:29 [INFO] Loaded 2 sample(s) from input
+2026-03-12 11:11:29 [INFO] Loading LinkML schema: shell/../schemas/ERC000015.yaml
+2026-03-12 11:11:29 [INFO] Remapped record keys using slot titles from schema
+2026-03-12 11:11:29 [INFO] Fetching account samples from: https://wwwdev.ebi.ac.uk/ena/submit/report/samples
+2026-03-12 11:11:29 [DEBUG] curl -u Webin-72719:*** "https://wwwdev.ebi.ac.uk/ena/submit/report/samples?format=json&max-results=5000"
+2026-03-12 11:11:29 [INFO] Reports API at https://wwwdev.ebi.ac.uk/ena/submit/report/samples returned 200
+2026-03-12 11:11:29 [INFO] Found 2 samples in account
+2026-03-12 11:11:29 [INFO]   Account sample:  | alias=sample2 | title=sample2 | status=PRIVATE
+2026-03-12 11:11:29 [INFO]   Account sample:  | alias=sample1 | title=sample1 | status=PRIVATE
+2026-03-12 11:11:29 [INFO] Checking 2 new samples against 2 existing account samples...
+2026-03-12 11:11:29 [INFO]   Duplicate: 'sample1' matches alias 'sample1' ->  (PRIVATE)
+2026-03-12 11:11:29 [INFO]   Duplicate: 'sample2' matches alias 'sample2' ->  (PRIVATE)
+2026-03-12 11:11:29 [INFO] All samples are duplicates — skipping further checks
+2026-03-12 11:11:29 [WARNING] Found 2 duplicate(s) — will NOT be submitted:
+2026-03-12 11:11:29 [WARNING]   DUPLICATE: 'sample1' matches existing alias 'sample1' (accession: )
+2026-03-12 11:11:29 [WARNING]   DUPLICATE: 'sample2' matches existing alias 'sample2' (accession: )
+2026-03-12 11:11:29 [INFO] No samples to submit (all are duplicates or input is empty)
+2026-03-12 11:11:29 [INFO] Results written to shell/../sample_submit_test.out

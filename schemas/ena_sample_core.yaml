@@ -1,0 +1,92 @@
+id: https://github.com/timrozday/ena-submission-dataharmonizer/ena_sample_core
+name: ena_sample_core
+title: ENA Sample Core Fields
+description: Universal required fields for all ENA sample submissions. These fields
+  map to dedicated XML elements in the SRA sample schema rather than SAMPLE_ATTRIBUTE
+  tag-value pairs. No equivalent ENA-hosted checklist file exists for these fields;
+  they are structural requirements defined in SRA.sample.xsd and SRA.common.xsd.
+version: 1.0.0
+imports:
+- linkml:types
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ENA: https://www.ebi.ac.uk/ena/browser/view/
+default_range: string
+classes:
+  dh_interface:
+    name: dh_interface
+    description: A DataHarmonizer interface
+    from_schema: https://github.com/timrozday/ena-submission-dataharmonizer/ena_sample_core
+  ena_sample_core:
+    name: ena_sample_core
+    title: ENA Sample Core Fields
+    description: Universal required fields for all ENA sample submissions.
+    is_a: dh_interface
+    slots:
+    - alias
+    - SAMPLE_TITLE
+    - TAXON_ID
+    - SCIENTIFIC_NAME
+    - COMMON_NAME
+    - SAMPLE_DESCRIPTION
+    slot_usage:
+      alias:
+        rank: 1
+        slot_group: ENA sample identifiers
+      SAMPLE_TITLE:
+        rank: 2
+        slot_group: ENA sample identifiers
+      TAXON_ID:
+        rank: 3
+        slot_group: ENA sample taxonomy
+      SCIENTIFIC_NAME:
+        rank: 4
+        slot_group: ENA sample taxonomy
+      COMMON_NAME:
+        rank: 5
+        slot_group: ENA sample taxonomy
+      SAMPLE_DESCRIPTION:
+        rank: 6
+        slot_group: ENA sample identifiers
+slots:
+  alias:
+    name: alias
+    title: sample alias
+    description: Unique identifier for this sample within the submitting Webin account.
+      Must be unique across all samples in the account. Used to reference the sample
+      from experiments and runs.
+    range: string
+    required: true
+  SAMPLE_TITLE:
+    name: SAMPLE_TITLE
+    title: sample title
+    description: Short descriptive title for the sample. Displayed in the ENA browser
+      as the primary label for the sample record.
+    range: string
+    required: true
+  TAXON_ID:
+    name: TAXON_ID
+    title: taxon ID
+    description: NCBI Taxonomy ID of the organism or metagenome sequenced. For environmental
+      or metagenomic samples use a metagenome taxonomy ID (e.g. 449393 for human gut
+      metagenome, 408169 for marine metagenome). Must be a valid integer present in
+      the NCBI Taxonomy database.
+    range: integer
+    required: true
+  SCIENTIFIC_NAME:
+    name: SCIENTIFIC_NAME
+    title: scientific name
+    description: Scientific name corresponding to the TAXON_ID. Must match the name
+      recorded in the NCBI Taxonomy database for the given taxon ID exactly.
+    range: string
+  COMMON_NAME:
+    name: COMMON_NAME
+    title: common name
+    description: Common or vernacular name of the organism (optional).
+    range: string
+  SAMPLE_DESCRIPTION:
+    name: SAMPLE_DESCRIPTION
+    title: sample description
+    description: Free-text description providing additional context about the sample
+      (optional). Displayed in the ENA browser below the sample title.
+    range: string
