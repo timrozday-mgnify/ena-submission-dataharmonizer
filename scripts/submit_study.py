@@ -154,6 +154,7 @@ def find_duplicate_studies(
 def build_submission_xml(
     studies: list[dict[str, Any]],
     hold_until: str | None = None,
+    action: str = "ADD",
 ) -> ET.Element:
     """Build a WEBIN XML document for submitting studies.
 
@@ -164,6 +165,8 @@ def build_submission_xml(
         studies: Study metadata dicts.
         hold_until: Optional hold-until date string
             (``YYYY-MM-DD``).
+        action: Submission action — ``"ADD"`` for new studies
+            or ``"MODIFY"`` to update existing ones.
 
     Returns:
         Root ``<WEBIN>`` element.
@@ -175,14 +178,14 @@ def build_submission_xml(
     submission = ET.SubElement(
         submission_set, "SUBMISSION",
     )
-    alias = (
+    sub_alias = (
         "study-submission-"
         + pendulum.now().format("YYYYMMDD-HHmmss")
     )
-    submission.set("alias", alias)
+    submission.set("alias", sub_alias)
     actions = ET.SubElement(submission, "ACTIONS")
-    add_action = ET.SubElement(actions, "ACTION")
-    ET.SubElement(add_action, "ADD")
+    main_action = ET.SubElement(actions, "ACTION")
+    ET.SubElement(main_action, action.upper())
     if hold_until:
         hold_action = ET.SubElement(actions, "ACTION")
         hold_el = ET.SubElement(hold_action, "HOLD")
@@ -394,6 +397,112 @@ def parse_xml_receipt(
 
 
 # -----------------------------------------------------------
+# Submission helper
+# -----------------------------------------------------------
+
+
+def _do_submission(
+    base_url: str,
+    auth: Any,
+    xml_bytes: bytes,
+    xsd: Path,
+    action: str,
+    results: dict[str, list[dict[str, Any]]],
+    result_key: str,
+    env_label: str,
+    dry_run: bool,
+) -> bool:
+    """Validate, optionally submit, and parse one batch.
+
+    Args:
+        base_url: ENA Webin v2 submission base URL.
+        auth: HTTP basic-auth credentials.
+        xml_bytes: Serialised XML submission document.
+        xsd: Directory containing the XSD files.
+        action: Label for log messages (``"ADD"`` or
+            ``"MODIFY"``).
+        results: Results dict to accumulate into.
+        result_key: Key under which successes are stored.
+        env_label: ``"TEST"`` or ``"PRODUCTION"``.
+        dry_run: If ``True``, skip the actual submission.
+
+    Returns:
+        ``True`` if the batch succeeded (or dry run).
+    """
+    xsd_valid, xsd_messages = validate_against_xsd(
+        xml_bytes, xsd,
+    )
+    for msg in xsd_messages:
+        logger.info("  %s", msg)
+    if not xsd_valid:
+        logger.error(
+            "XSD validation FAILED (%s)"
+            " — aborting submission", action,
+        )
+        return False
+
+    logger.info("XSD validation PASSED (%s)", action)
+
+    if dry_run:
+        logger.info(
+            "DRY RUN — skipping %s submission", action,
+        )
+        logger.info(
+            "Generated XML:\n%s",
+            xml_bytes.decode("utf-8"),
+        )
+        return True
+
+    logger.info(
+        "Submitting %s to ENA (%s)...", action, env_label,
+    )
+    try:
+        receipt_root = common.submit_xml(
+            base_url, auth, xml_bytes,
+        )
+    except requests.exceptions.HTTPError as exc:
+        logger.error(
+            "HTTP error during %s submission: %s",
+            action, exc,
+        )
+        if exc.response is not None:
+            logger.error(
+                "Response body: %s", exc.response.text,
+            )
+        return False
+
+    success, accessions, receipt_messages = (
+        parse_xml_receipt(receipt_root)
+    )
+    for msg in receipt_messages:
+        logger.info("  Receipt: %s", msg)
+
+    if success:
+        logger.info("%s SUCCESSFUL", action)
+        for acc in accessions:
+            ext = acc.get("external_accession", "")
+            ext_suffix = (
+                f" (study: {ext})" if ext else ""
+            )
+            logger.info(
+                "  %s: alias=%s accession=%s"
+                " status=%s%s",
+                action, acc["alias"], acc["accession"],
+                acc["status"], ext_suffix,
+            )
+            results[result_key].append(acc)
+    else:
+        logger.error("%s FAILED", action)
+        receipt_xml_str = ET.tostring(
+            receipt_root, encoding="unicode",
+        )
+        logger.error("Receipt XML: %s", receipt_xml_str)
+        results["failed"].extend(accessions)
+
+    return success
+
+
+# -----------------------------------------------------------
 # Main
 # -----------------------------------------------------------
 
@@ -451,6 +560,12 @@ def main(
         False, "--automated",
         help="Skip duplicate detection against the"
         " Webin Reports API (for automated pipelines)",
+    ),
+    force: bool = typer.Option(
+        False, "--force",
+        help="Submit duplicate studies using the MODIFY"
+        " action to overwrite existing ENA records,"
+        " instead of skipping them",
     ),
 ) -> None:
     """Submit studies to ENA via the Webin REST API v2."""
@@ -511,14 +626,19 @@ def main(
     results: dict[str, list[dict[str, Any]]] = {
         "duplicates": [],
         "submitted": [],
+        "modified": [],
         "failed": [],
     }
 
+    studies_to_modify: list[dict[str, Any]] = []
     if duplicates:
+        action_label = (
+            "will be re-submitted with MODIFY"
+            if force else "will NOT be submitted"
+        )
         logger.warning(
-            "Found %d duplicate(s)"
-            " — these will NOT be submitted:",
-            len(duplicates),
+            "Found %d duplicate(s) — %s:",
+            len(duplicates), action_label,
         )
         for idx, dup_info in duplicates.items():
             study_title = studies[idx].get(
@@ -545,24 +665,30 @@ def main(
                 ),
                 "match_reason": dup_info["match_reason"],
             })
+            if force:
+                study_copy = dict(studies[idx])
+                existing_alias = dup_info.get("alias", "")
+                if existing_alias:
+                    study_copy["alias"] = existing_alias
+                studies_to_modify.append(study_copy)
 
     studies_to_submit = [
         s for i, s in enumerate(studies)
         if i not in duplicates
     ]
 
-    if not studies_to_submit:
+    if not studies_to_submit and not studies_to_modify:
         logger.info(
-            "No new studies to submit"
+            "No studies to submit"
             " (all are duplicates or input is empty)",
         )
         common.write_results(results, output)
         return
 
     logger.info(
-        "%d study/studies to submit"
-        " after duplicate check",
-        len(studies_to_submit),
+        "%d new study/studies to ADD,"
+        " %d duplicate(s) to MODIFY",
+        len(studies_to_submit), len(studies_to_modify),
     )
 
     # -- Step 3: Validate against LinkML -----------------
@@ -574,7 +700,7 @@ def main(
     )
     linkml_valid, linkml_messages = (
         common.validate_against_linkml(
-            studies_to_submit, schema,
+            studies_to_submit + studies_to_modify, schema,
             label_fields=["STUDY_TITLE", "alias"],
             entity_name="study",
             unknown_field_note="will be ignored",
@@ -592,94 +718,67 @@ def main(
 
     logger.info("LinkML validation PASSED")
 
-    # -- Step 4: Build submission XML --------------------
-    logger.info("Building XML submission document...")
-    xml_root = build_submission_xml(
-        studies_to_submit, hold_until=hold_until,
-    )
-    xml_bytes = common.xml_to_bytes(xml_root)
+    overall_ok = True
 
-    logger.debug(
-        "Generated XML:\n%s",
-        xml_bytes.decode("utf-8"),
-    )
-    logger.info(
-        "XML document size: %d bytes", len(xml_bytes),
-    )
-
-    # -- Step 5: Validate against XSD --------------------
-    logger.info("Validating XML against XSD: %s", xsd)
-    xsd_valid, xsd_messages = validate_against_xsd(
-        xml_bytes, xsd,
-    )
-    for msg in xsd_messages:
-        logger.info("  %s", msg)
-
-    if not xsd_valid:
-        logger.error(
-            "XSD validation FAILED"
-            " — aborting submission",
-        )
-        sys.exit(1)
-
-    logger.info("XSD validation PASSED")
-
-    # -- Step 6: Submit to ENA ---------------------------
-    if dry_run:
+    # -- Steps 4-7: ADD new studies ----------------------
+    if studies_to_submit:
         logger.info(
-            "DRY RUN — skipping actual submission",
+            "Building ADD XML for %d new study/studies...",
+            len(studies_to_submit),
         )
-        logger.info(
-            "Generated XML:\n%s",
+        xml_root = build_submission_xml(
+            studies_to_submit, hold_until=hold_until,
+            action="ADD",
+        )
+        xml_bytes = common.xml_to_bytes(xml_root)
+        logger.debug(
+            "Generated XML (ADD):\n%s",
             xml_bytes.decode("utf-8"),
         )
-        common.write_results(results, output)
-        return
-
-    logger.info("Submitting to ENA (%s)...", env_label)
-    try:
-        receipt_root = common.submit_xml(
-            base_url, auth, xml_bytes,
+        logger.info(
+            "XML document size (ADD): %d bytes",
+            len(xml_bytes),
         )
-    except requests.exceptions.HTTPError as exc:
-        logger.error(
-            "HTTP error during submission: %s", exc,
+        ok = _do_submission(
+            base_url, auth, xml_bytes, xsd,
+            action="ADD",
+            results=results,
+            result_key="submitted",
+            env_label=env_label,
+            dry_run=dry_run,
         )
-        if exc.response is not None:
-            logger.error(
-                "Response body: %s", exc.response.text,
-            )
-        sys.exit(1)
+        overall_ok = overall_ok and ok
 
-    # -- Step 7: Parse receipt ---------------------------
-    success, accessions, receipt_messages = (
-        parse_xml_receipt(receipt_root)
-    )
-
-    for msg in receipt_messages:
-        logger.info("  Receipt: %s", msg)
-
-    if success:
-        logger.info("Submission SUCCESSFUL")
-        for acc in accessions:
-            ext = acc.get("external_accession", "")
-            ext_suffix = (
-                f" (study: {ext})" if ext else ""
-            )
-            logger.info(
-                "  SUBMITTED: alias=%s accession=%s"
-                " status=%s%s",
-                acc["alias"], acc["accession"],
-                acc["status"], ext_suffix,
-            )
-            results["submitted"].append(acc)
-    else:
-        logger.error("Submission FAILED")
-        receipt_xml_str = ET.tostring(
-            receipt_root, encoding="unicode",
+    # -- Steps 4-7: MODIFY duplicate studies (--force) ---
+    if studies_to_modify:
+        logger.info(
+            "Building MODIFY XML for %d duplicate(s)...",
+            len(studies_to_modify),
         )
-        logger.error("Receipt XML: %s", receipt_xml_str)
-        results["failed"].extend(accessions)
+        xml_root = build_submission_xml(
+            studies_to_modify, hold_until=hold_until,
+            action="MODIFY",
+        )
+        xml_bytes = common.xml_to_bytes(xml_root)
+        logger.debug(
+            "Generated XML (MODIFY):\n%s",
+            xml_bytes.decode("utf-8"),
+        )
+        logger.info(
+            "XML document size (MODIFY): %d bytes",
+            len(xml_bytes),
+        )
+        ok = _do_submission(
+            base_url, auth, xml_bytes, xsd,
+            action="MODIFY",
+            results=results,
+            result_key="modified",
+            env_label=env_label,
+            dry_run=dry_run,
+        )
+        overall_ok = overall_ok and ok
+
+    if not overall_ok:
         sys.exit(1)
 
     # -- Step 8: Output results --------------------------
@@ -688,8 +787,9 @@ def main(
     logger.info("=" * 60)
     logger.info("SUBMISSION SUMMARY")
     logger.info(
-        "  Duplicates (already in ENA): %d",
-        len(results["duplicates"]),
+        "  Duplicates skipped: %d",
+        len(results["duplicates"])
+        - len(results["modified"]),
     )
     for d in results["duplicates"]:
         logger.info(
@@ -697,7 +797,7 @@ def main(
             d["title"], d["existing_accession"],
         )
     logger.info(
-        "  Newly submitted: %d",
+        "  Newly submitted (ADD): %d",
         len(results["submitted"]),
     )
     for s in results["submitted"]:
@@ -706,6 +806,17 @@ def main(
         logger.info(
             "    %s -> %s%s",
             s["alias"], s["accession"], ext_suffix,
+        )
+    logger.info(
+        "  Modified (MODIFY): %d",
+        len(results["modified"]),
+    )
+    for m in results["modified"]:
+        ext = m.get("external_accession", "")
+        ext_suffix = f" ({ext})" if ext else ""
+        logger.info(
+            "    %s -> %s%s",
+            m["alias"], m["accession"], ext_suffix,
         )
     logger.info("=" * 60)
 
