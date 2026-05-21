@@ -18,7 +18,7 @@ Used by `submit_study.py` and `submit_sample.py` via `ena_common.submit_xml()`.
 Submit an XML document containing study or sample metadata.
 
 - **Full URL:** `{base_url}/submit`
-- **Auth:** HTTP Basic (`ENA_USERNAME` / `ENA_PASSWORD`)
+- **Auth:** HTTP Basic (`ENA_WEBIN` / `ENA_WEBIN_PASSWORD`)
 - **Content-Type:** `application/xml`
 - **Accept:** `application/xml`
 - **Body:** A `<WEBIN>` document containing a `<SUBMISSION_SET>` (with `<ADD>` or `<MODIFY>` action) and either a `<PROJECT_SET>` (studies) or `<SAMPLE_SET>` (samples).

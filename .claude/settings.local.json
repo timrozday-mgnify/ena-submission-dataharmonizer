@@ -56,7 +56,28 @@
       "Bash(export ENA_USERNAME=Webin-72719 && export ENA_PASSWORD=Enatest123 && /Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/python scripts/submit_sample.py \\\\\n  --input assets/test-fixtures/ERC000015_example.json \\\\\n  --linkml schemas/ERC000015.yaml \\\\\n  --xsd assets/ena_schema \\\\\n  --test --automated --dry-run 2>&1 | grep -E \"MODIFY|force|duplicate|ADD|submit\")",
       "Bash(export ENA_USERNAME=Webin-72719 && export ENA_PASSWORD=Enatest123 && /Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/python scripts/submit_sample.py \\\\\n  --input assets/test-fixtures/ERC000015_example.json \\\\\n  --linkml schemas/ERC000015.yaml \\\\\n  --xsd assets/ena_schema \\\\\n  --test --dry-run --force 2>&1 | grep -E \"duplicate|MODIFY|ADD|force\")",
       "Bash(export ENA_USERNAME=Webin-72719 && export ENA_PASSWORD=Enatest123 && /Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/python scripts/submit_study.py \\\\\n  --input assets/test-fixtures/SRA_study_example.json \\\\\n  --linkml schemas/SRA_study.yaml \\\\\n  --xsd assets/ena_schema \\\\\n  --test --dry-run --force 2>&1 | grep -E \"ADD|MODIFY|force|duplicate|No studies\" | head -10)",
-      "Bash(export ENA_USERNAME=Webin-72719 && export ENA_PASSWORD=Enatest123 && /Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/python scripts/submit_study.py \\\\\n  --input assets/test-fixtures/mimicc_study.json \\\\\n  --linkml schemas/SRA_study.yaml \\\\\n  --xsd assets/ena_schema \\\\\n  --test --dry-run --force 2>&1 | grep -E \"ADD|MODIFY|duplicate|No studies|SUMMARY|submitted|modified\")"
+      "Bash(export ENA_USERNAME=Webin-72719 && export ENA_PASSWORD=Enatest123 && /Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/python scripts/submit_study.py \\\\\n  --input assets/test-fixtures/mimicc_study.json \\\\\n  --linkml schemas/SRA_study.yaml \\\\\n  --xsd assets/ena_schema \\\\\n  --test --dry-run --force 2>&1 | grep -E \"ADD|MODIFY|duplicate|No studies|SUMMARY|submitted|modified\")",
+      "WebFetch(domain:www.ncbi.nlm.nih.gov)",
+      "Bash(gh pr *)",
+      "Skill(ena-webin-api)",
+      "Bash(brew list *)",
+      "Read(//opt/homebrew/bin/**)",
+      "Read(//Users/timrozday/bin/**)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:nf-co.re)",
+      "Bash(chmod +x *)",
+      "Bash(mkdir -p /tmp/nf-core-test-datasets/test_data/reads)",
+      "Bash(gzip -c /Users/timrozday/Documents/seqsubmit/tests/data/fastq_1.fastq)",
+      "Bash(gzip -c /Users/timrozday/Documents/seqsubmit/tests/data/fastq_2.fastq)",
+      "Read(//tmp/nf-core-test-datasets/test_data/**)",
+      "Bash(gh repo *)",
+      "Bash(sed -n '153,170p' /Users/timrozday/Documents/seqsubmit/workflows/assemblysubmit.nf)",
+      "Bash(sed -n '264,280p' /Users/timrozday/Documents/seqsubmit/workflows/genomesubmit.nf)",
+      "Bash(cp /tmp/nf-core-test-datasets/test_data/reads/fastq_1.fastq.gz /Users/timrozday/Documents/mgnify-pipelines-toolkit/tests/fixtures/webin_cli_handler/fastq_1.fastq.gz)",
+      "Bash(cp /tmp/nf-core-test-datasets/test_data/reads/fastq_2.fastq.gz /Users/timrozday/Documents/mgnify-pipelines-toolkit/tests/fixtures/webin_cli_handler/fastq_2.fastq.gz)",
+      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/python3 -c ' *)",
+      "Bash(git stash *)",
+      "WebFetch(domain:gist.github.com)"
     ]
   }
 }

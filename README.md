@@ -10,8 +10,8 @@ These scripts submit study and sample metadata to ENA via the Webin REST API v2.
 Credentials are supplied via environment variables — **never** as command-line arguments — to prevent secrets appearing in shell history, process listings, or CI logs:
 
 ```bash
-export ENA_USERNAME=Webin-XXXXX
-export ENA_PASSWORD=SECRET
+export ENA_WEBIN=Webin-XXXXX
+export ENA_WEBIN_PASSWORD=SECRET
 ```
 
 Both variables must be set before running either script. The scripts exit immediately with an error if either is missing.

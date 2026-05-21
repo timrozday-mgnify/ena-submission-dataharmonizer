@@ -9,8 +9,8 @@ files, and submit each run to ENA.
 Credentials are read from environment variables to avoid secrets
 appearing in shell history or process listings::
 
-    export ENA_USERNAME=Webin-XXXXX
-    export ENA_PASSWORD=SECRET
+    export ENA_WEBIN=Webin-XXXXX
+    export ENA_WEBIN_PASSWORD=SECRET
 
 One row in the input file corresponds to one run submission.
 Required input fields (not necessarily in the LinkML schema):
@@ -87,7 +87,7 @@ app = typer.Typer(
 logger = logging.getLogger("ena_submit.reads")
 
 # Password env var passed to webin-cli via -passwordEnv.
-_PASSWORD_ENV: Final = "ENA_PASSWORD"
+_PASSWORD_ENV: Final = "ENA_WEBIN_PASSWORD"
 
 # Retry defaults (from upstream webin_cli_handler.py).
 _DEFAULT_RETRIES: Final = 3
@@ -1086,7 +1086,11 @@ def main(
 ) -> None:
     """Submit reads to ENA via webin-cli (reads context)."""
     common.setup_logging(log)
-    username, password = common.get_credentials()
+    try:
+        username, password = common.get_credentials()
+    except ValueError as exc:
+        logger.error("%s", exc)
+        raise typer.Exit(1)
 
     env_label = "TEST" if test else "PRODUCTION"
     logger.info(
