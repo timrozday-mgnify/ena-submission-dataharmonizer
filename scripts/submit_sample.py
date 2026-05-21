@@ -20,7 +20,7 @@ Library usage::
 
     xml_bytes = build_manifest(samples, schema, xsd_dir)
     is_valid, messages = validate_manifest(xml_bytes, xsd_dir)
-    success, accessions, messages = submit_manifest(xml_bytes, base_url, auth)
+    success, accessions, messages = submit_manifest(xml_bytes, client)
 
     # Or all-in-one:
     results = submit_samples(Path("samples.json"), Path("schema.yaml"), Path("assets/ena_schema"))
@@ -35,12 +35,12 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any, Final
 
+import httpx
 import pendulum
-import requests
 import typer
-from requests.auth import HTTPBasicAuth
 
 import ena_common as common
+from ena_api import WebinClient, WebinConfig
 
 app = typer.Typer(help="Submit samples to ENA via the Webin REST API v2.")
 logger = logging.getLogger("ena_submit.sample")
@@ -51,33 +51,25 @@ _RESERVED_FIELDS: Final = frozenset({
     "COMMON_NAME", "SAMPLE_DESCRIPTION", "SAMPLE_ABSTRACT",
 })
 
-_PROD_REPORTS_URL: Final = "https://www.ebi.ac.uk/ena/submit/report/samples"
-_TEST_REPORTS_URL: Final = "https://wwwdev.ebi.ac.uk/ena/submit/report/samples"
-
-
 # ---------------------------------------------------------------------------
 # Reports API
 # ---------------------------------------------------------------------------
 
-def _normalize_sample_report(report: dict[str, Any]) -> dict[str, str]:
-    return {
-        "title": report.get("title") or report.get("sampleTitle") or report.get("SAMPLE_TITLE", ""),
-        "alias": report.get("alias") or report.get("sampleAlias") or "",
-        "accession": report.get("accession") or report.get("sampleAccession") or "",
-        "secondary_accession": report.get("secondaryAccession") or report.get("secondaryId", ""),
-        "status": report.get("releaseStatus", "UNKNOWN"),
-    }
-
-
-def fetch_account_samples(
-    auth: HTTPBasicAuth, use_test: bool = False, max_results: int = 5000,
-) -> list[dict[str, str]]:
+def fetch_account_samples(client: WebinClient, max_results: int = 5000) -> list[dict[str, str]]:
     """Fetch all samples registered under the Webin account via the Reports API."""
-    return common.fetch_account_records(
-        auth, use_test=use_test,
-        prod_url=_PROD_REPORTS_URL, test_url=_TEST_REPORTS_URL,
-        normalizer=_normalize_sample_report, entity_label="samples", max_results=max_results,
-    )
+    logger.info("Fetching account samples via Webin Reports API...")
+    reports = client.reports.list_samples(max_results=max_results)
+    logger.info("Found %d samples in account", len(reports))
+    return [
+        {
+            "alias": r.alias,
+            "title": r.title,
+            "accession": r.accession,
+            "secondary_accession": r.secondary_accession,
+            "status": r.status,
+        }
+        for r in reports
+    ]
 
 
 def find_duplicate_samples(
@@ -294,23 +286,34 @@ def validate_manifest(xml_bytes: bytes, xsd_dir: Path) -> tuple[bool, list[str]]
 
 
 def submit_manifest(
-    xml_bytes: bytes, base_url: str, auth: HTTPBasicAuth,
+    xml_bytes: bytes,
+    client: WebinClient,
 ) -> tuple[bool, list[dict[str, str]], list[str]]:
     """Submit an ENA sample XML manifest and parse the receipt.
 
     Args:
         xml_bytes: Serialised XML submission document.
-        base_url: ENA Webin v2 submission base URL.
-        auth: HTTP basic-auth credentials.
+        client: Authenticated WebinClient instance.
 
     Returns:
         Tuple of (success, accessions, messages).
 
     Raises:
-        requests.exceptions.HTTPError: On HTTP failure.
+        httpx.HTTPStatusError: On HTTP failure.
     """
-    receipt_root = common.submit_xml(base_url, auth, xml_bytes)
-    return parse_xml_receipt(receipt_root)
+    receipt = client.submit.xml(xml_bytes)
+    accessions = [
+        {
+            "alias": r.alias,
+            "accession": r.accession,
+            "status": r.status,
+            "holdUntilDate": r.hold_until_date,
+            "external_accession": r.external_accession,
+            "external_type": r.external_type,
+        }
+        for r in receipt.accessions
+    ]
+    return receipt.success, accessions, receipt.messages + receipt.errors
 
 
 # ---------------------------------------------------------------------------
@@ -357,11 +360,10 @@ def submit_samples(
 
     Raises:
         ValueError: On invalid input or failed validation.
-        requests.exceptions.HTTPError: On HTTP submission failure.
+        httpx.HTTPStatusError: On HTTP submission failure.
     """
     username, password = common.get_credentials()
-    auth = HTTPBasicAuth(username, password)
-    base_url = common.get_base_url(test)
+    client = WebinClient(config=WebinConfig(webin_id=username, password=password, test=test))
     env_label = "TEST" if test else "PRODUCTION"
 
     if hold_until:
@@ -378,7 +380,7 @@ def submit_samples(
     if automated:
         logger.info("Automated mode: skipping duplicate detection")
     else:
-        account_samples = fetch_account_samples(auth, use_test=test, max_results=max_results)
+        account_samples = fetch_account_samples(client, max_results=max_results)
         duplicates = find_duplicate_samples(samples, account_samples)
 
     results: dict[str, list] = {"duplicates": [], "submitted": [], "modified": [], "failed": []}
@@ -436,7 +438,7 @@ def submit_samples(
             logger.info("DRY RUN — skipping %s (%s)", action, env_label)
             continue
         logger.info("Submitting %s to ENA (%s)...", action, env_label)
-        success, accessions, receipt_messages = submit_manifest(xml_bytes, base_url, auth)
+        success, accessions, receipt_messages = submit_manifest(xml_bytes, client)
         for msg in receipt_messages:
             logger.info("  Receipt: %s", msg)
         if success:
@@ -476,7 +478,7 @@ def main(
             test=test, hold_until=hold_until, max_results=max_results,
             dry_run=dry_run, automated=automated, force=force,
         )
-    except (ValueError, requests.exceptions.HTTPError) as exc:
+    except (ValueError, httpx.HTTPStatusError) as exc:
         logger.error("%s", exc)
         raise typer.Exit(1)
 

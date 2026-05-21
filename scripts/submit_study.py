@@ -34,14 +34,14 @@ import json
 import logging
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Any, Final
+from typing import Any
 
+import httpx
 import pendulum
-import requests
 import typer
-from requests.auth import HTTPBasicAuth
 
 import ena_common as common
+from ena_api import WebinClient, WebinConfig
 
 app = typer.Typer(help="Submit studies to ENA via the Webin REST API v2.")
 logger = logging.getLogger("ena_submit.study")
@@ -51,39 +51,21 @@ logger = logging.getLogger("ena_submit.study")
 # Reports API
 # -------------------------------------------------------------------
 
-_PROD_REPORTS_URL: Final = "https://www.ebi.ac.uk/ena/submit/report/projects"
-_TEST_REPORTS_URL: Final = "https://wwwdev.ebi.ac.uk/ena/submit/report/projects"
-
-
-def _normalize_study_report(report: dict[str, Any]) -> dict[str, str]:
-    return {
-        "title": report.get("title") or report.get("studyTitle") or report.get("STUDY_TITLE", ""),
-        "alias": report.get("alias") or report.get("studyAlias") or "",
-        "accession": (
-            report.get("accession")
-            or report.get("studyAccession")
-            or report.get("report", {}).get("id", "")
-        ),
-        "secondary_accession": report.get("secondaryAccession") or report.get("secondaryId", ""),
-        "status": report.get("releaseStatus", "UNKNOWN"),
-    }
-
-
-def fetch_account_studies(
-    auth: HTTPBasicAuth,
-    use_test: bool = False,
-    max_results: int = 5000,
-) -> list[dict[str, str]]:
+def fetch_account_studies(client: WebinClient, max_results: int = 5000) -> list[dict[str, str]]:
     """Fetch all projects from the Webin Reports API."""
-    return common.fetch_account_records(
-        auth,
-        use_test=use_test,
-        prod_url=_PROD_REPORTS_URL,
-        test_url=_TEST_REPORTS_URL,
-        normalizer=_normalize_study_report,
-        entity_label="studies",
-        max_results=max_results,
-    )
+    logger.info("Fetching account studies via Webin Reports API...")
+    reports = client.reports.list_projects(max_results=max_results)
+    logger.info("Found %d studies in account", len(reports))
+    return [
+        {
+            "alias": r.alias,
+            "title": r.title,
+            "accession": r.accession,
+            "secondary_accession": r.secondary_accession,
+            "status": r.status,
+        }
+        for r in reports
+    ]
 
 
 def find_duplicate_studies(
@@ -224,12 +206,33 @@ def validate_manifest(xml_bytes: bytes, xsd_dir: str | Path) -> tuple[bool, list
 
 def submit_manifest(
     xml_bytes: bytes,
-    base_url: str,
-    auth: Any,
+    client: WebinClient,
 ) -> tuple[bool, list[dict[str, str]], list[str]]:
-    """Submit XML to ENA and parse the receipt."""
-    receipt_root = common.submit_xml(base_url, auth, xml_bytes)
-    return parse_xml_receipt(receipt_root)
+    """Submit XML to ENA and parse the receipt.
+
+    Args:
+        xml_bytes: Serialised WEBIN XML document.
+        client: Authenticated WebinClient instance.
+
+    Returns:
+        Tuple of (success, accessions, messages).
+
+    Raises:
+        httpx.HTTPStatusError: On HTTP failure.
+    """
+    receipt = client.submit.xml(xml_bytes)
+    accessions = [
+        {
+            "alias": r.alias,
+            "accession": r.accession,
+            "status": r.status,
+            "holdUntilDate": r.hold_until_date,
+            "external_accession": r.external_accession,
+            "external_type": r.external_type,
+        }
+        for r in receipt.accessions
+    ]
+    return receipt.success, accessions, receipt.messages + receipt.errors
 
 
 # -------------------------------------------------------------------
@@ -308,9 +311,8 @@ def submit_studies(
 ) -> dict[str, list]:
     """Full study submission pipeline. Returns a results dict."""
     env_label = "TEST" if test else "PRODUCTION"
-    base_url = common.get_base_url(test)
     username, password = common.get_credentials()
-    auth = HTTPBasicAuth(username, password)
+    client = WebinClient(config=WebinConfig(webin_id=username, password=password, test=test))
 
     if hold_until:
         common.validate_hold_until(hold_until)
@@ -323,7 +325,7 @@ def submit_studies(
         logger.info("Automated mode: skipping duplicate detection")
         duplicates: dict[int, dict[str, Any]] = {}
     else:
-        account_studies = fetch_account_studies(auth, use_test=test, max_results=max_results)
+        account_studies = fetch_account_studies(client, max_results=max_results)
         for ps in account_studies:
             logger.info("  Account study: %s | alias=%s | title=%s | status=%s",
                         ps["accession"], ps["alias"], ps["title"], ps["status"])
@@ -392,7 +394,7 @@ def submit_studies(
             logger.info("DRY RUN — skipping %s submission", action)
             continue
         logger.info("Submitting %s to ENA (%s)...", action, env_label)
-        success, accessions, receipt_msgs = submit_manifest(xml_bytes, base_url, auth)
+        success, accessions, receipt_msgs = submit_manifest(xml_bytes, client)
         for msg in receipt_msgs:
             logger.info("  Receipt: %s", msg)
         if success:
@@ -456,7 +458,7 @@ def main(
             test=test, hold_until=hold_until, max_results=max_results,
             dry_run=dry_run, automated=automated, force=force,
         )
-    except (ValueError, requests.exceptions.HTTPError) as exc:
+    except (ValueError, httpx.HTTPStatusError) as exc:
         logger.error("%s", exc)
         raise typer.Exit(1)
     common.write_results(results, output)

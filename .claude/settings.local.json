@@ -77,7 +77,15 @@
       "Bash(cp /tmp/nf-core-test-datasets/test_data/reads/fastq_2.fastq.gz /Users/timrozday/Documents/mgnify-pipelines-toolkit/tests/fixtures/webin_cli_handler/fastq_2.fastq.gz)",
       "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/python3 -c ' *)",
       "Bash(git stash *)",
-      "WebFetch(domain:gist.github.com)"
+      "WebFetch(domain:gist.github.com)",
+      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/pytest)",
+      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/ruff check *)",
+      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/black --check ena_api/ tests/)",
+      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/black *)",
+      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/pytest -q)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git -c 'user.name=Tim Rozday' -c user.email=tim.rozday@gmail.com commit -q -m 'Initial commit: ENA Webin API client library *)"
     ]
   }
 }

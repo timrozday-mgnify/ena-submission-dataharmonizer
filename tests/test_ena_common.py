@@ -14,11 +14,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
 from ena_common import (
-    PROD_URL,
-    TEST_URL,
     _check_boolean,
     _check_enum,
     _check_integer,
@@ -29,7 +27,6 @@ from ena_common import (
     extract_records_from_json,
     extract_records_from_tabular,
     find_duplicates_by_alias_title,
-    get_base_url,
     get_credentials,
     parse_checklist_units,
     remap_records_by_title,
@@ -107,24 +104,6 @@ class TestGetCredentials:
 # ---------------------------------------------------------------------------
 # TestGetBaseUrl
 # ---------------------------------------------------------------------------
-
-
-class TestGetBaseUrl:
-
-    def test_production_url(self) -> None:
-        assert get_base_url(False) == PROD_URL
-
-    def test_test_url(self) -> None:
-        assert get_base_url(True) == TEST_URL
-
-    def test_urls_are_different(self) -> None:
-        assert PROD_URL != TEST_URL
-
-    def test_test_url_contains_wwwdev(self) -> None:
-        assert "wwwdev" in TEST_URL
-
-    def test_prod_url_does_not_contain_wwwdev(self) -> None:
-        assert "wwwdev" not in PROD_URL
 
 
 # ---------------------------------------------------------------------------

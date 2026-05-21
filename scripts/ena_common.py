@@ -34,8 +34,6 @@ logger = logging.getLogger(_LOGGER_NAME)
 # Constants
 # -------------------------------------------------------------------
 
-PROD_URL: Final = "https://www.ebi.ac.uk/ena/submit/webin-v2"
-TEST_URL: Final = "https://wwwdev.ebi.ac.uk/ena/submit/webin-v2"
 _MAX_HOLD_YEARS: Final = 2
 _BOOL_STRINGS: Final = frozenset({"true", "false", "yes", "no"})
 
@@ -83,27 +81,6 @@ def get_credentials() -> tuple[str, str]:
     if not username or not password:
         raise ValueError("ENA_WEBIN and ENA_WEBIN_PASSWORD environment variables must be set")
     return username, password
-
-
-# -------------------------------------------------------------------
-# ENA API helpers
-# -------------------------------------------------------------------
-
-def get_base_url(use_test: bool) -> str:
-    """Return the ENA Webin v2 submission base URL."""
-    return TEST_URL if use_test else PROD_URL
-
-
-def submit_xml(base_url: str, auth: HTTPBasicAuth, xml_bytes: bytes) -> ET.Element:
-    """POST an XML document to ENA via Webin v2 and return the receipt root element."""
-    url = f"{base_url}/submit"
-    resp = requests.post(
-        url, data=xml_bytes,
-        headers={"Content-Type": "application/xml", "Accept": "application/xml"},
-        auth=auth, timeout=120,
-    )
-    resp.raise_for_status()
-    return ET.fromstring(resp.content)
 
 
 # -------------------------------------------------------------------

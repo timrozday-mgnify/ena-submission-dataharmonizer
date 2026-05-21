@@ -23,14 +23,14 @@ from textwrap import dedent
 from typing import Any
 from unittest.mock import MagicMock, patch
 
+import httpx
 import pytest
+from ena_api import StudyReport, WebinClient, WebinConfig
 from typer.testing import CliRunner
-from requests.auth import HTTPBasicAuth
 
-sys.path.insert(0, str(Path(__file__).parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
 from submit_study import (  # noqa: E402
-    _normalize_study_report,
     app,
     build_manifest,
     build_submission_xml,
@@ -45,9 +45,7 @@ from submit_study import (  # noqa: E402
 # Constants
 # ---------------------------------------------------------------------------
 
-_PROD_REPORTS_URL = "https://www.ebi.ac.uk/ena/submit/report/projects"
-_TEST_REPORTS_URL = "https://wwwdev.ebi.ac.uk/ena/submit/report/projects"
-_REAL_XSD_DIR = str(Path(__file__).parent / "assets" / "ena_schema")
+_REAL_XSD_DIR = str(Path(__file__).parent.parent / "assets" / "ena_schema")
 
 _MINIMAL_SCHEMA_YAML = """\
 id: https://example.com/study
@@ -103,9 +101,11 @@ def mag_genome_study() -> dict[str, Any]:
     }
 
 
-@pytest.fixture
-def auth() -> HTTPBasicAuth:
-    return HTTPBasicAuth("Webin-12345", "pass")
+def _make_client(reports: list | None = None) -> WebinClient:
+    """Return a WebinClient mock whose reports.list_projects returns *reports*."""
+    client = MagicMock(spec=WebinClient)
+    client.reports.list_projects.return_value = reports or []
+    return client
 
 
 @pytest.fixture
@@ -524,67 +524,39 @@ class TestFindDuplicateStudies:
         assert dups[2]["accession"] == "PRJEB33"
 
 
-class TestNormalizeStudyReport:
-
-    def test_title_direct(self) -> None:
-        assert _normalize_study_report({"title": "My Title", "accession": "PRJEB1"})["title"] == "My Title"
-
-    def test_title_study_title_fallback(self) -> None:
-        assert _normalize_study_report({"studyTitle": "Fallback"})["title"] == "Fallback"
-
-    def test_alias_direct(self) -> None:
-        assert _normalize_study_report({"alias": "direct-alias"})["alias"] == "direct-alias"
-
-    def test_alias_study_alias_fallback(self) -> None:
-        assert _normalize_study_report({"studyAlias": "study-alias-fallback"})["alias"] == "study-alias-fallback"
-
-    def test_accession_direct(self) -> None:
-        assert _normalize_study_report({"accession": "PRJEB5"})["accession"] == "PRJEB5"
-
-    def test_accession_study_accession_fallback(self) -> None:
-        result = _normalize_study_report({"title": "T", "studyAccession": "PRJEB99", "accession": ""})
-        assert result["accession"] == "PRJEB99"
-
-    def test_missing_fields_default_to_empty_string(self) -> None:
-        result = _normalize_study_report({})
-        assert result["title"] == ""
-        assert result["alias"] == ""
-        assert result["accession"] == ""
-
-    def test_status_defaults_to_unknown(self) -> None:
-        assert _normalize_study_report({})["status"] == "UNKNOWN"
-
-    def test_release_status_mapped_to_status(self) -> None:
-        assert _normalize_study_report({"releaseStatus": "PUBLIC"})["status"] == "PUBLIC"
-
-
 class TestFetchAccountStudies:
 
-    def test_calls_fetch_account_records_with_correct_urls(self, auth: HTTPBasicAuth) -> None:
-        with patch("submit_study.common.fetch_account_records", return_value=[]) as mock_fetch:
-            fetch_account_studies(auth, use_test=False)
-            assert mock_fetch.call_args.kwargs.get("prod_url") == _PROD_REPORTS_URL
-            assert mock_fetch.call_args.kwargs.get("test_url") == _TEST_REPORTS_URL
+    def test_returns_empty_list_when_no_reports(self) -> None:
+        client = _make_client([])
+        assert fetch_account_studies(client) == []
 
-    def test_passes_callable_normalizer(self, auth: HTTPBasicAuth) -> None:
-        with patch("submit_study.common.fetch_account_records", return_value=[]) as mock_fetch:
-            fetch_account_studies(auth, use_test=False)
-            normalizer = mock_fetch.call_args.kwargs.get("normalizer")
-            assert callable(normalizer)
+    def test_converts_study_report_to_dict(self) -> None:
+        report = StudyReport(alias="study-a", accession="ERP1", title="My Study",
+                             secondary_accession="PRJEB1", status="PRIVATE")
+        client = _make_client([report])
+        result = fetch_account_studies(client)
+        assert result == [{
+            "alias": "study-a",
+            "accession": "ERP1",
+            "title": "My Study",
+            "secondary_accession": "PRJEB1",
+            "status": "PRIVATE",
+        }]
 
-    def test_normalizer_handles_title_variants(self, auth: HTTPBasicAuth) -> None:
-        captured: list[Any] = []
+    def test_passes_max_results_to_client(self) -> None:
+        client = _make_client([])
+        fetch_account_studies(client, max_results=100)
+        client.reports.list_projects.assert_called_with(max_results=100)
 
-        def capture(*args: Any, **kwargs: Any) -> list:
-            captured.append(kwargs.get("normalizer"))
-            return []
-
-        with patch("submit_study.common.fetch_account_records", side_effect=capture):
-            fetch_account_studies(auth, use_test=False)
-
-        norm = captured[0]
-        assert norm({"title": "Direct Title"})["title"] == "Direct Title"
-        assert norm({"studyTitle": "Fallback Title"})["title"] == "Fallback Title"
+    def test_multiple_reports_all_converted(self) -> None:
+        reports = [
+            StudyReport(alias="a", accession="ERP1", title="T1", status="PRIVATE"),
+            StudyReport(alias="b", accession="ERP2", title="T2", status="PUBLIC"),
+        ]
+        client = _make_client(reports)
+        result = fetch_account_studies(client)
+        assert len(result) == 2
+        assert result[1]["accession"] == "ERP2"
 
 
 # ---------------------------------------------------------------------------
@@ -625,9 +597,13 @@ def minimal_study() -> dict[str, Any]:
     }
 
 
+_MOCK_ACC = [{"alias": "a", "accession": "PRJEB1", "status": "PRIVATE",
+              "holdUntilDate": "", "external_accession": "", "external_type": ""}]
+
+
 class TestMainCli:
     _CRED_TARGET = "submit_study.common.get_credentials"
-    _SUBMIT_TARGET = "submit_study.common.submit_xml"
+    _SUBMIT_TARGET = "submit_study.submit_manifest"
     _LINKML_TARGET = "submit_study.common.validate_against_linkml"
 
     def _invoke(self, runner: CliRunner, args: list[str], input_filename: str, input_content: str) -> Any:
@@ -688,11 +664,9 @@ class TestMainCli:
             "secondary_accession": "ERP066666",
             "status": "PRIVATE",
         }
-        receipt_xml = ET.fromstring(
-            '<RECEIPT success="true">'
-            '<PROJECT accession="PRJEB66666" alias="cli-metagenomics-001" status="PRIVATE"/>'
-            "</RECEIPT>"
-        )
+        mock_accessions = [{"alias": "cli-metagenomics-001", "accession": "PRJEB66666",
+                            "status": "PRIVATE", "holdUntilDate": "",
+                            "external_accession": "", "external_type": ""}]
         content = _make_study_json(minimal_study)
         with runner.isolated_filesystem():
             Path("studies.json").write_text(content)
@@ -700,7 +674,7 @@ class TestMainCli:
             base_args = ["--linkml", "schema.yaml", "--xsd", _REAL_XSD_DIR]
             with patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")), \
                  patch("submit_study.fetch_account_studies", return_value=[existing]), \
-                 patch(self._SUBMIT_TARGET, return_value=receipt_xml), \
+                 patch(self._SUBMIT_TARGET, return_value=(True, mock_accessions, [])), \
                  patch(self._LINKML_TARGET, return_value=(True, [])):
                 result = runner.invoke(
                     app,
@@ -713,60 +687,37 @@ class TestMainCli:
         assert data["modified"][0]["accession"] == "PRJEB66666"
 
     def test_failed_submission_exits_1(self, runner: CliRunner, minimal_study: dict[str, Any]) -> None:
-        import requests
         content = _make_study_json(minimal_study)
-        http_error = requests.exceptions.HTTPError(response=MagicMock(status_code=500, text="err"))
+        http_error = httpx.HTTPStatusError("500", request=MagicMock(), response=MagicMock(status_code=500))
         with patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")), \
              patch(self._SUBMIT_TARGET, side_effect=http_error), \
              patch(self._LINKML_TARGET, return_value=(True, [])):
             result = self._invoke(runner, ["--automated"], "studies.json", content)
         assert result.exit_code == 1
 
-    def test_test_flag_routes_to_test_url(self, runner: CliRunner, minimal_study: dict[str, Any]) -> None:
-        receipt_xml = ET.fromstring(
-            '<RECEIPT success="true">'
-            '<PROJECT accession="PRJEB00001" alias="cli-metagenomics-001" status="PRIVATE"/>'
-            "</RECEIPT>"
-        )
+    def test_test_flag_creates_test_config(self, runner: CliRunner, minimal_study: dict[str, Any]) -> None:
         content = _make_study_json(minimal_study)
-        with runner.isolated_filesystem():
-            Path("studies.json").write_text(content)
-            Path("schema.yaml").write_text(_MINIMAL_SCHEMA_YAML)
-            base_args = ["--linkml", "schema.yaml", "--xsd", _REAL_XSD_DIR]
-            with patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")), \
-                 patch(self._SUBMIT_TARGET, return_value=receipt_xml) as mock_submit, \
-                 patch(self._LINKML_TARGET, return_value=(True, [])):
-                result = runner.invoke(
-                    app,
-                    ["--input", "studies.json", "--automated", "--test"] + base_args,
-                    catch_exceptions=False,
-                )
+        with (
+            patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")),
+            patch(self._SUBMIT_TARGET, return_value=(True, _MOCK_ACC, [])),
+            patch(self._LINKML_TARGET, return_value=(True, [])),
+            patch("submit_study.WebinConfig", wraps=WebinConfig) as MockConfig,
+        ):
+            result = self._invoke(runner, ["--automated", "--test"], "studies.json", content)
         assert result.exit_code == 0, f"output: {result.output}"
-        called_url = mock_submit.call_args[0][0]
-        assert "wwwdev" in called_url, f"Expected test URL; got {called_url}"
+        assert MockConfig.call_args.kwargs.get("test") is True
 
-    def test_no_test_flag_routes_to_production_url(self, runner: CliRunner, minimal_study: dict[str, Any]) -> None:
-        receipt_xml = ET.fromstring(
-            '<RECEIPT success="true">'
-            '<PROJECT accession="PRJEB00002" alias="cli-metagenomics-001" status="PRIVATE"/>'
-            "</RECEIPT>"
-        )
+    def test_no_test_flag_creates_prod_config(self, runner: CliRunner, minimal_study: dict[str, Any]) -> None:
         content = _make_study_json(minimal_study)
-        with runner.isolated_filesystem():
-            Path("studies.json").write_text(content)
-            Path("schema.yaml").write_text(_MINIMAL_SCHEMA_YAML)
-            base_args = ["--linkml", "schema.yaml", "--xsd", _REAL_XSD_DIR]
-            with patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")), \
-                 patch(self._SUBMIT_TARGET, return_value=receipt_xml) as mock_submit, \
-                 patch(self._LINKML_TARGET, return_value=(True, [])):
-                result = runner.invoke(
-                    app,
-                    ["--input", "studies.json", "--automated"] + base_args,
-                    catch_exceptions=False,
-                )
+        with (
+            patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")),
+            patch(self._SUBMIT_TARGET, return_value=(True, _MOCK_ACC, [])),
+            patch(self._LINKML_TARGET, return_value=(True, [])),
+            patch("submit_study.WebinConfig", wraps=WebinConfig) as MockConfig,
+        ):
+            result = self._invoke(runner, ["--automated"], "studies.json", content)
         assert result.exit_code == 0, f"output: {result.output}"
-        called_url = mock_submit.call_args[0][0]
-        assert "wwwdev" not in called_url, f"Expected prod URL; got {called_url}"
+        assert MockConfig.call_args.kwargs.get("test") is False
 
     def test_output_flag_writes_results_to_file(self, runner: CliRunner, minimal_study: dict[str, Any]) -> None:
         content = _make_study_json(minimal_study)

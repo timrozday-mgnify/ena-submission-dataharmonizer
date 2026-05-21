@@ -5,7 +5,7 @@ Covers:
     A. Unit tests for build_manifest / build_submission_xml / _add_sample_element
     B. Unit tests for validate_manifest
     C. Unit tests for parse_xml_receipt / submit_manifest
-    D. Unit tests for find_duplicate_samples / _normalize_sample_report / fetch_account_samples
+    D. Unit tests for find_duplicate_samples / fetch_account_samples
     E. CLI integration tests for main() using typer.testing.CliRunner
 
 Usage:
@@ -21,28 +21,24 @@ from textwrap import dedent
 from typing import Any
 from unittest.mock import MagicMock, patch
 
+import httpx
 import pytest
-from requests.auth import HTTPBasicAuth
+from ena_api import SampleReport, WebinClient, WebinConfig
 from typer.testing import CliRunner
 
 import sys
-sys.path.insert(0, str(Path(__file__).parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
 from submit_sample import (  # noqa: E402
-    _normalize_sample_report,
+    app,
     build_manifest,
     build_submission_xml,
     fetch_account_samples,
     find_duplicate_samples,
-    main,
     parse_xml_receipt,
     submit_manifest,
     validate_manifest,
-    app,
 )
-
-_PROD_REPORTS_URL = "https://www.ebi.ac.uk/ena/submit/report/samples"
-_TEST_REPORTS_URL = "https://wwwdev.ebi.ac.uk/ena/submit/report/samples"
 
 
 # ---------------------------------------------------------------------------
@@ -75,9 +71,11 @@ def erc_schema() -> dict[str, Any]:
     return {"name": "ERC000025", "classes": {}, "slots": {}}
 
 
-@pytest.fixture
-def auth() -> HTTPBasicAuth:
-    return HTTPBasicAuth("Webin-12345", "pass")
+def _make_client(samples: list | None = None) -> WebinClient:
+    """Return a WebinClient mock whose reports.list_samples returns *samples*."""
+    client = MagicMock(spec=WebinClient)
+    client.reports.list_samples.return_value = samples or []
+    return client
 
 
 @pytest.fixture
@@ -251,7 +249,7 @@ class TestBuildManifest:
 @pytest.fixture
 def real_xsd_dir() -> Path:
     """Return the real ENA schema directory containing SRA.sample.xsd."""
-    return Path(__file__).parent / "assets" / "ena_schema"
+    return Path(__file__).parent.parent / "assets" / "ena_schema"
 
 
 class TestValidateManifest:
@@ -411,25 +409,43 @@ class TestParseXmlReceipt:
 
 
 class TestSubmitManifest:
-    """Unit tests for submit_manifest() — wraps common.submit_xml + parse_xml_receipt."""
+    """Unit tests for submit_manifest() — calls client.submit.xml and converts the receipt."""
 
-    def test_successful_submission_returns_accessions(self, auth: HTTPBasicAuth) -> None:
-        receipt_el = ET.fromstring(
-            '<RECEIPT success="true">'
-            '<SAMPLE accession="ERS999" alias="s1" status="PRIVATE"/>'
-            "</RECEIPT>"
-        )
-        with patch("submit_sample.common.submit_xml", return_value=receipt_el):
-            success, accessions, messages = submit_manifest(b"<xml/>", "https://example.com", auth)
+    @staticmethod
+    def _make_receipt(success: bool = True, accession: str = "ERS999", alias: str = "s1") -> MagicMock:
+        acc = MagicMock()
+        acc.alias = alias
+        acc.accession = accession
+        acc.status = "PRIVATE"
+        acc.hold_until_date = ""
+        acc.external_accession = ""
+        acc.external_type = ""
+        receipt = MagicMock()
+        receipt.success = success
+        receipt.accessions = [acc]
+        receipt.messages = []
+        receipt.errors = []
+        return receipt
+
+    def test_successful_submission_returns_accessions(self) -> None:
+        client = _make_client()
+        client.submit.xml.return_value = self._make_receipt(success=True)
+        success, accessions, messages = submit_manifest(b"<xml/>", client)
         assert success is True
         assert accessions[0]["accession"] == "ERS999"
 
-    def test_http_error_propagates(self, auth: HTTPBasicAuth) -> None:
-        import requests as req
-        err = req.exceptions.HTTPError(response=MagicMock(status_code=500, text="fail"))
-        with patch("submit_sample.common.submit_xml", side_effect=err):
-            with pytest.raises(req.exceptions.HTTPError):
-                submit_manifest(b"<xml/>", "https://example.com", auth)
+    def test_failed_submission_returns_false(self) -> None:
+        client = _make_client()
+        client.submit.xml.return_value = self._make_receipt(success=False)
+        success, accessions, _ = submit_manifest(b"<xml/>", client)
+        assert success is False
+
+    def test_http_error_propagates(self) -> None:
+        client = _make_client()
+        err = httpx.HTTPStatusError("500", request=MagicMock(), response=MagicMock(status_code=500))
+        client.submit.xml.side_effect = err
+        with pytest.raises(httpx.HTTPStatusError):
+            submit_manifest(b"<xml/>", client)
 
 
 # ---------------------------------------------------------------------------
@@ -489,69 +505,37 @@ class TestFindDuplicateSamples:
         assert dups[2]["accession"] == "ERS33"
 
 
-class TestNormalizeSampleReport:
-    """Unit tests for _normalize_sample_report()."""
-
-    def test_title_direct(self) -> None:
-        assert _normalize_sample_report({"title": "T", "accession": "ERS1"})["title"] == "T"
-
-    def test_title_sample_title_fallback(self) -> None:
-        assert _normalize_sample_report({"sampleTitle": "ST", "accession": "ERS1"})["title"] == "ST"
-
-    def test_alias_direct(self) -> None:
-        assert _normalize_sample_report({"alias": "a", "accession": "ERS1"})["alias"] == "a"
-
-    def test_alias_sample_alias_fallback(self) -> None:
-        assert _normalize_sample_report({"sampleAlias": "sa", "accession": "ERS1"})["alias"] == "sa"
-
-    def test_accession_direct(self) -> None:
-        assert _normalize_sample_report({"accession": "ERS5"})["accession"] == "ERS5"
-
-    def test_accession_sample_accession_fallback(self) -> None:
-        assert _normalize_sample_report({"sampleAccession": "ERS99", "accession": ""})["accession"] == "ERS99"
-
-    def test_missing_fields_default_to_empty_string(self) -> None:
-        result = _normalize_sample_report({})
-        assert result["title"] == ""
-        assert result["alias"] == ""
-        assert result["accession"] == ""
-
-    def test_status_defaults_to_unknown(self) -> None:
-        assert _normalize_sample_report({})["status"] == "UNKNOWN"
-
-    def test_release_status_mapped_to_status(self) -> None:
-        assert _normalize_sample_report({"releaseStatus": "PUBLIC"})["status"] == "PUBLIC"
-
-
 class TestFetchAccountSamples:
-    """Unit tests for fetch_account_samples() — verifies it delegates to common correctly."""
+    """Unit tests for fetch_account_samples() — verifies it delegates to WebinClient correctly."""
 
-    def test_calls_fetch_account_records_with_correct_urls(self, auth: HTTPBasicAuth) -> None:
-        with patch("submit_sample.common.fetch_account_records", return_value=[]) as mock_fetch:
-            fetch_account_samples(auth, use_test=False)
-            kwargs = mock_fetch.call_args.kwargs
-            assert kwargs["prod_url"] == _PROD_REPORTS_URL
-            assert kwargs["test_url"] == _TEST_REPORTS_URL
+    def test_returns_empty_list_when_no_reports(self) -> None:
+        client = _make_client(samples=[])
+        assert fetch_account_samples(client) == []
 
-    def test_passes_callable_normalizer(self, auth: HTTPBasicAuth) -> None:
-        with patch("submit_sample.common.fetch_account_records", return_value=[]) as mock_fetch:
-            fetch_account_samples(auth, use_test=False)
-            normalizer = mock_fetch.call_args.kwargs.get("normalizer")
-            assert callable(normalizer)
+    def test_converts_sample_report_to_dict(self) -> None:
+        sample = SampleReport(alias="s1", accession="ERS1", secondary_accession="SAMEA1", title="T1", status="PRIVATE")
+        client = _make_client(samples=[sample])
+        result = fetch_account_samples(client)
+        assert len(result) == 1
+        assert result[0] == {
+            "alias": "s1", "title": "T1", "accession": "ERS1",
+            "secondary_accession": "SAMEA1", "status": "PRIVATE",
+        }
 
-    def test_normalizer_handles_title_variants(self, auth: HTTPBasicAuth) -> None:
-        captured = {}
+    def test_passes_max_results_to_client(self) -> None:
+        client = _make_client(samples=[])
+        fetch_account_samples(client, max_results=100)
+        client.reports.list_samples.assert_called_once_with(max_results=100)
 
-        def capture(*args: Any, **kwargs: Any) -> list:
-            captured["fn"] = kwargs.get("normalizer")
-            return []
-
-        with patch("submit_sample.common.fetch_account_records", side_effect=capture):
-            fetch_account_samples(auth)
-
-        fn = captured["fn"]
-        assert fn({"title": "Direct", "accession": "ERS1"})["title"] == "Direct"
-        assert fn({"sampleTitle": "Fallback", "accession": "ERS2"})["title"] == "Fallback"
+    def test_multiple_reports_all_converted(self) -> None:
+        samples = [
+            SampleReport(alias="s1", accession="ERS1", title="T1", status="PRIVATE"),
+            SampleReport(alias="s2", accession="ERS2", title="T2", status="PUBLIC"),
+        ]
+        client = _make_client(samples=samples)
+        result = fetch_account_samples(client)
+        assert len(result) == 2
+        assert result[1]["accession"] == "ERS2"
 
 
 # ---------------------------------------------------------------------------
@@ -620,14 +604,14 @@ slots:
     title: Scientific name
 """
 
-_REAL_XSD_DIR = str(Path(__file__).parent / "assets" / "ena_schema")
+_REAL_XSD_DIR = str(Path(__file__).parent.parent / "assets" / "ena_schema")
 
 
 class TestMainCli:
     """CLI integration tests via typer.testing.CliRunner."""
 
     _CRED = "submit_sample.common.get_credentials"
-    _SUBMIT = "submit_sample.common.submit_xml"
+    _SUBMIT = "submit_sample.submit_manifest"
     _LINKML_VALIDATE = "submit_sample.common.validate_against_linkml"
 
     def _base_args(self, schema_file: str) -> list[str]:
@@ -689,11 +673,8 @@ class TestMainCli:
             "title": basic_sample["SAMPLE_TITLE"], "alias": basic_sample["alias"],
             "accession": "ERS66666", "secondary_accession": "", "status": "PRIVATE",
         }
-        receipt_xml = ET.fromstring(
-            '<RECEIPT success="true">'
-            '<SAMPLE accession="ERS66666" alias="test-sample-001" status="PRIVATE"/>'
-            "</RECEIPT>"
-        )
+        mock_acc = [{"alias": "test-sample-001", "accession": "ERS66666", "status": "PRIVATE",
+                     "holdUntilDate": "", "external_accession": "", "external_type": ""}]
         with runner.isolated_filesystem():
             Path("samples.json").write_text(_make_sample_json(basic_sample))
             Path("schema.yaml").write_text(_MINIMAL_SCHEMA_YAML)
@@ -701,7 +682,7 @@ class TestMainCli:
                 patch(self._CRED, return_value=("Webin-12345", "pass")),
                 patch("submit_sample.fetch_account_samples", return_value=[existing]),
                 patch(self._LINKML_VALIDATE, return_value=(True, [])),
-                patch(self._SUBMIT, return_value=receipt_xml),
+                patch(self._SUBMIT, return_value=(True, mock_acc, [])),
             ):
                 result = runner.invoke(
                     app, ["--input", "samples.json"] + self._base_args("schema.yaml") + ["--force"],
@@ -713,8 +694,7 @@ class TestMainCli:
         assert data["modified"][0]["accession"] == "ERS66666"
 
     def test_failed_submission_exits_1(self, runner: CliRunner, basic_sample: dict[str, Any]) -> None:
-        import requests as req
-        http_err = req.exceptions.HTTPError(response=MagicMock(status_code=500, text="err"))
+        http_err = httpx.HTTPStatusError("500", request=MagicMock(), response=MagicMock(status_code=500))
         with runner.isolated_filesystem():
             Path("samples.json").write_text(_make_sample_json(basic_sample))
             Path("schema.yaml").write_text(_MINIMAL_SCHEMA_YAML)
@@ -729,49 +709,43 @@ class TestMainCli:
                 )
         assert result.exit_code == 1
 
-    def test_test_flag_routes_to_test_url(self, runner: CliRunner, basic_sample: dict[str, Any]) -> None:
-        receipt_xml = ET.fromstring(
-            '<RECEIPT success="true">'
-            '<SAMPLE accession="ERS00001" alias="test-sample-001" status="PRIVATE"/>'
-            "</RECEIPT>"
-        )
+    def test_test_flag_creates_test_config(self, runner: CliRunner, basic_sample: dict[str, Any]) -> None:
+        mock_acc = [{"alias": "test-sample-001", "accession": "ERS00001", "status": "PRIVATE",
+                     "holdUntilDate": "", "external_accession": "", "external_type": ""}]
         with runner.isolated_filesystem():
             Path("samples.json").write_text(_make_sample_json(basic_sample))
             Path("schema.yaml").write_text(_MINIMAL_SCHEMA_YAML)
             with (
                 patch(self._CRED, return_value=("Webin-12345", "pass")),
                 patch(self._LINKML_VALIDATE, return_value=(True, [])),
-                patch(self._SUBMIT, return_value=receipt_xml) as mock_submit,
+                patch(self._SUBMIT, return_value=(True, mock_acc, [])),
+                patch("submit_sample.WebinConfig", wraps=WebinConfig) as MockConfig,
             ):
                 result = runner.invoke(
                     app, ["--input", "samples.json"] + self._base_args("schema.yaml") + ["--automated", "--test"],
                     catch_exceptions=False,
                 )
         assert result.exit_code == 0, result.output
-        called_url = mock_submit.call_args[0][0]
-        assert "wwwdev" in called_url, f"Expected test URL; got {called_url}"
+        assert MockConfig.call_args.kwargs.get("test") is True
 
-    def test_no_test_flag_routes_to_production_url(self, runner: CliRunner, basic_sample: dict[str, Any]) -> None:
-        receipt_xml = ET.fromstring(
-            '<RECEIPT success="true">'
-            '<SAMPLE accession="ERS00002" alias="test-sample-001" status="PRIVATE"/>'
-            "</RECEIPT>"
-        )
+    def test_no_test_flag_creates_prod_config(self, runner: CliRunner, basic_sample: dict[str, Any]) -> None:
+        mock_acc = [{"alias": "test-sample-001", "accession": "ERS00002", "status": "PRIVATE",
+                     "holdUntilDate": "", "external_accession": "", "external_type": ""}]
         with runner.isolated_filesystem():
             Path("samples.json").write_text(_make_sample_json(basic_sample))
             Path("schema.yaml").write_text(_MINIMAL_SCHEMA_YAML)
             with (
                 patch(self._CRED, return_value=("Webin-12345", "pass")),
                 patch(self._LINKML_VALIDATE, return_value=(True, [])),
-                patch(self._SUBMIT, return_value=receipt_xml) as mock_submit,
+                patch(self._SUBMIT, return_value=(True, mock_acc, [])),
+                patch("submit_sample.WebinConfig", wraps=WebinConfig) as MockConfig,
             ):
                 result = runner.invoke(
                     app, ["--input", "samples.json"] + self._base_args("schema.yaml") + ["--automated"],
                     catch_exceptions=False,
                 )
         assert result.exit_code == 0, result.output
-        called_url = mock_submit.call_args[0][0]
-        assert "wwwdev" not in called_url, f"Expected prod URL; got {called_url}"
+        assert MockConfig.call_args.kwargs.get("test") is False
 
     def test_output_flag_writes_results_to_file(self, runner: CliRunner, basic_sample: dict[str, Any]) -> None:
         with runner.isolated_filesystem():
