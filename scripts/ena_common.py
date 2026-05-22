@@ -23,7 +23,6 @@ from typing import Any, Final
 import lxml.etree
 import pendulum
 import requests
-import yaml
 from requests.auth import HTTPBasicAuth
 
 _LOGGER_NAME: Final = "ena_submit"
@@ -35,7 +34,6 @@ logger = logging.getLogger(_LOGGER_NAME)
 # -------------------------------------------------------------------
 
 _MAX_HOLD_YEARS: Final = 2
-_BOOL_STRINGS: Final = frozenset({"true", "false", "yes", "no"})
 
 
 # -------------------------------------------------------------------
@@ -149,148 +147,6 @@ def parse_checklist_units(xml_path: str | Path) -> dict[str, str]:
         units[name_el.text.strip()] = unit_el.text.strip()
 
     return units
-
-
-# -------------------------------------------------------------------
-# LinkML validation
-# -------------------------------------------------------------------
-
-def load_linkml_schema(linkml_path: str | Path) -> dict[str, Any]:
-    """Load a LinkML YAML schema file and return the parsed dict."""
-    with open(linkml_path) as fh:
-        return yaml.safe_load(fh)
-
-
-def build_slot_to_title_map(schema: dict[str, Any]) -> dict[str, str]:
-    """Return a mapping of slot name → slot title from the schema."""
-    return {
-        name: defn.get("title", "")
-        for name, defn in schema.get("slots", {}).items()
-        if (defn or {}).get("title")
-    }
-
-
-def build_title_to_slot_map(schema: dict[str, Any]) -> dict[str, str]:
-    """Return a mapping of slot title → slot name from the schema."""
-    return {
-        defn.get("title", ""): name
-        for name, defn in schema.get("slots", {}).items()
-        if (defn or {}).get("title")
-    }
-
-
-def remap_records_by_title(records: list[dict[str, Any]], schema: dict[str, Any]) -> list[dict[str, Any]]:
-    """Remap record keys from slot titles to slot names (as used in DataHarmonizer exports)."""
-    title_to_slot = build_title_to_slot_map(schema)
-    if not title_to_slot:
-        return records
-    return [
-        {title_to_slot.get(k, k): v for k, v in record.items()}
-        for record in records
-    ]
-
-
-def validate_against_linkml(
-    records: Sequence[dict[str, Any]],
-    schema: dict[str, Any],
-    label_fields: Sequence[str] = ("alias",),
-    entity_name: str = "record",
-    unknown_field_note: str = "will be ignored",
-) -> tuple[bool, list[str]]:
-    """Validate record dicts against a LinkML schema (required fields, enums, types)."""
-    messages: list[str] = []
-    slots = schema.get("slots", {})
-    enums = schema.get("enums", {})
-
-    main_class = next(
-        (cls for cls in schema.get("classes", {}).values() if cls.get("is_a") == "dh_interface"),
-        None,
-    )
-    if main_class is None:
-        messages.append("ERROR: No class with is_a: dh_interface found in LinkML schema")
-        return False, messages
-
-    class_slot_names = main_class.get("slots", [])
-    messages.append(f"LinkML schema defines {len(class_slot_names)} slots: {', '.join(class_slot_names)}")
-
-    required_slots: set[str] = set()
-    slot_ranges: dict[str, str] = {}
-    for slot_name in class_slot_names:
-        slot_def = slots.get(slot_name, {})
-        if slot_def.get("required"):
-            required_slots.add(slot_name)
-        slot_ranges[slot_name] = slot_def.get("range", "string")
-
-    messages.append("Required slots: " + ", ".join(sorted(required_slots)))
-
-    is_valid = True
-    for i, record in enumerate(records):
-        label = _record_label(record, label_fields, entity_name, i)
-        messages.append(f"\n--- Validating {entity_name}: {label} ---")
-
-        for key in record:
-            if key not in class_slot_names and key != "alias":
-                messages.append(f"  WARNING: Unknown field '{key}' not in LinkML schema ({unknown_field_note})")
-
-        for req in required_slots:
-            val = record.get(req)
-            if val is None or (isinstance(val, str) and not val.strip()):
-                messages.append(f"  ERROR: Required field '{req}' is missing or empty")
-                is_valid = False
-            else:
-                messages.append(f"  OK: Required field '{req}' = {val!r}")
-
-        for slot_name in class_slot_names:
-            val = record.get(slot_name)
-            if val is None:
-                continue
-            expected_range = slot_ranges.get(slot_name, "string")
-            enum_def = enums.get(expected_range)
-
-            if enum_def:
-                valid, msg = _check_enum(slot_name, val, enum_def)
-            elif expected_range == "boolean":
-                valid, msg = _check_boolean(slot_name, val)
-            elif expected_range == "integer":
-                valid, msg = _check_integer(slot_name, val)
-            else:
-                messages.append(f"  OK: Field '{slot_name}' = {val!r} (string)")
-                continue
-
-            messages.append(msg)
-            if not valid:
-                is_valid = False
-
-    return is_valid, messages
-
-
-def _record_label(record: dict[str, Any], label_fields: Sequence[str], entity_name: str, index: int) -> str:
-    for field in label_fields:
-        val = record.get(field)
-        if val:
-            return str(val)
-    return f"{entity_name}[{index}]"
-
-
-def _check_enum(slot_name: str, val: object, enum_def: dict[str, Any]) -> tuple[bool, str]:
-    allowed = list(enum_def.get("permissible_values", {}).keys())
-    if val not in allowed:
-        return False, f"  ERROR: Field '{slot_name}' value {val!r} not in allowed values: {allowed}"
-    return True, f"  OK: Field '{slot_name}' = {val!r} (valid enum)"
-
-
-def _check_boolean(slot_name: str, val: object) -> tuple[bool, str]:
-    if isinstance(val, bool) or (isinstance(val, str) and val.lower() in _BOOL_STRINGS):
-        return True, f"  OK: Field '{slot_name}' = {val!r} (boolean)"
-    return False, f"  ERROR: Field '{slot_name}' should be boolean, got {val!r}"
-
-
-def _check_integer(slot_name: str, val: object) -> tuple[bool, str]:
-    try:
-        int(val)  # type: ignore[arg-type]
-    except (ValueError, TypeError):
-        return False, f"  ERROR: Field '{slot_name}' should be integer, got {val!r}"
-    return True, f"  OK: Field '{slot_name}' = {val!r} (integer)"
 
 
 # -------------------------------------------------------------------

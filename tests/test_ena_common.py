@@ -17,20 +17,13 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
 from ena_common import (
-    _check_boolean,
-    _check_enum,
-    _check_integer,
     _is_metadata_row,
     _match_by_alias_title,
-    build_slot_to_title_map,
-    build_title_to_slot_map,
     extract_records_from_json,
     extract_records_from_tabular,
     find_duplicates_by_alias_title,
     get_credentials,
     parse_checklist_units,
-    remap_records_by_title,
-    validate_against_linkml,
     validate_hold_until,
     write_results,
     xml_to_bytes,
@@ -165,144 +158,6 @@ class TestValidateHoldUntil:
         today = pendulum.today().date().to_date_string()
         with pytest.raises(ValueError, match="not in the future"):
             validate_hold_until(today)
-
-
-# ---------------------------------------------------------------------------
-# TestBuildSlotMaps
-# ---------------------------------------------------------------------------
-
-
-class TestBuildSlotMaps:
-
-    def test_slot_to_title(self, minimal_schema: dict[str, Any]) -> None:
-        m = build_slot_to_title_map(minimal_schema)
-        assert m["alias"] == "Alias"
-        assert m["title"] == "Title"
-
-    def test_title_to_slot(self, minimal_schema: dict[str, Any]) -> None:
-        m = build_title_to_slot_map(minimal_schema)
-        assert m["Alias"] == "alias"
-        assert m["Title"] == "title"
-
-    def test_slot_without_title_omitted(self) -> None:
-        schema = {"slots": {"no_title": {}, "has_title": {"title": "Has Title"}}}
-        assert "no_title" not in build_slot_to_title_map(schema)
-        assert "has_title" in build_slot_to_title_map(schema)
-
-    def test_empty_schema(self) -> None:
-        assert build_slot_to_title_map({}) == {}
-        assert build_title_to_slot_map({}) == {}
-
-
-# ---------------------------------------------------------------------------
-# TestRemapRecords
-# ---------------------------------------------------------------------------
-
-
-class TestRemapRecords:
-
-    def test_title_keys_remapped_to_slot_names(self, minimal_schema: dict[str, Any]) -> None:
-        records = [{"Alias": "my-alias", "Title": "My Title"}]
-        result = remap_records_by_title(records, minimal_schema)
-        assert result[0]["alias"] == "my-alias"
-        assert result[0]["title"] == "My Title"
-
-    def test_unknown_keys_passed_through(self, minimal_schema: dict[str, Any]) -> None:
-        records = [{"Alias": "x", "unknown_col": "value"}]
-        result = remap_records_by_title(records, minimal_schema)
-        assert result[0]["unknown_col"] == "value"
-
-    def test_empty_schema_returns_original(self) -> None:
-        records = [{"Alias": "x"}]
-        result = remap_records_by_title(records, {})
-        assert result == records
-
-    def test_multiple_records_all_remapped(self, minimal_schema: dict[str, Any]) -> None:
-        records = [{"Alias": "a"}, {"Alias": "b"}]
-        result = remap_records_by_title(records, minimal_schema)
-        assert all("alias" in r for r in result)
-
-
-# ---------------------------------------------------------------------------
-# TestValidateAgainstLinkml
-# ---------------------------------------------------------------------------
-
-
-class TestValidateAgainstLinkml:
-
-    def test_valid_record_passes(self, minimal_schema: dict[str, Any]) -> None:
-        records = [{"alias": "my-alias", "status": "PRIVATE"}]
-        is_valid, _ = validate_against_linkml(records, minimal_schema)
-        assert is_valid
-
-    def test_missing_required_field_fails(self, minimal_schema: dict[str, Any]) -> None:
-        is_valid, messages = validate_against_linkml([{"title": "no alias"}], minimal_schema)
-        assert not is_valid
-        assert any("alias" in m and "Required" in m for m in messages)
-
-    def test_invalid_enum_fails(self, minimal_schema: dict[str, Any]) -> None:
-        records = [{"alias": "x", "status": "INVALID"}]
-        is_valid, messages = validate_against_linkml(records, minimal_schema)
-        assert not is_valid
-        assert any("status" in m and "ERROR" in m for m in messages)
-
-    def test_valid_enum_passes(self, minimal_schema: dict[str, Any]) -> None:
-        records = [{"alias": "x", "status": "PUBLIC"}]
-        is_valid, _ = validate_against_linkml(records, minimal_schema)
-        assert is_valid
-
-    def test_no_dh_interface_class_fails(self) -> None:
-        schema = {"classes": {"Foo": {}}, "slots": {}, "enums": {}}
-        is_valid, messages = validate_against_linkml([{}], schema)
-        assert not is_valid
-        assert any("dh_interface" in m for m in messages)
-
-    def test_unknown_field_warning_not_error(self, minimal_schema: dict[str, Any]) -> None:
-        records = [{"alias": "x", "mystery_field": "val"}]
-        is_valid, messages = validate_against_linkml(records, minimal_schema)
-        assert is_valid
-        assert any("WARNING" in m and "mystery_field" in m for m in messages)
-
-
-# ---------------------------------------------------------------------------
-# TestCheckHelpers
-# ---------------------------------------------------------------------------
-
-
-class TestCheckHelpers:
-
-    def test_check_enum_valid(self) -> None:
-        enum_def = {"permissible_values": {"A": {}, "B": {}}}
-        valid, msg = _check_enum("field", "A", enum_def)
-        assert valid
-        assert "OK" in msg
-
-    def test_check_enum_invalid(self) -> None:
-        enum_def = {"permissible_values": {"A": {}, "B": {}}}
-        valid, msg = _check_enum("field", "C", enum_def)
-        assert not valid
-        assert "ERROR" in msg
-
-    def test_check_boolean_true(self) -> None:
-        assert _check_boolean("f", True)[0]
-        assert _check_boolean("f", "true")[0]
-        assert _check_boolean("f", "yes")[0]
-        assert _check_boolean("f", "False")[0]
-
-    def test_check_boolean_invalid(self) -> None:
-        valid, msg = _check_boolean("f", "maybe")
-        assert not valid
-        assert "ERROR" in msg
-
-    def test_check_integer_valid(self) -> None:
-        assert _check_integer("f", 42)[0]
-        assert _check_integer("f", "42")[0]
-        assert _check_integer("f", "0")[0]
-
-    def test_check_integer_invalid(self) -> None:
-        valid, msg = _check_integer("f", "not_int")
-        assert not valid
-        assert "ERROR" in msg
 
 
 # ---------------------------------------------------------------------------
