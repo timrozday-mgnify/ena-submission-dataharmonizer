@@ -1,10 +1,9 @@
 """Shared utilities for ENA submission scripts.
 
 Provide logging, credential management, file loading,
-LinkML and XSD validation, Reports API access, duplicate
-detection, XML serialisation, and result output used by
-``submit_study.py``, ``submit_sample.py``, and
-``submit_reads.py``.
+LinkML and XSD validation, duplicate detection,
+XML serialisation, and result output used by
+``submit_study.py`` and ``submit_sample.py``.
 """
 
 from __future__ import annotations
@@ -22,9 +21,7 @@ from typing import Any, Final
 
 import lxml.etree
 import pendulum
-import requests
 from ena_api import WebinClient, WebinConfig
-from requests.auth import HTTPBasicAuth
 
 _LOGGER_NAME: Final = "ena_submit"
 logger = logging.getLogger(_LOGGER_NAME)
@@ -256,37 +253,6 @@ def extract_records_from_tabular(filepath: str | Path, delimiter: str = ",") -> 
     ]
 
 
-def extract_records_from_excel(filepath: str | Path) -> list[dict[str, str]]:
-    """Extract record dicts from an XLS or XLSX file, skipping any DataHarmonizer metadata row."""
-    ext = Path(filepath).suffix.lower()
-
-    if ext == ".xls":
-        import xlrd  # noqa: PLC0415
-        wb = xlrd.open_workbook(str(filepath))
-        ws = wb.sheet_by_index(0)
-        rows: list[list[Any]] = [[ws.cell_value(r, c) for c in range(ws.ncols)] for r in range(ws.nrows)]
-    else:
-        import openpyxl  # noqa: PLC0415
-        wb = openpyxl.load_workbook(filepath, read_only=True, data_only=True)
-        ws = wb.active
-        rows = [list(r) for r in ws.iter_rows(values_only=True)] if ws is not None else []
-        wb.close()
-
-    if not rows:
-        return []
-
-    idx = 1 if _is_metadata_row(rows[0]) else 0
-    if idx >= len(rows):
-        return []
-
-    headers = [str(h).strip() if h is not None else "" for h in rows[idx]]
-    return [
-        {col: str(val).strip() for col, val in zip(headers, row) if col and val is not None and str(val).strip()}
-        for row in rows[idx + 1:]
-        if any(val is not None and str(val).strip() for val in row)
-    ]
-
-
 def extract_records_from_json(
     input_data: object,
     record_keys: Sequence[str] = ("data",),
@@ -311,92 +277,6 @@ def extract_records_from_json(
 
     return None
 
-
-def load_input_file(
-    filepath: str | Path,
-    json_record_keys: Sequence[str] = ("data",),
-) -> list[dict[str, Any]] | None:
-    """Load records from JSON, CSV, TSV, XLS, or XLSX. Returns None for unsupported formats."""
-    ext = Path(filepath).suffix.lower()
-    if ext == ".json":
-        with open(filepath) as fh:
-            return extract_records_from_json(json.load(fh), json_record_keys)
-    if ext == ".csv":
-        return extract_records_from_tabular(filepath, delimiter=",")
-    if ext == ".tsv":
-        return extract_records_from_tabular(filepath, delimiter="\t")
-    if ext in (".xlsx", ".xls"):
-        return extract_records_from_excel(filepath)
-    return None
-
-
-# -------------------------------------------------------------------
-# Reports API
-# -------------------------------------------------------------------
-
-def fetch_from_reports_endpoint(
-    url: str,
-    auth: HTTPBasicAuth,
-    max_results: int = 5000,
-) -> list[dict[str, Any]] | None:
-    """Fetch records from a Webin Reports endpoint. Returns None on auth/network errors."""
-    params = {"format": "json", "max-results": max_results}
-    logger.debug('curl -u %s:*** "%s"', auth.username, requests.Request("GET", url, params=params).prepare().url)
-
-    try:
-        resp = requests.get(url, params=params, auth=auth, timeout=60)
-        logger.info("Reports API at %s returned %s", url, resp.status_code)
-        resp.raise_for_status()
-        return resp.json()
-
-    except requests.exceptions.HTTPError as exc:
-        status = exc.response.status_code if exc.response is not None else "unknown"
-        if status == 404:
-            logger.info("Reports API at %s returned 404 — no records yet", url)
-            return []
-        if status in (401, 403):
-            logger.warning("Reports API at %s returned %s — endpoint may not be available or credentials may differ", url, status)
-            return None
-        logger.warning("Reports API at %s returned HTTP %s", url, status)
-        return None
-
-    except requests.exceptions.RequestException as exc:
-        logger.warning("Reports API at %s failed: %s", url, exc)
-        return None
-
-
-def fetch_account_records(
-    auth: HTTPBasicAuth,
-    use_test: bool,
-    prod_url: str,
-    test_url: str,
-    normalizer: Callable[[dict[str, Any]], dict[str, str] | None],
-    entity_label: str,
-    max_results: int = 5000,
-) -> list[dict[str, str]]:
-    """Fetch and normalise records from the Reports API, trying test endpoint first if use_test."""
-    urls = [test_url, prod_url] if use_test else [prod_url]
-
-    for url in urls:
-        logger.info("Fetching account %s from: %s", entity_label, url)
-        raw = fetch_from_reports_endpoint(url, auth, max_results)
-        if raw is None:
-            continue
-
-        records: list[dict[str, str]] = []
-        for entry in raw:
-            report = entry.get("report")
-            if report is None:
-                continue
-            normalized = normalizer(report)
-            if normalized is not None:
-                records.append(normalized)
-
-        logger.info("Found %d %s in account", len(records), entity_label)
-        return records
-
-    logger.warning("Could not reach any Webin reports endpoint. Duplicate checking for %s will be skipped.", entity_label)
-    return []
 
 
 # -------------------------------------------------------------------
