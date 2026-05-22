@@ -5,8 +5,7 @@ Covers:
     A. Unit tests for build_submission_xml and _add_project_element
     B. Unit tests for build_manifest
     C. Unit tests for validate_manifest
-    D. Unit tests for parse_xml_receipt
-    E. CLI integration tests for main() using typer.testing.CliRunner
+    D. CLI integration tests for main() using typer.testing.CliRunner
 
 Usage:
     pytest test_submit_study.py -v
@@ -33,7 +32,6 @@ from submit_study import (  # noqa: E402
     app,
     build_manifest,
     build_submission_xml,
-    parse_xml_receipt,
     submit_manifest,
     validate_manifest,
 )
@@ -324,118 +322,7 @@ class TestValidateManifest:
 
 
 # ---------------------------------------------------------------------------
-# D. Unit tests for parse_xml_receipt
-# ---------------------------------------------------------------------------
-
-
-class TestParseXmlReceipt:
-
-    @staticmethod
-    def _parse(xml_str: str) -> tuple[bool, list[dict[str, str]], list[str]]:
-        return parse_xml_receipt(ET.fromstring(xml_str))
-
-    def test_successful_project_receipt_returns_true(self) -> None:
-        xml_str = dedent("""\
-            <RECEIPT success="true" receiptDate="2024-01-15T12:00:00.000Z">
-              <PROJECT accession="PRJEB12345" alias="my-study"
-                       status="PRIVATE" holdUntilDate="2025-01-15">
-                <EXT_ID accession="ERP012345" type="study"/>
-              </PROJECT>
-            </RECEIPT>
-        """)
-        success, accessions, _ = self._parse(xml_str)
-        assert success is True
-
-    def test_accession_fields_round_trip(self) -> None:
-        xml_str = dedent("""\
-            <RECEIPT success="true">
-              <PROJECT accession="PRJEB12345" alias="my-study"
-                       status="PRIVATE" holdUntilDate="2025-01-15">
-                <EXT_ID accession="ERP012345" type="study"/>
-              </PROJECT>
-            </RECEIPT>
-        """)
-        _, accessions, _ = self._parse(xml_str)
-        assert len(accessions) == 1
-        acc = accessions[0]
-        assert acc["accession"] == "PRJEB12345"
-        assert acc["alias"] == "my-study"
-        assert acc["status"] == "PRIVATE"
-        assert acc["holdUntilDate"] == "2025-01-15"
-        assert acc["external_accession"] == "ERP012345"
-        assert acc["external_type"] == "study"
-
-    def test_failed_receipt_returns_false(self) -> None:
-        xml_str = dedent("""\
-            <RECEIPT success="false">
-              <MESSAGES>
-                <ERROR>Center name "Unknown" is not permitted.</ERROR>
-              </MESSAGES>
-            </RECEIPT>
-        """)
-        success, _, _ = self._parse(xml_str)
-        assert success is False
-
-    def test_error_text_captured(self) -> None:
-        xml_str = dedent("""\
-            <RECEIPT success="false">
-              <MESSAGES>
-                <ERROR>Submission failed due to duplicate alias.</ERROR>
-              </MESSAGES>
-            </RECEIPT>
-        """)
-        _, _, messages = self._parse(xml_str)
-        assert any("Submission failed due to duplicate alias" in m for m in messages)
-
-    def test_study_tag_receipt_extracts_accession_and_alias(self) -> None:
-        xml_str = dedent("""\
-            <RECEIPT success="true">
-              <STUDY accession="ERP099999" alias="study-alias-1" status="PRIVATE"/>
-            </RECEIPT>
-        """)
-        success, accessions, _ = self._parse(xml_str)
-        assert success is True
-        assert len(accessions) == 1
-        assert accessions[0]["accession"] == "ERP099999"
-        assert accessions[0]["alias"] == "study-alias-1"
-
-    def test_info_messages_captured(self) -> None:
-        xml_str = dedent("""\
-            <RECEIPT success="true">
-              <PROJECT accession="PRJEB00001" alias="x" status="PRIVATE"/>
-              <MESSAGES>
-                <INFO>Submission processed successfully.</INFO>
-              </MESSAGES>
-            </RECEIPT>
-        """)
-        _, _, messages = self._parse(xml_str)
-        assert any("Submission processed successfully" in m for m in messages)
-        assert any(m.startswith("INFO:") for m in messages)
-
-    def test_multiple_errors_all_captured(self) -> None:
-        xml_str = dedent("""\
-            <RECEIPT success="false">
-              <MESSAGES>
-                <ERROR>First error.</ERROR>
-                <ERROR>Second error.</ERROR>
-              </MESSAGES>
-            </RECEIPT>
-        """)
-        _, _, messages = self._parse(xml_str)
-        assert len([m for m in messages if m.startswith("ERROR:")]) == 2
-
-    def test_no_messages_element_returns_empty_list(self) -> None:
-        xml_str = '<RECEIPT success="true"><PROJECT accession="PRJEB1" alias="x" status="PRIVATE"/></RECEIPT>'
-        _, _, messages = self._parse(xml_str)
-        assert messages == []
-
-    def test_missing_success_defaults_to_false(self) -> None:
-        success, _, _ = self._parse("<RECEIPT/>")
-        assert success is False
-
-
-# ---------------------------------------------------------------------------
-# E. CLI integration tests for main()
+# D. CLI integration tests for main()
 # ---------------------------------------------------------------------------
 
 
@@ -491,10 +378,11 @@ class TestMainCli:
             )
         return result
 
-    def test_json_automated_dry_run_exits_0(self, runner: CliRunner, minimal_study: dict[str, Any]) -> None:
+    def test_exits_0_and_submits(self, runner: CliRunner, minimal_study: dict[str, Any]) -> None:
         content = _make_study_json(minimal_study)
-        with patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")):
-            result = self._invoke(runner, ["--automated", "--dry-run"], "studies.json", content)
+        with patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")), \
+             patch(self._SUBMIT_TARGET, return_value=(True, _MOCK_ACC, [])):
+            result = self._invoke(runner, [], "studies.json", content)
         assert result.exit_code == 0, f"output: {result.output}"
         assert "submitted" in _extract_json(result.output)
 
@@ -512,11 +400,11 @@ class TestMainCli:
         with runner.isolated_filesystem():
             Path("studies.json").write_text(content)
             with patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")), \
-                 patch("submit_study.WebinClient") as MockClient:
+                 patch("submit_study.common.WebinClient") as MockClient:
                 MockClient.return_value.reports.list_projects.return_value = [existing]
                 result = runner.invoke(
                     app,
-                    ["--input", "studies.json", "--xsd", _REAL_XSD_DIR],
+                    ["--input", "studies.json", "--xsd", _REAL_XSD_DIR, "--check-for-duplicates"],
                     catch_exceptions=False,
                 )
         assert result.exit_code == 0, f"output: {result.output}"
@@ -542,12 +430,12 @@ class TestMainCli:
         with runner.isolated_filesystem():
             Path("studies.json").write_text(content)
             with patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")), \
-                 patch("submit_study.WebinClient") as MockClient, \
+                 patch("submit_study.common.WebinClient") as MockClient, \
                  patch(self._SUBMIT_TARGET, return_value=(True, mock_accessions, [])):
                 MockClient.return_value.reports.list_projects.return_value = [existing]
                 result = runner.invoke(
                     app,
-                    ["--input", "studies.json", "--force", "--xsd", _REAL_XSD_DIR],
+                    ["--input", "studies.json", "--force", "--xsd", _REAL_XSD_DIR, "--check-for-duplicates"],
                     catch_exceptions=False,
                 )
         assert result.exit_code == 0, f"output: {result.output}"
@@ -560,7 +448,7 @@ class TestMainCli:
         http_error = httpx.HTTPStatusError("500", request=MagicMock(), response=MagicMock(status_code=500))
         with patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")), \
              patch(self._SUBMIT_TARGET, side_effect=http_error):
-            result = self._invoke(runner, ["--automated"], "studies.json", content)
+            result = self._invoke(runner, [], "studies.json", content)
         assert result.exit_code == 1
 
     def test_test_flag_creates_test_config(self, runner: CliRunner, minimal_study: dict[str, Any]) -> None:
@@ -568,9 +456,9 @@ class TestMainCli:
         with (
             patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")),
             patch(self._SUBMIT_TARGET, return_value=(True, _MOCK_ACC, [])),
-            patch("submit_study.WebinConfig", wraps=WebinConfig) as MockConfig,
+            patch("submit_study.common.WebinConfig", wraps=WebinConfig) as MockConfig,
         ):
-            result = self._invoke(runner, ["--automated", "--test"], "studies.json", content)
+            result = self._invoke(runner, ["--test"], "studies.json", content)
         assert result.exit_code == 0, f"output: {result.output}"
         assert MockConfig.call_args.kwargs.get("test") is True
 
@@ -579,9 +467,9 @@ class TestMainCli:
         with (
             patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")),
             patch(self._SUBMIT_TARGET, return_value=(True, _MOCK_ACC, [])),
-            patch("submit_study.WebinConfig", wraps=WebinConfig) as MockConfig,
+            patch("submit_study.common.WebinConfig", wraps=WebinConfig) as MockConfig,
         ):
-            result = self._invoke(runner, ["--automated"], "studies.json", content)
+            result = self._invoke(runner, [], "studies.json", content)
         assert result.exit_code == 0, f"output: {result.output}"
         assert MockConfig.call_args.kwargs.get("test") is False
 
@@ -589,11 +477,11 @@ class TestMainCli:
         content = _make_study_json(minimal_study)
         with runner.isolated_filesystem():
             Path("studies.json").write_text(content)
-            with patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")):
+            with patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")), \
+                 patch(self._SUBMIT_TARGET, return_value=(True, _MOCK_ACC, [])):
                 result = runner.invoke(
                     app,
-                    ["--input", "studies.json", "--automated", "--dry-run",
-                     "--output", "results.json", "--xsd", _REAL_XSD_DIR],
+                    ["--input", "studies.json", "--output", "results.json", "--xsd", _REAL_XSD_DIR],
                     catch_exceptions=False,
                 )
             assert result.exit_code == 0, f"output: {result.output}"

@@ -87,7 +87,10 @@
       "Bash(git add *)",
       "Bash(git -c 'user.name=Tim Rozday' -c user.email=tim.rozday@gmail.com commit -q -m 'Initial commit: ENA Webin API client library *)",
       "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/linkml --help)",
-      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/linkml validate *)"
+      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/linkml validate *)",
+      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/pytest tests/test_linkml_lib.py -v)",
+      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/pytest tests/test_ena_common.py tests/test_submit_study.py tests/test_submit_sample.py -v)",
+      "Bash(/Users/timrozday/miniforge3/envs/dataharmonizer-dev/bin/pytest tests/test_submit_study.py tests/test_submit_sample.py tests/test_ena_common.py -v)"
     ]
   }
 }

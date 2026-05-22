@@ -31,7 +31,7 @@ import pendulum
 import typer
 
 import ena_common as common
-from ena_api import WebinClient, WebinConfig
+from ena_api import WebinClient
 
 app = typer.Typer(help="Submit studies to ENA via the Webin REST API v2.")
 logger = logging.getLogger("ena_submit.study")
@@ -192,45 +192,99 @@ def submit_manifest(
     return receipt.success, accessions, receipt.messages + receipt.errors
 
 
-# -------------------------------------------------------------------
-# Receipt parsing
-# -------------------------------------------------------------------
+def detect_duplicates(
+    studies: list[dict[str, Any]],
+    client: WebinClient,
+    *,
+    check: bool = False,
+    max_results: int = 5000,
+    force: bool = False,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+    """Fetch account studies and classify new studies as new, modify, or duplicate.
 
-def parse_xml_receipt(receipt_root: ET.Element) -> tuple[bool, list[dict[str, str]], list[str]]:
-    """Parse an ENA XML receipt for study submissions."""
-    success = receipt_root.get("success", "false").lower() == "true"
-    accessions: list[dict[str, str]] = []
-    messages: list[str] = []
+    Args:
+        studies: Input study records to classify.
+        client: Authenticated WebinClient.
+        check: If False, skip fetching account studies (treat all as new).
+        max_results: Max studies to fetch from the Reports API.
+        force: If True, duplicates go to to_modify instead of being skipped.
 
-    msgs_el = receipt_root.find("MESSAGES")
-    if msgs_el is not None:
-        for info in msgs_el.findall("INFO"):
-            messages.append(f"INFO: {info.text}")
-        for err in msgs_el.findall("ERROR"):
-            messages.append(f"ERROR: {err.text}")
+    Returns:
+        Tuple of (to_submit, to_modify, duplicate_entries).
+    """
+    account_records: list[dict[str, Any]] = []
+    if check:
+        logger.info("Fetching account studies via Webin Reports API...")
+        reports = client.reports.list_projects(max_results=max_results)
+        logger.info("Found %d studies in account", len(reports))
+        for r in reports:
+            logger.info("  Account study: %s | alias=%s | title=%s | status=%s",
+                        r.accession, r.alias, r.title, r.status)
+        account_records = [r.model_dump() for r in reports]
+    duplicates = common.find_duplicates_by_alias_title(
+        studies, account_records, title_field="STUDY_TITLE", entity_label="studies",
+    )
+    return common.classify_duplicates(studies, duplicates, title_field="STUDY_TITLE", force=force)
 
-    for proj in receipt_root.findall("PROJECT"):
-        acc_info: dict[str, str] = {
-            "alias": proj.get("alias", ""),
-            "accession": proj.get("accession", ""),
-            "status": proj.get("status", ""),
-            "holdUntilDate": proj.get("holdUntilDate", ""),
-        }
-        ext = proj.find("EXT_ID")
-        if ext is not None:
-            acc_info["external_accession"] = ext.get("accession", "")
-            acc_info["external_type"] = ext.get("type", "")
-        accessions.append(acc_info)
 
-    # Some receipts use STUDY instead of PROJECT.
-    for study in receipt_root.findall("STUDY"):
-        accessions.append({
-            "alias": study.get("alias", ""),
-            "accession": study.get("accession", ""),
-            "status": study.get("status", ""),
-        })
+def submit_batch(
+    batch: list[dict[str, Any]],
+    action: str,
+    *,
+    xsd: Path,
+    hold_until: str | None,
+    client: WebinClient,
+    env_label: str,
+) -> tuple[bool, list[dict[str, Any]]]:
+    """Build, validate, and submit one batch of studies. Returns (success, accessions)."""
+    xml_bytes = build_manifest(batch, hold_until=hold_until, action=action)
+    is_valid, xsd_msgs = validate_manifest(xml_bytes, xsd)
+    for msg in xsd_msgs:
+        logger.info("  %s", msg)
+    if not is_valid:
+        raise ValueError(f"{action} XML failed XSD validation")
+    logger.info("Submitting %s to ENA (%s)...", action, env_label)
+    success, accessions, receipt_msgs = submit_manifest(xml_bytes, client)
+    for msg in receipt_msgs:
+        logger.info("  Receipt: %s", msg)
+    return success, accessions
 
-    return success, accessions, messages
+
+def submit_batches(
+    to_submit: list[dict[str, Any]],
+    to_modify: list[dict[str, Any]],
+    *,
+    xsd: Path,
+    hold_until: str | None,
+    client: WebinClient,
+    env_label: str,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+    """Submit ADD and MODIFY batches. Returns (submitted, modified, failed)."""
+    submitted: list[dict[str, Any]] = []
+    modified: list[dict[str, Any]] = []
+    failed: list[dict[str, Any]] = []
+    for batch, action, bucket in [
+        (to_submit, "ADD", submitted),
+        (to_modify, "MODIFY", modified),
+    ]:
+        if not batch:
+            continue
+        success, accessions = submit_batch(
+            batch, action,
+            xsd=xsd, hold_until=hold_until, client=client, env_label=env_label,
+        )
+        if success:
+            logger.info("%s SUCCESSFUL", action)
+            for acc in accessions:
+                ext = acc.get("external_accession", "")
+                logger.info("  %s: alias=%s accession=%s status=%s%s",
+                            action, acc["alias"], acc["accession"], acc["status"],
+                            f" (study: {ext})" if ext else "")
+            bucket.extend(accessions)
+        else:
+            logger.error("%s FAILED", action)
+            failed.extend(accessions)
+    return submitted, modified, failed
 
 
 # -------------------------------------------------------------------
@@ -261,14 +315,12 @@ def submit_studies(
     test: bool = False,
     hold_until: str | None = None,
     max_results: int = 5000,
-    dry_run: bool = False,
-    automated: bool = False,
+    check_for_duplicates: bool = False,
     force: bool = False,
 ) -> dict[str, list]:
     """Full study submission pipeline. Returns a results dict."""
     env_label = "TEST" if test else "PRODUCTION"
-    username, password = common.get_credentials()
-    client = WebinClient(config=WebinConfig(webin_id=username, password=password, test=test))
+    client = common.create_webin_client(test=test)
 
     if hold_until:
         common.validate_hold_until(hold_until)
@@ -277,84 +329,22 @@ def submit_studies(
     studies = _load_studies_json(input_file)
     logger.info("Loaded %d study/studies from input", len(studies))
 
-    if automated:
-        logger.info("Automated mode: skipping duplicate detection")
-        duplicates: dict[int, dict[str, Any]] = {}
-    else:
-        logger.info("Fetching account studies via Webin Reports API...")
-        reports = client.reports.list_projects(max_results=max_results)
-        logger.info("Found %d studies in account", len(reports))
-        for r in reports:
-            logger.info("  Account study: %s | alias=%s | title=%s | status=%s",
-                        r.accession, r.alias, r.title, r.status)
-        duplicates = common.find_duplicates_by_alias_title(
-            studies, [r.model_dump() for r in reports],
-            title_field="STUDY_TITLE", entity_label="studies",
-        )
+    to_submit, to_modify, dup_entries = detect_duplicates(
+        studies, client, check=check_for_duplicates, max_results=max_results, force=force,
+    )
+    results: dict[str, list] = {"duplicates": dup_entries, "submitted": [], "modified": [], "failed": []}
 
-    results: dict[str, list] = {"duplicates": [], "submitted": [], "modified": [], "failed": []}
-
-    studies_to_modify: list[dict[str, Any]] = []
-    for idx, dup_info in duplicates.items():
-        study_title = studies[idx].get("STUDY_TITLE", f"study[{idx}]")
-        action_label = "will be re-submitted with MODIFY" if force else "will NOT be submitted"
-        logger.warning("DUPLICATE: '%s' matches existing %s (accession: %s) — %s",
-                       study_title, dup_info["match_reason"], dup_info["accession"], action_label)
-        results["duplicates"].append({
-            "input_index": idx,
-            "title": study_title,
-            "alias": studies[idx].get("alias", ""),
-            "existing_accession": dup_info["accession"],
-            "existing_secondary_accession": dup_info.get("secondary_accession", ""),
-            "match_reason": dup_info["match_reason"],
-        })
-        if force:
-            study_copy = dict(studies[idx])
-            existing_alias = dup_info.get("alias", "")
-            if existing_alias:
-                study_copy["alias"] = existing_alias
-            studies_to_modify.append(study_copy)
-
-    studies_to_submit = [s for i, s in enumerate(studies) if i not in duplicates]
-
-    if not studies_to_submit and not studies_to_modify:
+    if not to_submit and not to_modify:
         logger.info("No studies to submit (all are duplicates or input is empty)")
         return results
 
     logger.info("%d new study/studies to ADD, %d duplicate(s) to MODIFY",
-                len(studies_to_submit), len(studies_to_modify))
+                len(to_submit), len(to_modify))
 
-    for batch, action, result_key in [
-        (studies_to_submit, "ADD", "submitted"),
-        (studies_to_modify, "MODIFY", "modified"),
-    ]:
-        if not batch:
-            continue
-        xml_bytes = build_manifest(batch, hold_until=hold_until, action=action)
-        is_valid, xsd_msgs = validate_manifest(xml_bytes, xsd)
-        for msg in xsd_msgs:
-            logger.info("  %s", msg)
-        if not is_valid:
-            raise ValueError(f"{action} XML failed XSD validation")
-        if dry_run:
-            logger.info("DRY RUN — skipping %s submission", action)
-            continue
-        logger.info("Submitting %s to ENA (%s)...", action, env_label)
-        success, accessions, receipt_msgs = submit_manifest(xml_bytes, client)
-        for msg in receipt_msgs:
-            logger.info("  Receipt: %s", msg)
-        if success:
-            logger.info("%s SUCCESSFUL", action)
-            for acc in accessions:
-                ext = acc.get("external_accession", "")
-                logger.info("  %s: alias=%s accession=%s status=%s%s",
-                            action, acc["alias"], acc["accession"], acc["status"],
-                            f" (study: {ext})" if ext else "")
-            results[result_key].extend(accessions)
-        else:
-            logger.error("%s FAILED", action)
-            results["failed"].extend(accessions)
-
+    results["submitted"], results["modified"], results["failed"] = submit_batches(
+        to_submit, to_modify,
+        xsd=xsd, hold_until=hold_until, client=client, env_label=env_label,
+    )
     return results
 
 
@@ -389,8 +379,7 @@ def main(
     log: Path | None = typer.Option(None, help="Path to log file"),
     output: Path | None = typer.Option(None, help="Path to write JSON accession results (default: stdout)"),
     max_results: int = typer.Option(5000, "--max-results", help="Maximum number of projects to fetch from the Reports API for duplicate checking"),
-    dry_run: bool = typer.Option(False, "--dry-run", help="Validate and build XML but do not submit to ENA"),
-    automated: bool = typer.Option(False, "--automated", help="Skip duplicate detection against the Webin Reports API (for automated pipelines)"),
+    check_for_duplicates: bool = typer.Option(False, "--check-for-duplicates", help="Check for existing studies before submitting"),
     force: bool = typer.Option(False, "--force", help="Submit duplicate studies using the MODIFY action to overwrite existing ENA records"),
 ) -> None:
     """Submit studies to ENA via the Webin REST API v2."""
@@ -401,7 +390,7 @@ def main(
         results = submit_studies(
             input_file, xsd,
             test=test, hold_until=hold_until, max_results=max_results,
-            dry_run=dry_run, automated=automated, force=force,
+            check_for_duplicates=check_for_duplicates, force=force,
         )
     except (ValueError, httpx.HTTPStatusError) as exc:
         logger.error("%s", exc)

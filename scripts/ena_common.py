@@ -23,6 +23,7 @@ from typing import Any, Final
 import lxml.etree
 import pendulum
 import requests
+from ena_api import WebinClient, WebinConfig
 from requests.auth import HTTPBasicAuth
 
 _LOGGER_NAME: Final = "ena_submit"
@@ -79,6 +80,12 @@ def get_credentials() -> tuple[str, str]:
     if not username or not password:
         raise ValueError("ENA_WEBIN and ENA_WEBIN_PASSWORD environment variables must be set")
     return username, password
+
+
+def create_webin_client(test: bool = False) -> WebinClient:
+    """Create an authenticated WebinClient using environment credentials."""
+    username, password = get_credentials()
+    return WebinClient(config=WebinConfig(webin_id=username, password=password, test=test))
 
 
 # -------------------------------------------------------------------
@@ -430,6 +437,52 @@ def find_duplicates_by_alias_title(
                 return duplicates
 
     return duplicates
+
+
+def classify_duplicates(
+    records: list[dict[str, Any]],
+    duplicates: dict[int, dict[str, Any]],
+    *,
+    title_field: str,
+    force: bool = False,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+    """Split records into (to_submit, to_modify, duplicate_entries) based on detected duplicates.
+
+    Args:
+        records: Full list of input records.
+        duplicates: Output of find_duplicates_by_alias_title — maps input index to match info.
+        title_field: Key used to extract the human-readable title from each record.
+        force: If True, duplicates are added to to_modify with their existing alias.
+
+    Returns:
+        to_submit: Records with no duplicate match.
+        to_modify: Duplicate records with alias overridden to existing alias (only when force=True).
+        duplicate_entries: Summary dicts suitable for results["duplicates"].
+    """
+    to_submit = [r for i, r in enumerate(records) if i not in duplicates]
+    to_modify: list[dict[str, Any]] = []
+    duplicate_entries: list[dict[str, Any]] = []
+
+    for idx, dup_info in duplicates.items():
+        title = (records[idx].get(title_field) or f"record[{idx}]").strip()
+        action_label = "will be re-submitted with MODIFY" if force else "will NOT be submitted"
+        logger.warning("DUPLICATE: '%s' matches existing %s (accession: %s) — %s",
+                       title, dup_info["match_reason"], dup_info["accession"], action_label)
+        duplicate_entries.append({
+            "input_index": idx,
+            "title": title,
+            "alias": records[idx].get("alias", ""),
+            "existing_accession": dup_info["accession"],
+            "existing_secondary_accession": dup_info.get("secondary_accession", ""),
+            "match_reason": dup_info["match_reason"],
+        })
+        if force:
+            record_copy = dict(records[idx])
+            if existing_alias := dup_info.get("alias"):
+                record_copy["alias"] = existing_alias
+            to_modify.append(record_copy)
+
+    return to_submit, to_modify, duplicate_entries
 
 
 def _match_by_alias_title(

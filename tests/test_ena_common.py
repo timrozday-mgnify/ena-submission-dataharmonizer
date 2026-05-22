@@ -16,9 +16,13 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
+from ena_api import WebinClient, WebinConfig
+
 from ena_common import (
     _is_metadata_row,
     _match_by_alias_title,
+    classify_duplicates,
+    create_webin_client,
     extract_records_from_json,
     extract_records_from_tabular,
     find_duplicates_by_alias_title,
@@ -95,8 +99,38 @@ class TestGetCredentials:
 
 
 # ---------------------------------------------------------------------------
-# TestGetBaseUrl
+# TestCreateWebinClient
 # ---------------------------------------------------------------------------
+
+
+class TestCreateWebinClient:
+
+    def test_returns_webin_client(self) -> None:
+        with patch.dict(os.environ, {"ENA_WEBIN": "Webin-123", "ENA_WEBIN_PASSWORD": "pass"}), \
+             patch("ena_common.WebinClient") as MockClient:
+            client = create_webin_client(test=False)
+        assert client is MockClient.return_value
+
+    def test_passes_test_flag(self) -> None:
+        with patch.dict(os.environ, {"ENA_WEBIN": "Webin-123", "ENA_WEBIN_PASSWORD": "pass"}), \
+             patch("ena_common.WebinConfig", wraps=WebinConfig) as MockConfig, \
+             patch("ena_common.WebinClient"):
+            create_webin_client(test=True)
+        assert MockConfig.call_args.kwargs.get("test") is True
+
+    def test_prod_flag_by_default(self) -> None:
+        with patch.dict(os.environ, {"ENA_WEBIN": "Webin-123", "ENA_WEBIN_PASSWORD": "pass"}), \
+             patch("ena_common.WebinConfig", wraps=WebinConfig) as MockConfig, \
+             patch("ena_common.WebinClient"):
+            create_webin_client()
+        assert MockConfig.call_args.kwargs.get("test") is False
+
+    def test_raises_when_credentials_missing(self) -> None:
+        with patch.dict(os.environ, {}, clear=True):
+            os.environ.pop("ENA_WEBIN", None)
+            os.environ.pop("ENA_WEBIN_PASSWORD", None)
+            with pytest.raises(ValueError):
+                create_webin_client()
 
 
 # ---------------------------------------------------------------------------
@@ -210,6 +244,68 @@ class TestFindDuplicates:
         new = [{"TITLE": "My Title", "alias": "my-alias"}]
         dups = find_duplicates_by_alias_title(new, account, "TITLE", "records")
         assert dups[0]["accession"] == "ACC-ALIAS"
+
+
+# ---------------------------------------------------------------------------
+# TestClassifyDuplicates
+# ---------------------------------------------------------------------------
+
+
+class TestClassifyDuplicates:
+
+    @staticmethod
+    def _dup(accession: str = "ACC1", alias: str = "a", reason: str = "alias 'a'") -> dict[str, str]:
+        return {"accession": accession, "secondary_accession": "", "alias": alias,
+                "title": "", "status": "PRIVATE", "match_reason": reason}
+
+    def test_no_duplicates_all_go_to_submit(self) -> None:
+        records = [{"TITLE": "A"}, {"TITLE": "B"}]
+        to_submit, to_modify, entries = classify_duplicates(records, {}, title_field="TITLE")
+        assert to_submit == records
+        assert to_modify == []
+        assert entries == []
+
+    def test_duplicate_goes_to_entries_not_submit(self) -> None:
+        records = [{"TITLE": "A", "alias": "a1"}, {"TITLE": "B"}]
+        to_submit, to_modify, entries = classify_duplicates(
+            records, {0: self._dup(accession="ACC1", alias="a1")}, title_field="TITLE",
+        )
+        assert len(to_submit) == 1
+        assert to_submit[0]["TITLE"] == "B"
+        assert len(entries) == 1
+        assert entries[0]["existing_accession"] == "ACC1"
+        assert entries[0]["input_index"] == 0
+
+    def test_force_false_does_not_populate_to_modify(self) -> None:
+        records = [{"TITLE": "A", "alias": "a1"}]
+        _, to_modify, _ = classify_duplicates(
+            records, {0: self._dup()}, title_field="TITLE", force=False,
+        )
+        assert to_modify == []
+
+    def test_force_true_populates_to_modify_with_existing_alias(self) -> None:
+        records = [{"TITLE": "A", "alias": "new-alias"}]
+        dup = self._dup(accession="ACC1", alias="existing-alias")
+        _, to_modify, _ = classify_duplicates(records, {0: dup}, title_field="TITLE", force=True)
+        assert len(to_modify) == 1
+        assert to_modify[0]["alias"] == "existing-alias"
+
+    def test_force_true_preserves_record_alias_when_no_existing_alias(self) -> None:
+        records = [{"TITLE": "A", "alias": "my-alias"}]
+        dup = {**self._dup(), "alias": ""}
+        _, to_modify, _ = classify_duplicates(records, {0: dup}, title_field="TITLE", force=True)
+        assert to_modify[0]["alias"] == "my-alias"
+
+    def test_entry_title_falls_back_to_index_label(self) -> None:
+        records = [{"OTHER": "x"}]
+        _, _, entries = classify_duplicates(records, {0: self._dup()}, title_field="TITLE")
+        assert entries[0]["title"] == "record[0]"
+
+    def test_secondary_accession_included_in_entry(self) -> None:
+        records = [{"TITLE": "A"}]
+        dup = {**self._dup(accession="ACC1"), "secondary_accession": "SEC1"}
+        _, _, entries = classify_duplicates(records, {0: dup}, title_field="TITLE")
+        assert entries[0]["existing_secondary_accession"] == "SEC1"
 
 
 # ---------------------------------------------------------------------------

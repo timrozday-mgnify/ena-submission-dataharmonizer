@@ -4,7 +4,7 @@
 Covers:
     A. Unit tests for build_manifest / build_submission_xml / _add_sample_element
     B. Unit tests for validate_manifest
-    C. Unit tests for parse_xml_receipt / submit_manifest
+    C. Unit tests for submit_manifest
     D. CLI integration tests for main() using typer.testing.CliRunner
     E. CLI integration tests for main() using typer.testing.CliRunner
 
@@ -33,7 +33,6 @@ from submit_sample import (  # noqa: E402
     app,
     build_manifest,
     build_submission_xml,
-    parse_xml_receipt,
     submit_manifest,
     validate_manifest,
 )
@@ -283,99 +282,8 @@ class TestValidateManifest:
 
 
 # ---------------------------------------------------------------------------
-# C. parse_xml_receipt / submit_manifest
+# C. Unit tests for submit_manifest
 # ---------------------------------------------------------------------------
-
-class TestParseXmlReceipt:
-    """Unit tests for parse_xml_receipt()."""
-
-    @staticmethod
-    def _parse(xml_str: str) -> tuple[bool, list[dict[str, str]], list[str]]:
-        return parse_xml_receipt(ET.fromstring(xml_str))
-
-    def test_success_receipt_returns_true(self) -> None:
-        xml_str = dedent("""\
-            <RECEIPT success="true">
-              <SAMPLE accession="ERS123456" alias="s1" status="PRIVATE" holdUntilDate="2026-01-01">
-                <EXT_ID accession="SAMEA123456" type="biosample"/>
-              </SAMPLE>
-            </RECEIPT>
-        """)
-        success, accessions, messages = self._parse(xml_str)
-        assert success is True
-
-    def test_accession_fields_round_trip(self) -> None:
-        xml_str = dedent("""\
-            <RECEIPT success="true">
-              <SAMPLE accession="ERS123456" alias="s1" status="PRIVATE" holdUntilDate="2026-01-01">
-                <EXT_ID accession="SAMEA123456" type="biosample"/>
-              </SAMPLE>
-            </RECEIPT>
-        """)
-        _, accessions, _ = self._parse(xml_str)
-        assert len(accessions) == 1
-        acc = accessions[0]
-        assert acc["accession"] == "ERS123456"
-        assert acc["alias"] == "s1"
-        assert acc["status"] == "PRIVATE"
-        assert acc["holdUntilDate"] == "2026-01-01"
-        assert acc["external_accession"] == "SAMEA123456"
-        assert acc["external_type"] == "biosample"
-
-    def test_failed_receipt_returns_false(self) -> None:
-        xml_str = '<RECEIPT success="false"><MESSAGES><ERROR>Duplicate alias.</ERROR></MESSAGES></RECEIPT>'
-        success, _, _ = self._parse(xml_str)
-        assert success is False
-
-    def test_error_text_captured(self) -> None:
-        xml_str = '<RECEIPT success="false"><MESSAGES><ERROR>Alias already registered.</ERROR></MESSAGES></RECEIPT>'
-        _, _, messages = self._parse(xml_str)
-        assert any("Alias already registered" in m for m in messages)
-        assert any(m.startswith("ERROR:") for m in messages)
-
-    def test_info_messages_captured(self) -> None:
-        xml_str = dedent("""\
-            <RECEIPT success="true">
-              <SAMPLE accession="ERS1" alias="x" status="PRIVATE"/>
-              <MESSAGES><INFO>Submission processed.</INFO></MESSAGES>
-            </RECEIPT>
-        """)
-        _, _, messages = self._parse(xml_str)
-        assert any("Submission processed" in m for m in messages)
-        assert any(m.startswith("INFO:") for m in messages)
-
-    def test_multiple_samples_all_captured(self) -> None:
-        xml_str = dedent("""\
-            <RECEIPT success="true">
-              <SAMPLE accession="ERS1" alias="a1" status="PRIVATE"/>
-              <SAMPLE accession="ERS2" alias="a2" status="PRIVATE"/>
-            </RECEIPT>
-        """)
-        _, accessions, _ = self._parse(xml_str)
-        assert len(accessions) == 2
-
-    def test_missing_success_defaults_to_false(self) -> None:
-        success, _, _ = self._parse("<RECEIPT/>")
-        assert success is False
-
-    def test_no_messages_element_returns_empty_list(self) -> None:
-        xml_str = '<RECEIPT success="true"><SAMPLE accession="ERS1" alias="x" status="PRIVATE"/></RECEIPT>'
-        _, _, messages = self._parse(xml_str)
-        assert messages == []
-
-    def test_multiple_errors_all_captured(self) -> None:
-        xml_str = dedent("""\
-            <RECEIPT success="false">
-              <MESSAGES>
-                <ERROR>Error one.</ERROR>
-                <ERROR>Error two.</ERROR>
-              </MESSAGES>
-            </RECEIPT>
-        """)
-        _, _, messages = self._parse(xml_str)
-        error_msgs = [m for m in messages if m.startswith("ERROR:")]
-        assert len(error_msgs) == 2
-
 
 class TestSubmitManifest:
     """Unit tests for submit_manifest() — calls client.submit.xml and converts the receipt."""
@@ -464,9 +372,12 @@ class TestMainCli:
                 catch_exceptions=False,
             )
 
-    def test_json_automated_dry_run_exits_0(self, runner: CliRunner, basic_sample: dict[str, Any]) -> None:
-        with patch(self._CRED, return_value=("Webin-12345", "pass")):
-            result = self._invoke(runner, ["--automated", "--dry-run"], "samples.json", _make_sample_json(basic_sample))
+    def test_exits_0_and_submits(self, runner: CliRunner, basic_sample: dict[str, Any]) -> None:
+        mock_acc = [{"alias": "test-sample-001", "accession": "ERS00001", "status": "PRIVATE",
+                     "holdUntilDate": "", "external_accession": "", "external_type": ""}]
+        with patch(self._CRED, return_value=("Webin-12345", "pass")), \
+             patch(self._SUBMIT, return_value=(True, mock_acc, [])):
+            result = self._invoke(runner, [], "samples.json", _make_sample_json(basic_sample))
         assert result.exit_code == 0, result.output
         assert "submitted" in _extract_json(result.output)
 
@@ -481,11 +392,11 @@ class TestMainCli:
             Path("samples.json").write_text(_make_sample_json(basic_sample))
             with (
                 patch(self._CRED, return_value=("Webin-12345", "pass")),
-                patch("submit_sample.WebinClient") as MockClient,
+                patch("submit_sample.common.WebinClient") as MockClient,
             ):
                 MockClient.return_value.reports.list_samples.return_value = [existing]
                 result = runner.invoke(
-                    app, ["--input", "samples.json"] + self._base_args(),
+                    app, ["--input", "samples.json"] + self._base_args() + ["--check-for-duplicates"],
                     catch_exceptions=False,
                 )
         assert result.exit_code == 0, result.output
@@ -507,12 +418,12 @@ class TestMainCli:
             Path("samples.json").write_text(_make_sample_json(basic_sample))
             with (
                 patch(self._CRED, return_value=("Webin-12345", "pass")),
-                patch("submit_sample.WebinClient") as MockClient,
+                patch("submit_sample.common.WebinClient") as MockClient,
                 patch(self._SUBMIT, return_value=(True, mock_acc, [])),
             ):
                 MockClient.return_value.reports.list_samples.return_value = [existing]
                 result = runner.invoke(
-                    app, ["--input", "samples.json"] + self._base_args() + ["--force"],
+                    app, ["--input", "samples.json"] + self._base_args() + ["--force", "--check-for-duplicates"],
                     catch_exceptions=False,
                 )
         assert result.exit_code == 0, result.output
@@ -529,7 +440,7 @@ class TestMainCli:
                 patch(self._SUBMIT, side_effect=http_err),
             ):
                 result = runner.invoke(
-                    app, ["--input", "samples.json"] + self._base_args() + ["--automated"],
+                    app, ["--input", "samples.json"] + self._base_args(),
                     catch_exceptions=False,
                 )
         assert result.exit_code == 1
@@ -542,10 +453,10 @@ class TestMainCli:
             with (
                 patch(self._CRED, return_value=("Webin-12345", "pass")),
                 patch(self._SUBMIT, return_value=(True, mock_acc, [])),
-                patch("submit_sample.WebinConfig", wraps=WebinConfig) as MockConfig,
+                patch("submit_sample.common.WebinConfig", wraps=WebinConfig) as MockConfig,
             ):
                 result = runner.invoke(
-                    app, ["--input", "samples.json"] + self._base_args() + ["--automated", "--test"],
+                    app, ["--input", "samples.json"] + self._base_args() + ["--test"],
                     catch_exceptions=False,
                 )
         assert result.exit_code == 0, result.output
@@ -559,10 +470,10 @@ class TestMainCli:
             with (
                 patch(self._CRED, return_value=("Webin-12345", "pass")),
                 patch(self._SUBMIT, return_value=(True, mock_acc, [])),
-                patch("submit_sample.WebinConfig", wraps=WebinConfig) as MockConfig,
+                patch("submit_sample.common.WebinConfig", wraps=WebinConfig) as MockConfig,
             ):
                 result = runner.invoke(
-                    app, ["--input", "samples.json"] + self._base_args() + ["--automated"],
+                    app, ["--input", "samples.json"] + self._base_args(),
                     catch_exceptions=False,
                 )
         assert result.exit_code == 0, result.output
@@ -571,11 +482,11 @@ class TestMainCli:
     def test_output_flag_writes_results_to_file(self, runner: CliRunner, basic_sample: dict[str, Any]) -> None:
         with runner.isolated_filesystem():
             Path("samples.json").write_text(_make_sample_json(basic_sample))
-            with patch(self._CRED, return_value=("Webin-12345", "pass")):
+            with patch(self._CRED, return_value=("Webin-12345", "pass")), \
+                 patch(self._SUBMIT, return_value=(True, [], [])):
                 result = runner.invoke(
                     app,
-                    ["--input", "samples.json"] + self._base_args()
-                    + ["--automated", "--dry-run", "--output", "results.json"],
+                    ["--input", "samples.json"] + self._base_args() + ["--output", "results.json"],
                     catch_exceptions=False,
                 )
             assert result.exit_code == 0, result.output

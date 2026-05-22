@@ -39,7 +39,7 @@ import pendulum
 import typer
 
 import ena_common as common
-from ena_api import WebinClient, WebinConfig
+from ena_api import WebinClient
 
 
 app = typer.Typer(help="Submit samples to ENA via the Webin REST API v2.")
@@ -175,40 +175,6 @@ def validate_against_xsd(xml_bytes: bytes, xsd_dir: str | Path) -> tuple[bool, l
 
 
 # ---------------------------------------------------------------------------
-# Receipt parsing
-# ---------------------------------------------------------------------------
-
-def parse_xml_receipt(receipt_root: ET.Element) -> tuple[bool, list[dict[str, str]], list[str]]:
-    """Parse an ENA XML receipt for sample submissions.
-
-    Returns (success, accessions, messages).
-    """
-    success = receipt_root.get("success", "false").lower() == "true"
-    accessions: list[dict[str, str]] = []
-    messages: list[str] = []
-
-    if (msgs_el := receipt_root.find("MESSAGES")) is not None:
-        for info in msgs_el.findall("INFO"):
-            messages.append(f"INFO: {info.text}")
-        for err in msgs_el.findall("ERROR"):
-            messages.append(f"ERROR: {err.text}")
-
-    for sample in receipt_root.findall("SAMPLE"):
-        acc: dict[str, str] = {
-            "alias": sample.get("alias", ""),
-            "accession": sample.get("accession", ""),
-            "status": sample.get("status", ""),
-            "holdUntilDate": sample.get("holdUntilDate", ""),
-        }
-        if (ext := sample.find("EXT_ID")) is not None:
-            acc["external_accession"] = ext.get("accession", "")
-            acc["external_type"] = ext.get("type", "")
-        accessions.append(acc)
-
-    return success, accessions, messages
-
-
-# ---------------------------------------------------------------------------
 # Public library API
 # ---------------------------------------------------------------------------
 
@@ -271,9 +237,92 @@ def submit_manifest(
     return receipt.success, accessions, receipt.messages + receipt.errors
 
 
-# ---------------------------------------------------------------------------
-# Pipeline
-# ---------------------------------------------------------------------------
+def detect_duplicates(
+    samples: list[dict[str, Any]],
+    client: WebinClient,
+    *,
+    check: bool = False,
+    max_results: int = 5000,
+    force: bool = False,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+    """Fetch account samples and classify new samples as new, modify, or duplicate.
+
+    Args:
+        samples: Input sample records to classify.
+        client: Authenticated WebinClient.
+        check: If False, skip fetching account samples (treat all as new).
+        max_results: Max samples to fetch from the Reports API.
+        force: If True, duplicates go to to_modify instead of being skipped.
+
+    Returns:
+        Tuple of (to_submit, to_modify, duplicate_entries).
+    """
+    account_records: list[dict[str, Any]] = []
+    if check:
+        logger.info("Fetching account samples via Webin Reports API...")
+        reports = client.reports.list_samples(max_results=max_results)
+        logger.info("Found %d samples in account", len(reports))
+        account_records = [r.model_dump() for r in reports]
+    duplicates = common.find_duplicates_by_alias_title(
+        samples, account_records, title_field="SAMPLE_TITLE", entity_label="samples",
+    )
+    return common.classify_duplicates(samples, duplicates, title_field="SAMPLE_TITLE", force=force)
+
+
+def submit_batch(
+    batch: list[dict[str, Any]],
+    action: str,
+    *,
+    xsd: Path,
+    hold_until: str | None,
+    client: WebinClient,
+    env_label: str,
+) -> tuple[bool, list[dict[str, Any]]]:
+    """Build, validate, and submit one batch of samples. Returns (success, accessions)."""
+    xml_bytes = build_manifest(batch, hold_until=hold_until, action=action)
+    is_valid, xsd_messages = validate_manifest(xml_bytes, xsd)
+    for msg in xsd_messages:
+        logger.info("  %s", msg)
+    if not is_valid:
+        raise ValueError(f"{action} XML failed XSD validation")
+    logger.info("Submitting %s to ENA (%s)...", action, env_label)
+    success, accessions, receipt_messages = submit_manifest(xml_bytes, client)
+    for msg in receipt_messages:
+        logger.info("  Receipt: %s", msg)
+    return success, accessions
+
+
+def submit_batches(
+    to_submit: list[dict[str, Any]],
+    to_modify: list[dict[str, Any]],
+    *,
+    xsd: Path,
+    hold_until: str | None,
+    client: WebinClient,
+    env_label: str,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+    """Submit ADD and MODIFY batches. Returns (submitted, modified, failed)."""
+    submitted: list[dict[str, Any]] = []
+    modified: list[dict[str, Any]] = []
+    failed: list[dict[str, Any]] = []
+    for batch, action, bucket in [
+        (to_submit, "ADD", submitted),
+        (to_modify, "MODIFY", modified),
+    ]:
+        if not batch:
+            continue
+        success, accessions = submit_batch(
+            batch, action,
+            xsd=xsd, hold_until=hold_until, client=client, env_label=env_label,
+        )
+        if success:
+            logger.info("%s successful: %d sample(s)", action, len(accessions))
+            bucket.extend(accessions)
+        else:
+            logger.error("%s failed", action)
+            failed.extend(accessions)
+    return submitted, modified, failed
+
 
 def _load_samples_json(path: Path) -> list[dict[str, Any]]:
     data = json.loads(path.read_text())
@@ -292,8 +341,7 @@ def submit_samples(
     test: bool = False,
     hold_until: str | None = None,
     max_results: int = 5000,
-    dry_run: bool = False,
-    automated: bool = False,
+    check_for_duplicates: bool = False,
     force: bool = False,
 ) -> dict[str, list]:
     """Load, validate, and submit samples to ENA.
@@ -304,8 +352,7 @@ def submit_samples(
         test: Use the ENA test service.
         hold_until: Hold samples private until this date (YYYY-MM-DD, max 2 years).
         max_results: Max samples to fetch from the Reports API for duplicate checking.
-        dry_run: Build and validate XML but do not submit.
-        automated: Skip duplicate detection (for pipeline use).
+        check_for_duplicates: Check for existing samples before submitting.
         force: Re-submit duplicates using MODIFY instead of skipping.
 
     Returns:
@@ -315,8 +362,7 @@ def submit_samples(
         ValueError: On invalid input or failed validation.
         httpx.HTTPStatusError: On HTTP submission failure.
     """
-    username, password = common.get_credentials()
-    client = WebinClient(config=WebinConfig(webin_id=username, password=password, test=test))
+    client = common.create_webin_client(test=test)
     env_label = "TEST" if test else "PRODUCTION"
 
     if hold_until:
@@ -326,73 +372,21 @@ def submit_samples(
     samples = _load_samples_json(input_file)
     logger.info("Loaded %d sample(s)", len(samples))
 
-    duplicates: dict[int, dict[str, Any]] = {}
-    if automated:
-        logger.info("Automated mode: skipping duplicate detection")
-    else:
-        logger.info("Fetching account samples via Webin Reports API...")
-        reports = client.reports.list_samples(max_results=max_results)
-        logger.info("Found %d samples in account", len(reports))
-        duplicates = common.find_duplicates_by_alias_title(
-            samples, [r.model_dump() for r in reports],
-            title_field="SAMPLE_TITLE", entity_label="samples",
-        )
+    to_submit, to_modify, dup_entries = detect_duplicates(
+        samples, client, check=check_for_duplicates, max_results=max_results, force=force,
+    )
+    results: dict[str, list] = {"duplicates": dup_entries, "submitted": [], "modified": [], "failed": []}
 
-    results: dict[str, list] = {"duplicates": [], "submitted": [], "modified": [], "failed": []}
-
-    samples_to_modify: list[dict[str, Any]] = []
-    for idx, dup_info in duplicates.items():
-        sample_title = samples[idx].get("SAMPLE_TITLE", f"sample[{idx}]")
-        logger.warning("DUPLICATE '%s' matches existing %s (accession: %s)",
-                       sample_title, dup_info["match_reason"], dup_info["accession"])
-        results["duplicates"].append({
-            "input_index": idx,
-            "title": sample_title,
-            "alias": samples[idx].get("alias", ""),
-            "existing_accession": dup_info["accession"],
-            "existing_secondary_accession": dup_info.get("secondary_accession", ""),
-            "match_reason": dup_info["match_reason"],
-        })
-        if force:
-            sample_copy = dict(samples[idx])
-            if existing_alias := dup_info.get("alias"):
-                sample_copy["alias"] = existing_alias
-            samples_to_modify.append(sample_copy)
-
-    samples_to_submit = [s for i, s in enumerate(samples) if i not in duplicates]
-
-    if not samples_to_submit and not samples_to_modify:
+    if not to_submit and not to_modify:
         logger.info("No samples to submit (all duplicates or empty input)")
         return results
 
-    logger.info("%d to ADD, %d to MODIFY", len(samples_to_submit), len(samples_to_modify))
+    logger.info("%d to ADD, %d to MODIFY", len(to_submit), len(to_modify))
 
-    for batch, action, result_key in [
-        (samples_to_submit, "ADD", "submitted"),
-        (samples_to_modify, "MODIFY", "modified"),
-    ]:
-        if not batch:
-            continue
-        xml_bytes = build_manifest(batch, hold_until=hold_until, action=action)
-        is_valid, xsd_messages = validate_manifest(xml_bytes, xsd)
-        for msg in xsd_messages:
-            logger.info("  %s", msg)
-        if not is_valid:
-            raise ValueError(f"{action} XML failed XSD validation")
-        if dry_run:
-            logger.info("DRY RUN — skipping %s (%s)", action, env_label)
-            continue
-        logger.info("Submitting %s to ENA (%s)...", action, env_label)
-        success, accessions, receipt_messages = submit_manifest(xml_bytes, client)
-        for msg in receipt_messages:
-            logger.info("  Receipt: %s", msg)
-        if success:
-            logger.info("%s successful: %d sample(s)", action, len(accessions))
-            results[result_key].extend(accessions)
-        else:
-            logger.error("%s failed", action)
-            results["failed"].extend(accessions)
-
+    results["submitted"], results["modified"], results["failed"] = submit_batches(
+        to_submit, to_modify,
+        xsd=xsd, hold_until=hold_until, client=client, env_label=env_label,
+    )
     return results
 
 
@@ -409,8 +403,7 @@ def main(
     log: Path | None = typer.Option(None, help="Path to log file"),
     output: Path | None = typer.Option(None, help="Path to write JSON results (default: stdout)"),
     max_results: int = typer.Option(5000, "--max-results", help="Max samples to fetch from Reports API for duplicate checking"),
-    dry_run: bool = typer.Option(False, "--dry-run", help="Validate and build XML but do not submit"),
-    automated: bool = typer.Option(False, "--automated", help="Skip duplicate detection (for automated pipelines)"),
+    check_for_duplicates: bool = typer.Option(False, "--check-for-duplicates", help="Check for existing samples before submitting"),
     force: bool = typer.Option(False, "--force", help="Re-submit duplicates with MODIFY instead of skipping"),
 ) -> None:
     """Submit samples to ENA via the Webin REST API v2."""
@@ -420,7 +413,7 @@ def main(
         results = submit_samples(
             input_file, xsd,
             test=test, hold_until=hold_until, max_results=max_results,
-            dry_run=dry_run, automated=automated, force=force,
+            check_for_duplicates=check_for_duplicates, force=force,
         )
     except (ValueError, httpx.HTTPStatusError) as exc:
         logger.error("%s", exc)
