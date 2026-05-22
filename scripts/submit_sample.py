@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Submit samples to ENA via the Webin REST API v2.
 
-Read a JSON file containing sample metadata, validate it against a LinkML schema
-and an XSD schema, check for duplicates, and submit to ENA.
+Read a JSON file containing sample metadata, validate against an XSD schema,
+check for duplicates, and submit to ENA.
 
 Credentials are read from environment variables::
 
@@ -11,26 +11,25 @@ Credentials are read from environment variables::
 
 Usage::
 
-    python scripts/submit_sample.py --input samples.json --linkml schemas/ERC000015.yaml --xsd assets/ena_schema --test
-    python scripts/submit_sample.py --input samples.json --linkml schemas/ERC000015.yaml --xsd assets/ena_schema --dry-run
+    python scripts/submit_sample.py --input samples.json --xsd assets/ena_schema --test
+    python scripts/submit_sample.py --input samples.json --xsd assets/ena_schema --dry-run
 
 Library usage::
 
     from scripts.submit_sample import build_manifest, validate_manifest, submit_manifest, submit_samples
 
-    xml_bytes = build_manifest(samples, schema, xsd_dir)
+    xml_bytes = build_manifest(samples)
     is_valid, messages = validate_manifest(xml_bytes, xsd_dir)
     success, accessions, messages = submit_manifest(xml_bytes, client)
 
     # Or all-in-one:
-    results = submit_samples(Path("samples.json"), Path("schema.yaml"), Path("assets/ena_schema"))
+    results = submit_samples(Path("samples.json"), Path("assets/ena_schema"))
 """
 
 from __future__ import annotations
 
 import json
 import logging
-import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any, Final
@@ -41,6 +40,7 @@ import typer
 
 import ena_common as common
 from ena_api import WebinClient, WebinConfig
+
 
 app = typer.Typer(help="Submit samples to ENA via the Webin REST API v2.")
 logger = logging.getLogger("ena_submit.sample")
@@ -244,36 +244,21 @@ def parse_xml_receipt(receipt_root: ET.Element) -> tuple[bool, list[dict[str, st
 
 def build_manifest(
     samples: list[dict[str, Any]],
-    schema: dict[str, Any],
-    xsd_dir: Path,
     *,
     hold_until: str | None = None,
     action: str = "ADD",
 ) -> bytes:
     """Build an ENA sample XML submission document.
 
-    Extracts checklist ID, slot title map, and units from the schema automatically.
-
     Args:
-        samples: List of sample metadata dicts (keys are slot names).
-        schema: Loaded LinkML schema dict.
-        xsd_dir: Directory containing XSD and checklist XML files.
+        samples: List of sample metadata dicts (keys are field names).
         hold_until: Optional hold-until date (YYYY-MM-DD).
         action: "ADD" for new samples or "MODIFY" to update existing ones.
 
     Returns:
         Serialised XML bytes ready for validate_manifest() or submit_manifest().
     """
-    schema_name = schema.get("name", "")
-    checklist_id = schema_name if re.match(r"^ERC\d+$", schema_name) else None
-    slot_to_title = common.build_slot_to_title_map(schema)
-    slot_to_unit: dict[str, str] = {}
-    if checklist_id and (checklist_xml := xsd_dir / f"{checklist_id}.xml").is_file():
-        slot_to_unit = common.parse_checklist_units(checklist_xml)
-    xml_root = build_submission_xml(
-        samples, hold_until=hold_until, checklist_id=checklist_id,
-        slot_to_title=slot_to_title, slot_to_unit=slot_to_unit, action=action,
-    )
+    xml_root = build_submission_xml(samples, hold_until=hold_until, action=action)
     return common.xml_to_bytes(xml_root)
 
 
@@ -332,7 +317,6 @@ def _load_samples_json(path: Path) -> list[dict[str, Any]]:
 
 def submit_samples(
     input_file: Path,
-    linkml: Path,
     xsd: Path,
     *,
     test: bool = False,
@@ -346,7 +330,6 @@ def submit_samples(
 
     Args:
         input_file: Path to a JSON file containing sample metadata.
-        linkml: Path to the LinkML YAML schema.
         xsd: Directory containing SRA.sample.xsd and SRA.common.xsd.
         test: Use the ENA test service.
         hold_until: Hold samples private until this date (YYYY-MM-DD, max 2 years).
@@ -372,9 +355,6 @@ def submit_samples(
     logger.info("Loading input: %s", input_file)
     samples = _load_samples_json(input_file)
     logger.info("Loaded %d sample(s)", len(samples))
-
-    schema = common.load_linkml_schema(linkml)
-    samples = common.remap_records_by_title(samples, schema)
 
     duplicates: dict[int, dict[str, Any]] = {}
     if automated:
@@ -412,23 +392,13 @@ def submit_samples(
 
     logger.info("%d to ADD, %d to MODIFY", len(samples_to_submit), len(samples_to_modify))
 
-    linkml_valid, linkml_messages = common.validate_against_linkml(
-        samples_to_submit + samples_to_modify, schema,
-        label_fields=["SAMPLE_TITLE", "alias"], entity_name="sample",
-        unknown_field_note="will be passed as SAMPLE_ATTRIBUTE",
-    )
-    for msg in linkml_messages:
-        logger.info("  %s", msg)
-    if not linkml_valid:
-        raise ValueError("LinkML validation failed — aborting")
-
     for batch, action, result_key in [
         (samples_to_submit, "ADD", "submitted"),
         (samples_to_modify, "MODIFY", "modified"),
     ]:
         if not batch:
             continue
-        xml_bytes = build_manifest(batch, schema, xsd, hold_until=hold_until, action=action)
+        xml_bytes = build_manifest(batch, hold_until=hold_until, action=action)
         is_valid, xsd_messages = validate_manifest(xml_bytes, xsd)
         for msg in xsd_messages:
             logger.info("  %s", msg)
@@ -458,7 +428,6 @@ def submit_samples(
 @app.command()
 def main(
     input_file: Path = typer.Option(..., "--input", exists=True, help="Path to sample metadata JSON file"),
-    linkml: Path = typer.Option(..., exists=True, help="Path to LinkML YAML schema (e.g. schemas/ERC000015.yaml)"),
     xsd: Path = typer.Option(..., exists=True, file_okay=False, resolve_path=True, help="Directory containing SRA.sample.xsd and SRA.common.xsd"),
     test: bool = typer.Option(False, "--test", help="Use the ENA test service (submissions discarded daily)"),
     hold_until: str | None = typer.Option(None, "--hold-until", help="Hold samples private until this date (YYYY-MM-DD, max 2 years)"),
@@ -474,7 +443,7 @@ def main(
     logger.info("ENA Sample Submission — environment: %s", "TEST" if test else "PRODUCTION")
     try:
         results = submit_samples(
-            input_file, linkml, xsd,
+            input_file, xsd,
             test=test, hold_until=hold_until, max_results=max_results,
             dry_run=dry_run, automated=automated, force=force,
         )

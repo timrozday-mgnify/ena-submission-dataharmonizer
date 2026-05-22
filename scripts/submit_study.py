@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 """Submit studies to ENA via the Webin REST API v2.
 
-Read a DataHarmonizer export containing study metadata,
-validate it against a LinkML schema and an XSD schema,
-check for duplicate studies already registered under the
-Webin account, construct an XML submission document, and
-submit new studies to ENA.
+Read a JSON file containing study metadata, check for duplicate studies
+already registered under the Webin account, construct an XML submission
+document, and submit new studies to ENA.
 
 Credentials are read from environment variables:
 
@@ -14,18 +12,10 @@ Credentials are read from environment variables:
 
 Usage::
 
-    python scripts/submit_study.py \
-        --input studies.json \
-        --linkml schemas/SRA_study.yaml \
-        --xsd assets/ena_schema \
-        --test
+    python scripts/submit_study.py --input studies.json --xsd assets/ena_schema --test
 
     # With hold date (max 2 years):
-    python scripts/submit_study.py \
-        --input studies.json \
-        --linkml schemas/SRA_study.yaml \
-        --xsd assets/ena_schema \
-        --hold-until 2028-01-01
+    python scripts/submit_study.py --input studies.json --xsd assets/ena_schema --hold-until 2028-01-01
 """
 
 from __future__ import annotations
@@ -299,7 +289,6 @@ def _load_studies_json(path: Path) -> list[dict[str, Any]]:
 
 def submit_studies(
     input_file: Path,
-    linkml: Path,
     xsd: Path,
     *,
     test: bool = False,
@@ -363,21 +352,6 @@ def submit_studies(
     logger.info("%d new study/studies to ADD, %d duplicate(s) to MODIFY",
                 len(studies_to_submit), len(studies_to_modify))
 
-    logger.info("Loading LinkML schema: %s", linkml)
-    schema = common.load_linkml_schema(linkml)
-    linkml_valid, linkml_messages = common.validate_against_linkml(
-        studies_to_submit + studies_to_modify, schema,
-        label_fields=["STUDY_TITLE", "alias"],
-        entity_name="study",
-        unknown_field_note="will be ignored",
-    )
-    for msg in linkml_messages:
-        logger.info("  %s", msg)
-    if not linkml_valid:
-        raise ValueError("LinkML validation FAILED — aborting submission")
-
-    logger.info("LinkML validation PASSED")
-
     for batch, action, result_key in [
         (studies_to_submit, "ADD", "submitted"),
         (studies_to_modify, "MODIFY", "modified"),
@@ -437,7 +411,6 @@ def _log_summary(results: dict[str, list]) -> None:
 @app.command()
 def main(
     input_file: Path = typer.Option(..., "--input", exists=True, help="Path to study metadata JSON file"),
-    linkml: Path = typer.Option(..., exists=True, help="Path to LinkML YAML schema (e.g. schemas/SRA_study.yaml)"),
     xsd: Path = typer.Option(..., exists=True, file_okay=False, resolve_path=True, help="Directory containing ENA.project.xsd and SRA.common.xsd"),
     test: bool = typer.Option(False, "--test", help="Use the ENA test service (submissions are discarded daily)"),
     hold_until: str | None = typer.Option(None, "--hold-until", help="Hold studies private until this date (YYYY-MM-DD, max 2 years from now)"),
@@ -454,7 +427,7 @@ def main(
     logger.info("ENA Study Submission — environment: %s", env_label)
     try:
         results = submit_studies(
-            input_file, linkml, xsd,
+            input_file, xsd,
             test=test, hold_until=hold_until, max_results=max_results,
             dry_run=dry_run, automated=automated, force=force,
         )

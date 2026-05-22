@@ -61,14 +61,6 @@ def minimal_sample() -> dict[str, Any]:
     return {"alias": "minimal-001", "TAXON_ID": 9606, "SAMPLE_TITLE": "Minimal Sample"}
 
 
-@pytest.fixture
-def minimal_schema() -> dict[str, Any]:
-    return {"name": "TestSchema", "classes": {}, "slots": {}}
-
-
-@pytest.fixture
-def erc_schema() -> dict[str, Any]:
-    return {"name": "ERC000025", "classes": {}, "slots": {}}
 
 
 def _make_client(samples: list | None = None) -> WebinClient:
@@ -198,47 +190,26 @@ class TestBuildSubmissionXml:
 
 
 class TestBuildManifest:
-    """Integration tests for build_manifest() — schema-aware XML builder."""
+    """Integration tests for build_manifest()."""
 
-    def test_returns_bytes(self, basic_sample: dict[str, Any], minimal_schema: dict[str, Any], tmp_path: Path) -> None:
-        with patch("submit_sample.common.build_slot_to_title_map", return_value={}):
-            result = build_manifest([basic_sample], minimal_schema, tmp_path)
+    def test_returns_bytes(self, basic_sample: dict[str, Any]) -> None:
+        result = build_manifest([basic_sample])
         assert isinstance(result, bytes)
         assert b"SAMPLE_SET" in result
 
-    def test_erc_schema_name_sets_checklist_id(
-        self, basic_sample: dict[str, Any], erc_schema: dict[str, Any], tmp_path: Path
-    ) -> None:
-        with patch("submit_sample.common.build_slot_to_title_map", return_value={}):
-            xml_bytes = build_manifest([basic_sample], erc_schema, tmp_path)
-        root = ET.fromstring(xml_bytes)
-        tags = [el.text for el in root.findall(".//SAMPLE_ATTRIBUTE/TAG")]
-        assert "ENA-CHECKLIST" in tags
-
-    def test_non_erc_schema_name_omits_checklist(
-        self, basic_sample: dict[str, Any], minimal_schema: dict[str, Any], tmp_path: Path
-    ) -> None:
-        with patch("submit_sample.common.build_slot_to_title_map", return_value={}):
-            xml_bytes = build_manifest([basic_sample], minimal_schema, tmp_path)
-        root = ET.fromstring(xml_bytes)
-        tags = [el.text for el in root.findall(".//SAMPLE_ATTRIBUTE/TAG")]
-        assert "ENA-CHECKLIST" not in tags
-
-    def test_hold_until_passed_through(
-        self, basic_sample: dict[str, Any], minimal_schema: dict[str, Any], tmp_path: Path
-    ) -> None:
-        with patch("submit_sample.common.build_slot_to_title_map", return_value={}):
-            xml_bytes = build_manifest([basic_sample], minimal_schema, tmp_path, hold_until="2028-06-15")
+    def test_hold_until_passed_through(self, basic_sample: dict[str, Any]) -> None:
+        xml_bytes = build_manifest([basic_sample], hold_until="2028-06-15")
         root = ET.fromstring(xml_bytes)
         hold_el = root.find(".//HOLD")
         assert hold_el is not None
         assert hold_el.get("HoldUntilDate") == "2028-06-15"
 
-    def test_modify_action_passed_through(
-        self, basic_sample: dict[str, Any], minimal_schema: dict[str, Any], tmp_path: Path
-    ) -> None:
-        with patch("submit_sample.common.build_slot_to_title_map", return_value={}):
-            xml_bytes = build_manifest([basic_sample], minimal_schema, tmp_path, action="MODIFY")
+    def test_no_hold_element_when_hold_until_absent(self, basic_sample: dict[str, Any]) -> None:
+        xml_bytes = build_manifest([basic_sample])
+        assert ET.fromstring(xml_bytes).find(".//HOLD") is None
+
+    def test_modify_action_passed_through(self, basic_sample: dict[str, Any]) -> None:
+        xml_bytes = build_manifest([basic_sample], action="MODIFY")
         assert b"MODIFY" in xml_bytes
 
 
@@ -565,45 +536,6 @@ def _extract_json(output: str) -> dict[str, Any]:
     return json.loads(output[start:end + 1])
 
 
-_MINIMAL_SCHEMA_YAML = """\
-id: https://example.com/test
-name: TestSchema
-imports:
-- linkml:types
-prefixes:
-  linkml: https://w3id.org/linkml/
-default_range: string
-classes:
-  dh_interface:
-    description: A DataHarmonizer interface
-  TestSample:
-    is_a: dh_interface
-    slots:
-    - alias
-    - TAXON_ID
-    - SAMPLE_TITLE
-    - SCIENTIFIC_NAME
-    slot_usage:
-      alias:
-        rank: 1
-      TAXON_ID:
-        rank: 2
-      SAMPLE_TITLE:
-        rank: 3
-      SCIENTIFIC_NAME:
-        rank: 4
-slots:
-  alias:
-    title: Sample alias
-  TAXON_ID:
-    title: Taxon ID
-    range: integer
-  SAMPLE_TITLE:
-    title: Sample title
-  SCIENTIFIC_NAME:
-    title: Scientific name
-"""
-
 _REAL_XSD_DIR = str(Path(__file__).parent.parent / "assets" / "ena_schema")
 
 
@@ -612,31 +544,20 @@ class TestMainCli:
 
     _CRED = "submit_sample.common.get_credentials"
     _SUBMIT = "submit_sample.submit_manifest"
-    _LINKML_VALIDATE = "submit_sample.common.validate_against_linkml"
 
-    def _base_args(self, schema_file: str) -> list[str]:
-        return ["--linkml", schema_file, "--xsd", _REAL_XSD_DIR]
+    def _base_args(self) -> list[str]:
+        return ["--xsd", _REAL_XSD_DIR]
 
     def _invoke(self, runner: CliRunner, args: list[str], filename: str, content: str) -> Any:
         with runner.isolated_filesystem():
             Path(filename).write_text(content)
-            Path("schema.yaml").write_text(_MINIMAL_SCHEMA_YAML)
             return runner.invoke(
-                app, ["--input", filename] + self._base_args("schema.yaml") + args,
+                app, ["--input", filename] + self._base_args() + args,
                 catch_exceptions=False,
             )
 
-    def _invoke_in_fs(self, runner: CliRunner, args: list[str], filename: str, content: str):
-        """Context manager version: caller sets up additional mocks inside the with block."""
-        # Returns (runner, isolated_fs_context) — used by tests needing extra patches inside fs.
-        # For simplicity just use runner.isolated_filesystem() directly in those tests.
-        pass
-
     def test_json_automated_dry_run_exits_0(self, runner: CliRunner, basic_sample: dict[str, Any]) -> None:
-        with (
-            patch(self._CRED, return_value=("Webin-12345", "pass")),
-            patch(self._LINKML_VALIDATE, return_value=(True, [])),
-        ):
+        with patch(self._CRED, return_value=("Webin-12345", "pass")):
             result = self._invoke(runner, ["--automated", "--dry-run"], "samples.json", _make_sample_json(basic_sample))
         assert result.exit_code == 0, result.output
         assert "submitted" in _extract_json(result.output)
@@ -650,14 +571,12 @@ class TestMainCli:
         }
         with runner.isolated_filesystem():
             Path("samples.json").write_text(_make_sample_json(basic_sample))
-            Path("schema.yaml").write_text(_MINIMAL_SCHEMA_YAML)
             with (
                 patch(self._CRED, return_value=("Webin-12345", "pass")),
                 patch("submit_sample.fetch_account_samples", return_value=[existing]),
-                patch(self._LINKML_VALIDATE, return_value=(True, [])),
             ):
                 result = runner.invoke(
-                    app, ["--input", "samples.json"] + self._base_args("schema.yaml"),
+                    app, ["--input", "samples.json"] + self._base_args(),
                     catch_exceptions=False,
                 )
         assert result.exit_code == 0, result.output
@@ -677,15 +596,13 @@ class TestMainCli:
                      "holdUntilDate": "", "external_accession": "", "external_type": ""}]
         with runner.isolated_filesystem():
             Path("samples.json").write_text(_make_sample_json(basic_sample))
-            Path("schema.yaml").write_text(_MINIMAL_SCHEMA_YAML)
             with (
                 patch(self._CRED, return_value=("Webin-12345", "pass")),
                 patch("submit_sample.fetch_account_samples", return_value=[existing]),
-                patch(self._LINKML_VALIDATE, return_value=(True, [])),
                 patch(self._SUBMIT, return_value=(True, mock_acc, [])),
             ):
                 result = runner.invoke(
-                    app, ["--input", "samples.json"] + self._base_args("schema.yaml") + ["--force"],
+                    app, ["--input", "samples.json"] + self._base_args() + ["--force"],
                     catch_exceptions=False,
                 )
         assert result.exit_code == 0, result.output
@@ -697,14 +614,12 @@ class TestMainCli:
         http_err = httpx.HTTPStatusError("500", request=MagicMock(), response=MagicMock(status_code=500))
         with runner.isolated_filesystem():
             Path("samples.json").write_text(_make_sample_json(basic_sample))
-            Path("schema.yaml").write_text(_MINIMAL_SCHEMA_YAML)
             with (
                 patch(self._CRED, return_value=("Webin-12345", "pass")),
-                patch(self._LINKML_VALIDATE, return_value=(True, [])),
                 patch(self._SUBMIT, side_effect=http_err),
             ):
                 result = runner.invoke(
-                    app, ["--input", "samples.json"] + self._base_args("schema.yaml") + ["--automated"],
+                    app, ["--input", "samples.json"] + self._base_args() + ["--automated"],
                     catch_exceptions=False,
                 )
         assert result.exit_code == 1
@@ -714,15 +629,13 @@ class TestMainCli:
                      "holdUntilDate": "", "external_accession": "", "external_type": ""}]
         with runner.isolated_filesystem():
             Path("samples.json").write_text(_make_sample_json(basic_sample))
-            Path("schema.yaml").write_text(_MINIMAL_SCHEMA_YAML)
             with (
                 patch(self._CRED, return_value=("Webin-12345", "pass")),
-                patch(self._LINKML_VALIDATE, return_value=(True, [])),
                 patch(self._SUBMIT, return_value=(True, mock_acc, [])),
                 patch("submit_sample.WebinConfig", wraps=WebinConfig) as MockConfig,
             ):
                 result = runner.invoke(
-                    app, ["--input", "samples.json"] + self._base_args("schema.yaml") + ["--automated", "--test"],
+                    app, ["--input", "samples.json"] + self._base_args() + ["--automated", "--test"],
                     catch_exceptions=False,
                 )
         assert result.exit_code == 0, result.output
@@ -733,15 +646,13 @@ class TestMainCli:
                      "holdUntilDate": "", "external_accession": "", "external_type": ""}]
         with runner.isolated_filesystem():
             Path("samples.json").write_text(_make_sample_json(basic_sample))
-            Path("schema.yaml").write_text(_MINIMAL_SCHEMA_YAML)
             with (
                 patch(self._CRED, return_value=("Webin-12345", "pass")),
-                patch(self._LINKML_VALIDATE, return_value=(True, [])),
                 patch(self._SUBMIT, return_value=(True, mock_acc, [])),
                 patch("submit_sample.WebinConfig", wraps=WebinConfig) as MockConfig,
             ):
                 result = runner.invoke(
-                    app, ["--input", "samples.json"] + self._base_args("schema.yaml") + ["--automated"],
+                    app, ["--input", "samples.json"] + self._base_args() + ["--automated"],
                     catch_exceptions=False,
                 )
         assert result.exit_code == 0, result.output
@@ -750,14 +661,10 @@ class TestMainCli:
     def test_output_flag_writes_results_to_file(self, runner: CliRunner, basic_sample: dict[str, Any]) -> None:
         with runner.isolated_filesystem():
             Path("samples.json").write_text(_make_sample_json(basic_sample))
-            Path("schema.yaml").write_text(_MINIMAL_SCHEMA_YAML)
-            with (
-                patch(self._CRED, return_value=("Webin-12345", "pass")),
-                patch(self._LINKML_VALIDATE, return_value=(True, [])),
-            ):
+            with patch(self._CRED, return_value=("Webin-12345", "pass")):
                 result = runner.invoke(
                     app,
-                    ["--input", "samples.json"] + self._base_args("schema.yaml")
+                    ["--input", "samples.json"] + self._base_args()
                     + ["--automated", "--dry-run", "--output", "results.json"],
                     catch_exceptions=False,
                 )

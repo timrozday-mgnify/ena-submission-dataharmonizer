@@ -47,22 +47,6 @@ from submit_study import (  # noqa: E402
 
 _REAL_XSD_DIR = str(Path(__file__).parent.parent / "assets" / "ena_schema")
 
-_MINIMAL_SCHEMA_YAML = """\
-id: https://example.com/study
-name: study_schema
-prefixes:
-  linkml: https://linkml.io/linkml-model/meta/
-imports:
-  - linkml:types
-classes:
-  dh_interface:
-    description: DataHarmonizer interface class
-  SRA_study:
-    is_a: dh_interface
-    slots: []
-slots: {}
-"""
-
 # ---------------------------------------------------------------------------
 # Shared fixtures
 # ---------------------------------------------------------------------------
@@ -604,13 +588,11 @@ _MOCK_ACC = [{"alias": "a", "accession": "PRJEB1", "status": "PRIVATE",
 class TestMainCli:
     _CRED_TARGET = "submit_study.common.get_credentials"
     _SUBMIT_TARGET = "submit_study.submit_manifest"
-    _LINKML_TARGET = "submit_study.common.validate_against_linkml"
 
     def _invoke(self, runner: CliRunner, args: list[str], input_filename: str, input_content: str) -> Any:
         with runner.isolated_filesystem():
             Path(input_filename).write_text(input_content)
-            Path("schema.yaml").write_text(_MINIMAL_SCHEMA_YAML)
-            base_args = ["--linkml", "schema.yaml", "--xsd", _REAL_XSD_DIR]
+            base_args = ["--xsd", _REAL_XSD_DIR]
             result = runner.invoke(
                 app,
                 ["--input", input_filename] + base_args + args,
@@ -620,8 +602,7 @@ class TestMainCli:
 
     def test_json_automated_dry_run_exits_0(self, runner: CliRunner, minimal_study: dict[str, Any]) -> None:
         content = _make_study_json(minimal_study)
-        with patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")), \
-             patch(self._LINKML_TARGET, return_value=(True, [])):
+        with patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")):
             result = self._invoke(runner, ["--automated", "--dry-run"], "studies.json", content)
         assert result.exit_code == 0, f"output: {result.output}"
         assert "submitted" in _extract_json(result.output)
@@ -639,13 +620,11 @@ class TestMainCli:
         content = _make_study_json(minimal_study)
         with runner.isolated_filesystem():
             Path("studies.json").write_text(content)
-            Path("schema.yaml").write_text(_MINIMAL_SCHEMA_YAML)
-            base_args = ["--linkml", "schema.yaml", "--xsd", _REAL_XSD_DIR]
             with patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")), \
                  patch("submit_study.fetch_account_studies", return_value=[existing]):
                 result = runner.invoke(
                     app,
-                    ["--input", "studies.json"] + base_args,
+                    ["--input", "studies.json", "--xsd", _REAL_XSD_DIR],
                     catch_exceptions=False,
                 )
         assert result.exit_code == 0, f"output: {result.output}"
@@ -670,15 +649,12 @@ class TestMainCli:
         content = _make_study_json(minimal_study)
         with runner.isolated_filesystem():
             Path("studies.json").write_text(content)
-            Path("schema.yaml").write_text(_MINIMAL_SCHEMA_YAML)
-            base_args = ["--linkml", "schema.yaml", "--xsd", _REAL_XSD_DIR]
             with patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")), \
                  patch("submit_study.fetch_account_studies", return_value=[existing]), \
-                 patch(self._SUBMIT_TARGET, return_value=(True, mock_accessions, [])), \
-                 patch(self._LINKML_TARGET, return_value=(True, [])):
+                 patch(self._SUBMIT_TARGET, return_value=(True, mock_accessions, [])):
                 result = runner.invoke(
                     app,
-                    ["--input", "studies.json", "--force"] + base_args,
+                    ["--input", "studies.json", "--force", "--xsd", _REAL_XSD_DIR],
                     catch_exceptions=False,
                 )
         assert result.exit_code == 0, f"output: {result.output}"
@@ -690,8 +666,7 @@ class TestMainCli:
         content = _make_study_json(minimal_study)
         http_error = httpx.HTTPStatusError("500", request=MagicMock(), response=MagicMock(status_code=500))
         with patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")), \
-             patch(self._SUBMIT_TARGET, side_effect=http_error), \
-             patch(self._LINKML_TARGET, return_value=(True, [])):
+             patch(self._SUBMIT_TARGET, side_effect=http_error):
             result = self._invoke(runner, ["--automated"], "studies.json", content)
         assert result.exit_code == 1
 
@@ -700,7 +675,6 @@ class TestMainCli:
         with (
             patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")),
             patch(self._SUBMIT_TARGET, return_value=(True, _MOCK_ACC, [])),
-            patch(self._LINKML_TARGET, return_value=(True, [])),
             patch("submit_study.WebinConfig", wraps=WebinConfig) as MockConfig,
         ):
             result = self._invoke(runner, ["--automated", "--test"], "studies.json", content)
@@ -712,7 +686,6 @@ class TestMainCli:
         with (
             patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")),
             patch(self._SUBMIT_TARGET, return_value=(True, _MOCK_ACC, [])),
-            patch(self._LINKML_TARGET, return_value=(True, [])),
             patch("submit_study.WebinConfig", wraps=WebinConfig) as MockConfig,
         ):
             result = self._invoke(runner, ["--automated"], "studies.json", content)
@@ -723,13 +696,11 @@ class TestMainCli:
         content = _make_study_json(minimal_study)
         with runner.isolated_filesystem():
             Path("studies.json").write_text(content)
-            Path("schema.yaml").write_text(_MINIMAL_SCHEMA_YAML)
-            base_args = ["--linkml", "schema.yaml", "--xsd", _REAL_XSD_DIR]
-            with patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")), \
-                 patch(self._LINKML_TARGET, return_value=(True, [])):
+            with patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")):
                 result = runner.invoke(
                     app,
-                    ["--input", "studies.json", "--automated", "--dry-run", "--output", "results.json"] + base_args,
+                    ["--input", "studies.json", "--automated", "--dry-run",
+                     "--output", "results.json", "--xsd", _REAL_XSD_DIR],
                     catch_exceptions=False,
                 )
             assert result.exit_code == 0, f"output: {result.output}"
