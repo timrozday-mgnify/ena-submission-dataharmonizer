@@ -110,25 +110,22 @@ def merge_schemas(schemas, source_names=None):
 
     for idx, schema in enumerate(schemas):
         source_prefix = source_names[idx] if source_names and idx < len(source_names) else None
+        _, main_cls = _get_main_class(schema)
+        schema_slots = schema.get("slots", {})
+        slot_usage = main_cls.get("slot_usage", {}) if main_cls else {}
 
         for slot_name in _ordered_slot_names(schema):
             if slot_name not in merged_slots:
                 seen_slot_order.append(slot_name)
 
-            # Highest-priority definition wins (first seen).
-            slots = schema.get("slots", {})
-            if slot_name not in merged_slots and slot_name in slots:
-                slot_def = dict(slots[slot_name])
+            if slot_name not in merged_slots and slot_name in schema_slots:
+                slot_def = dict(schema_slots[slot_name])
                 if source_prefix:
                     slot_def["source"] = source_prefix
                 merged_slots[slot_name] = slot_def
 
-            _, main_cls = _get_main_class(schema)
-            if main_cls and slot_name not in merged_slot_usage:
-                su = main_cls.get("slot_usage", {})
-                if slot_name in su:
-                    usage = dict(su[slot_name])
-                    merged_slot_usage[slot_name] = usage
+            if slot_name not in merged_slot_usage and slot_name in slot_usage:
+                merged_slot_usage[slot_name] = dict(slot_usage[slot_name])
 
         for enum_name, enum_def in schema.get("enums", {}).items():
             if enum_name not in merged_enums:
@@ -249,15 +246,8 @@ def write_yaml(schema, output_path):
     """Write a LinkML schema dict to a YAML file."""
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
-        yaml.dump(
-            schema,
-            f,
-            Dumper=_LinkMLDumper,
-            default_flow_style=False,
-            sort_keys=False,
-            allow_unicode=True,
-            width=120,
-        )
+        yaml.dump(schema, f, Dumper=_LinkMLDumper, default_flow_style=False,
+                  sort_keys=False, allow_unicode=True, width=120)
 
 
 # ---------------------------------------------------------------------------

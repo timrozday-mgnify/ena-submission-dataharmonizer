@@ -574,16 +574,8 @@ def write_yaml(schema, output_path):
     """Write a LinkML schema dict to a YAML file."""
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
-        yaml.dump(
-            schema,
-            f,
-            Dumper=_LinkMLDumper,
-            default_flow_style=False,
-            sort_keys=False,
-            allow_unicode=True,
-            width=120,
-        )
-    print(f"  Written: {output_path}")
+        yaml.dump(schema, f, Dumper=_LinkMLDumper, default_flow_style=False,
+                  sort_keys=False, allow_unicode=True, width=120)
 
 
 # ---------------------------------------------------------------------------
@@ -642,6 +634,7 @@ def main():
         out_name = schema["name"] + ".yaml"
         out_path = os.path.join(args.output_dir, out_name)
         write_yaml(schema, out_path)
+        print(f"  Written: {out_path}")
 
         # Summary
         n_slots = len(schema["slots"])

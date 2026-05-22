@@ -156,11 +156,6 @@ def _make_enum_name(field_name):
     return "".join(p.capitalize() for p in parts) + "Menu"
 
 
-def _make_schema_name(accession):
-    """Return a safe schema name string from an accession."""
-    return accession
-
-
 # ---------------------------------------------------------------------------
 # LinkML conversion
 # ---------------------------------------------------------------------------
@@ -184,7 +179,7 @@ def convert_to_linkml(checklist, base_uri):
 
     schema = {
         "id": schema_id,
-        "name": _make_schema_name(accession),
+        "name": accession,
         "title": checklist["label"],
         "description": checklist["description"],
         "version": "1.0.0",
@@ -297,7 +292,6 @@ def write_yaml(schema, output_path):
             allow_unicode=True,
             width=120,
         )
-    print(f"  Written: {output_path}")
 
 
 # ---------------------------------------------------------------------------
@@ -357,6 +351,7 @@ def main():
         out_name = checklist["accession"] + ".yaml"
         out_path = os.path.join(args.output_dir, out_name)
         write_yaml(schema, out_path)
+        print(f"  Written: {out_path}")
 
         # Summary
         n_slots = len(schema["slots"])
