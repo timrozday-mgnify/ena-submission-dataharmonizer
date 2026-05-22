@@ -38,39 +38,6 @@ logger = logging.getLogger("ena_submit.study")
 
 
 # -------------------------------------------------------------------
-# Reports API
-# -------------------------------------------------------------------
-
-def fetch_account_studies(client: WebinClient, max_results: int = 5000) -> list[dict[str, str]]:
-    """Fetch all projects from the Webin Reports API."""
-    logger.info("Fetching account studies via Webin Reports API...")
-    reports = client.reports.list_projects(max_results=max_results)
-    logger.info("Found %d studies in account", len(reports))
-    return [
-        {
-            "alias": r.alias,
-            "title": r.title,
-            "accession": r.accession,
-            "secondary_accession": r.secondary_accession,
-            "status": r.status,
-        }
-        for r in reports
-    ]
-
-
-def find_duplicate_studies(
-    new_studies: list[dict[str, Any]],
-    account_studies: list[dict[str, str]],
-) -> dict[int, dict[str, str]]:
-    """Check new studies against existing account studies."""
-    return common.find_duplicates_by_alias_title(
-        new_studies, account_studies,
-        title_field="STUDY_TITLE",
-        entity_label="studies",
-    )
-
-
-# -------------------------------------------------------------------
 # XML construction
 # -------------------------------------------------------------------
 
@@ -314,11 +281,16 @@ def submit_studies(
         logger.info("Automated mode: skipping duplicate detection")
         duplicates: dict[int, dict[str, Any]] = {}
     else:
-        account_studies = fetch_account_studies(client, max_results=max_results)
-        for ps in account_studies:
+        logger.info("Fetching account studies via Webin Reports API...")
+        reports = client.reports.list_projects(max_results=max_results)
+        logger.info("Found %d studies in account", len(reports))
+        for r in reports:
             logger.info("  Account study: %s | alias=%s | title=%s | status=%s",
-                        ps["accession"], ps["alias"], ps["title"], ps["status"])
-        duplicates = find_duplicate_studies(studies, account_studies)
+                        r.accession, r.alias, r.title, r.status)
+        duplicates = common.find_duplicates_by_alias_title(
+            studies, [r.model_dump() for r in reports],
+            title_field="STUDY_TITLE", entity_label="studies",
+        )
 
     results: dict[str, list] = {"duplicates": [], "submitted": [], "modified": [], "failed": []}
 

@@ -52,36 +52,6 @@ _RESERVED_FIELDS: Final = frozenset({
 })
 
 # ---------------------------------------------------------------------------
-# Reports API
-# ---------------------------------------------------------------------------
-
-def fetch_account_samples(client: WebinClient, max_results: int = 5000) -> list[dict[str, str]]:
-    """Fetch all samples registered under the Webin account via the Reports API."""
-    logger.info("Fetching account samples via Webin Reports API...")
-    reports = client.reports.list_samples(max_results=max_results)
-    logger.info("Found %d samples in account", len(reports))
-    return [
-        {
-            "alias": r.alias,
-            "title": r.title,
-            "accession": r.accession,
-            "secondary_accession": r.secondary_accession,
-            "status": r.status,
-        }
-        for r in reports
-    ]
-
-
-def find_duplicate_samples(
-    new_samples: list[dict[str, Any]], account_samples: list[dict[str, str]],
-) -> dict[int, dict[str, str]]:
-    """Return a mapping of input index → existing account sample for each duplicate."""
-    return common.find_duplicates_by_alias_title(
-        new_samples, account_samples, title_field="SAMPLE_TITLE", entity_label="samples",
-    )
-
-
-# ---------------------------------------------------------------------------
 # XML construction
 # ---------------------------------------------------------------------------
 
@@ -360,8 +330,13 @@ def submit_samples(
     if automated:
         logger.info("Automated mode: skipping duplicate detection")
     else:
-        account_samples = fetch_account_samples(client, max_results=max_results)
-        duplicates = find_duplicate_samples(samples, account_samples)
+        logger.info("Fetching account samples via Webin Reports API...")
+        reports = client.reports.list_samples(max_results=max_results)
+        logger.info("Found %d samples in account", len(reports))
+        duplicates = common.find_duplicates_by_alias_title(
+            samples, [r.model_dump() for r in reports],
+            title_field="SAMPLE_TITLE", entity_label="samples",
+        )
 
     results: dict[str, list] = {"duplicates": [], "submitted": [], "modified": [], "failed": []}
 

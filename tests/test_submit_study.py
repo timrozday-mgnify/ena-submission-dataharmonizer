@@ -6,8 +6,7 @@ Covers:
     B. Unit tests for build_manifest
     C. Unit tests for validate_manifest
     D. Unit tests for parse_xml_receipt
-    E. Unit tests for find_duplicate_studies and fetch_account_studies
-    F. CLI integration tests for main() using typer.testing.CliRunner
+    E. CLI integration tests for main() using typer.testing.CliRunner
 
 Usage:
     pytest test_submit_study.py -v
@@ -34,8 +33,6 @@ from submit_study import (  # noqa: E402
     app,
     build_manifest,
     build_submission_xml,
-    fetch_account_studies,
-    find_duplicate_studies,
     parse_xml_receipt,
     submit_manifest,
     validate_manifest,
@@ -84,12 +81,6 @@ def mag_genome_study() -> dict[str, Any]:
         "new_study_type": "Genome Sequencing",
     }
 
-
-def _make_client(reports: list | None = None) -> WebinClient:
-    """Return a WebinClient mock whose reports.list_projects returns *reports*."""
-    client = MagicMock(spec=WebinClient)
-    client.reports.list_projects.return_value = reports or []
-    return client
 
 
 @pytest.fixture
@@ -444,107 +435,7 @@ class TestParseXmlReceipt:
 
 
 # ---------------------------------------------------------------------------
-# E. Unit tests for find_duplicate_studies and fetch_account_studies
-# ---------------------------------------------------------------------------
-
-
-class TestFindDuplicateStudies:
-
-    @staticmethod
-    def _account(title: str = "", alias: str = "", accession: str = "PRJEB00001") -> dict[str, str]:
-        return {"title": title, "alias": alias, "accession": accession, "secondary_accession": "", "status": "PRIVATE"}
-
-    def test_exact_alias_match_detected(self) -> None:
-        dups = find_duplicate_studies(
-            [{"STUDY_TITLE": "Different", "alias": "my-alias-x"}],
-            [self._account(title="Other", alias="my-alias-x", accession="PRJEB10")],
-        )
-        assert 0 in dups
-        assert dups[0]["accession"] == "PRJEB10"
-        assert "alias" in dups[0]["match_reason"]
-
-    def test_exact_title_match_detected(self) -> None:
-        dups = find_duplicate_studies(
-            [{"STUDY_TITLE": "My Metagenomics Study"}],
-            [self._account(title="My Metagenomics Study", accession="PRJEB20")],
-        )
-        assert 0 in dups
-        assert "title" in dups[0]["match_reason"]
-
-    def test_no_match_returns_empty_dict(self) -> None:
-        dups = find_duplicate_studies(
-            [{"STUDY_TITLE": "Novel Study", "alias": "novel"}],
-            [self._account(title="Existing Study", alias="existing")],
-        )
-        assert dups == {}
-
-    def test_empty_account_returns_empty_dict(self) -> None:
-        assert find_duplicate_studies([{"STUDY_TITLE": "Any"}], []) == {}
-
-    def test_empty_new_studies_returns_empty_dict(self) -> None:
-        assert find_duplicate_studies([], [self._account(title="Existing")]) == {}
-
-    def test_partial_title_not_a_duplicate(self) -> None:
-        dups = find_duplicate_studies(
-            [{"STUDY_TITLE": "Metagenomics"}],
-            [self._account(title="Metagenomics Assembly Study")],
-        )
-        assert dups == {}
-
-    def test_only_matching_index_flagged(self) -> None:
-        dups = find_duplicate_studies(
-            [{"STUDY_TITLE": "Old Study"}, {"STUDY_TITLE": "New Study"}],
-            [self._account(title="Old Study", alias="old-alias", accession="PRJEB50")],
-        )
-        assert 0 in dups
-        assert 1 not in dups
-
-    def test_index_corresponds_to_position_in_list(self) -> None:
-        dups = find_duplicate_studies(
-            [{"STUDY_TITLE": "Study A"}, {"STUDY_TITLE": "Study B"}, {"STUDY_TITLE": "Study C"}],
-            [self._account(title="Study C", accession="PRJEB33")],
-        )
-        assert 2 in dups
-        assert dups[2]["accession"] == "PRJEB33"
-
-
-class TestFetchAccountStudies:
-
-    def test_returns_empty_list_when_no_reports(self) -> None:
-        client = _make_client([])
-        assert fetch_account_studies(client) == []
-
-    def test_converts_study_report_to_dict(self) -> None:
-        report = StudyReport(alias="study-a", accession="ERP1", title="My Study",
-                             secondary_accession="PRJEB1", status="PRIVATE")
-        client = _make_client([report])
-        result = fetch_account_studies(client)
-        assert result == [{
-            "alias": "study-a",
-            "accession": "ERP1",
-            "title": "My Study",
-            "secondary_accession": "PRJEB1",
-            "status": "PRIVATE",
-        }]
-
-    def test_passes_max_results_to_client(self) -> None:
-        client = _make_client([])
-        fetch_account_studies(client, max_results=100)
-        client.reports.list_projects.assert_called_with(max_results=100)
-
-    def test_multiple_reports_all_converted(self) -> None:
-        reports = [
-            StudyReport(alias="a", accession="ERP1", title="T1", status="PRIVATE"),
-            StudyReport(alias="b", accession="ERP2", title="T2", status="PUBLIC"),
-        ]
-        client = _make_client(reports)
-        result = fetch_account_studies(client)
-        assert len(result) == 2
-        assert result[1]["accession"] == "ERP2"
-
-
-# ---------------------------------------------------------------------------
-# F. CLI integration tests for main()
+# E. CLI integration tests for main()
 # ---------------------------------------------------------------------------
 
 
@@ -610,18 +501,19 @@ class TestMainCli:
     def test_duplicate_detected_without_force_skips_submission(
         self, runner: CliRunner, minimal_study: dict[str, Any]
     ) -> None:
-        existing = {
-            "title": minimal_study["STUDY_TITLE"],
-            "alias": minimal_study["alias"],
-            "accession": "PRJEB55555",
-            "secondary_accession": "ERP055555",
-            "status": "PRIVATE",
-        }
+        existing = StudyReport(
+            title=minimal_study["STUDY_TITLE"],
+            alias=minimal_study["alias"],
+            accession="PRJEB55555",
+            secondary_accession="ERP055555",
+            status="PRIVATE",
+        )
         content = _make_study_json(minimal_study)
         with runner.isolated_filesystem():
             Path("studies.json").write_text(content)
             with patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")), \
-                 patch("submit_study.fetch_account_studies", return_value=[existing]):
+                 patch("submit_study.WebinClient") as MockClient:
+                MockClient.return_value.reports.list_projects.return_value = [existing]
                 result = runner.invoke(
                     app,
                     ["--input", "studies.json", "--xsd", _REAL_XSD_DIR],
@@ -636,13 +528,13 @@ class TestMainCli:
     def test_force_flag_with_duplicate_triggers_modify(
         self, runner: CliRunner, minimal_study: dict[str, Any]
     ) -> None:
-        existing = {
-            "title": minimal_study["STUDY_TITLE"],
-            "alias": minimal_study["alias"],
-            "accession": "PRJEB66666",
-            "secondary_accession": "ERP066666",
-            "status": "PRIVATE",
-        }
+        existing = StudyReport(
+            title=minimal_study["STUDY_TITLE"],
+            alias=minimal_study["alias"],
+            accession="PRJEB66666",
+            secondary_accession="ERP066666",
+            status="PRIVATE",
+        )
         mock_accessions = [{"alias": "cli-metagenomics-001", "accession": "PRJEB66666",
                             "status": "PRIVATE", "holdUntilDate": "",
                             "external_accession": "", "external_type": ""}]
@@ -650,8 +542,9 @@ class TestMainCli:
         with runner.isolated_filesystem():
             Path("studies.json").write_text(content)
             with patch(self._CRED_TARGET, return_value=("Webin-12345", "pass")), \
-                 patch("submit_study.fetch_account_studies", return_value=[existing]), \
+                 patch("submit_study.WebinClient") as MockClient, \
                  patch(self._SUBMIT_TARGET, return_value=(True, mock_accessions, [])):
+                MockClient.return_value.reports.list_projects.return_value = [existing]
                 result = runner.invoke(
                     app,
                     ["--input", "studies.json", "--force", "--xsd", _REAL_XSD_DIR],

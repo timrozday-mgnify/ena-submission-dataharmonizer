@@ -5,7 +5,7 @@ Covers:
     A. Unit tests for build_manifest / build_submission_xml / _add_sample_element
     B. Unit tests for validate_manifest
     C. Unit tests for parse_xml_receipt / submit_manifest
-    D. Unit tests for find_duplicate_samples / fetch_account_samples
+    D. CLI integration tests for main() using typer.testing.CliRunner
     E. CLI integration tests for main() using typer.testing.CliRunner
 
 Usage:
@@ -33,8 +33,6 @@ from submit_sample import (  # noqa: E402
     app,
     build_manifest,
     build_submission_xml,
-    fetch_account_samples,
-    find_duplicate_samples,
     parse_xml_receipt,
     submit_manifest,
     validate_manifest,
@@ -420,97 +418,7 @@ class TestSubmitManifest:
 
 
 # ---------------------------------------------------------------------------
-# D. find_duplicate_samples / _normalize_sample_report / fetch_account_samples
-# ---------------------------------------------------------------------------
-
-class TestFindDuplicateSamples:
-    """Unit tests for find_duplicate_samples()."""
-
-    @staticmethod
-    def _account_record(title: str = "", alias: str = "", accession: str = "ERS001") -> dict[str, str]:
-        return {"title": title, "alias": alias, "accession": accession, "secondary_accession": "", "status": "PRIVATE"}
-
-    def test_exact_alias_match_detected(self) -> None:
-        new = [{"SAMPLE_TITLE": "Different", "alias": "my-alias"}]
-        account = [self._account_record(alias="my-alias", accession="ERS10")]
-        dups = find_duplicate_samples(new, account)
-        assert 0 in dups
-        assert dups[0]["accession"] == "ERS10"
-        assert "alias" in dups[0]["match_reason"]
-
-    def test_exact_title_match_detected(self) -> None:
-        new = [{"SAMPLE_TITLE": "My Metagenome Sample"}]
-        account = [self._account_record(title="My Metagenome Sample", accession="ERS20")]
-        dups = find_duplicate_samples(new, account)
-        assert 0 in dups
-        assert "title" in dups[0]["match_reason"]
-
-    def test_no_match_returns_empty_dict(self) -> None:
-        new = [{"SAMPLE_TITLE": "Novel Sample", "alias": "novel-alias"}]
-        account = [self._account_record(title="Old Sample", alias="old-alias")]
-        assert find_duplicate_samples(new, account) == {}
-
-    def test_empty_account_returns_empty_dict(self) -> None:
-        assert find_duplicate_samples([{"SAMPLE_TITLE": "Any"}], []) == {}
-
-    def test_empty_new_samples_returns_empty_dict(self) -> None:
-        assert find_duplicate_samples([], [self._account_record(title="Existing")]) == {}
-
-    def test_partial_title_not_a_duplicate(self) -> None:
-        new = [{"SAMPLE_TITLE": "Metagenome"}]
-        account = [self._account_record(title="Metagenome Sample 1")]
-        assert find_duplicate_samples(new, account) == {}
-
-    def test_only_matching_index_flagged(self) -> None:
-        account = [self._account_record(title="Old Sample", accession="ERS50")]
-        new = [{"SAMPLE_TITLE": "Old Sample"}, {"SAMPLE_TITLE": "New Sample"}]
-        dups = find_duplicate_samples(new, account)
-        assert 0 in dups
-        assert 1 not in dups
-
-    def test_index_corresponds_to_position_in_list(self) -> None:
-        account = [self._account_record(title="Sample C", accession="ERS33")]
-        new = [{"SAMPLE_TITLE": "Sample A"}, {"SAMPLE_TITLE": "Sample B"}, {"SAMPLE_TITLE": "Sample C"}]
-        dups = find_duplicate_samples(new, account)
-        assert 2 in dups
-        assert dups[2]["accession"] == "ERS33"
-
-
-class TestFetchAccountSamples:
-    """Unit tests for fetch_account_samples() — verifies it delegates to WebinClient correctly."""
-
-    def test_returns_empty_list_when_no_reports(self) -> None:
-        client = _make_client(samples=[])
-        assert fetch_account_samples(client) == []
-
-    def test_converts_sample_report_to_dict(self) -> None:
-        sample = SampleReport(alias="s1", accession="ERS1", secondary_accession="SAMEA1", title="T1", status="PRIVATE")
-        client = _make_client(samples=[sample])
-        result = fetch_account_samples(client)
-        assert len(result) == 1
-        assert result[0] == {
-            "alias": "s1", "title": "T1", "accession": "ERS1",
-            "secondary_accession": "SAMEA1", "status": "PRIVATE",
-        }
-
-    def test_passes_max_results_to_client(self) -> None:
-        client = _make_client(samples=[])
-        fetch_account_samples(client, max_results=100)
-        client.reports.list_samples.assert_called_once_with(max_results=100)
-
-    def test_multiple_reports_all_converted(self) -> None:
-        samples = [
-            SampleReport(alias="s1", accession="ERS1", title="T1", status="PRIVATE"),
-            SampleReport(alias="s2", accession="ERS2", title="T2", status="PUBLIC"),
-        ]
-        client = _make_client(samples=samples)
-        result = fetch_account_samples(client)
-        assert len(result) == 2
-        assert result[1]["accession"] == "ERS2"
-
-
-# ---------------------------------------------------------------------------
-# E. CLI integration tests
+# D. CLI integration tests
 # ---------------------------------------------------------------------------
 
 def _make_sample_json(sample: dict[str, Any]) -> str:
@@ -565,16 +473,17 @@ class TestMainCli:
     def test_duplicate_detected_without_force_skips_submission(
         self, runner: CliRunner, basic_sample: dict[str, Any]
     ) -> None:
-        existing = {
-            "title": basic_sample["SAMPLE_TITLE"], "alias": basic_sample["alias"],
-            "accession": "ERS55555", "secondary_accession": "SAMEA55555", "status": "PRIVATE",
-        }
+        existing = SampleReport(
+            title=basic_sample["SAMPLE_TITLE"], alias=basic_sample["alias"],
+            accession="ERS55555", secondary_accession="SAMEA55555", status="PRIVATE",
+        )
         with runner.isolated_filesystem():
             Path("samples.json").write_text(_make_sample_json(basic_sample))
             with (
                 patch(self._CRED, return_value=("Webin-12345", "pass")),
-                patch("submit_sample.fetch_account_samples", return_value=[existing]),
+                patch("submit_sample.WebinClient") as MockClient,
             ):
+                MockClient.return_value.reports.list_samples.return_value = [existing]
                 result = runner.invoke(
                     app, ["--input", "samples.json"] + self._base_args(),
                     catch_exceptions=False,
@@ -588,19 +497,20 @@ class TestMainCli:
     def test_force_flag_with_duplicate_triggers_modify(
         self, runner: CliRunner, basic_sample: dict[str, Any]
     ) -> None:
-        existing = {
-            "title": basic_sample["SAMPLE_TITLE"], "alias": basic_sample["alias"],
-            "accession": "ERS66666", "secondary_accession": "", "status": "PRIVATE",
-        }
+        existing = SampleReport(
+            title=basic_sample["SAMPLE_TITLE"], alias=basic_sample["alias"],
+            accession="ERS66666", secondary_accession="", status="PRIVATE",
+        )
         mock_acc = [{"alias": "test-sample-001", "accession": "ERS66666", "status": "PRIVATE",
                      "holdUntilDate": "", "external_accession": "", "external_type": ""}]
         with runner.isolated_filesystem():
             Path("samples.json").write_text(_make_sample_json(basic_sample))
             with (
                 patch(self._CRED, return_value=("Webin-12345", "pass")),
-                patch("submit_sample.fetch_account_samples", return_value=[existing]),
+                patch("submit_sample.WebinClient") as MockClient,
                 patch(self._SUBMIT, return_value=(True, mock_acc, [])),
             ):
+                MockClient.return_value.reports.list_samples.return_value = [existing]
                 result = runner.invoke(
                     app, ["--input", "samples.json"] + self._base_args() + ["--force"],
                     catch_exceptions=False,
