@@ -23,16 +23,19 @@ Examples:
 from __future__ import annotations
 
 import json
+import logging
 import sys
 from pathlib import Path
 
 import typer
 
+from ena_common import setup_logging
 from linkml_lib import dh_data, io, pipeline, schema as schema_mod, transform
 from linkml_lib.io import DEFAULT_BASE_URI
 from linkml_lib.schema import SLOT_META_COLUMNS
 
 app = typer.Typer(help="DataHarmonizer LinkML schema operations.", no_args_is_help=True)
+logger = logging.getLogger("ena_submit.validate")
 
 
 # ---------------------------------------------------------------------------
@@ -209,18 +212,43 @@ def remap_data_cmd(
 def validate_data_cmd(
     input_file: Path = typer.Argument(..., exists=True, help="DataHarmonizer JSON or list of records."),
     schema_file: Path = typer.Argument(..., exists=True, help="LinkML YAML schema."),
+    target_class: str | None = typer.Option(None, "--target-class", "-C",
+                                            help="Class to validate against (default: dh_interface main class)."),
+    strict: bool = typer.Option(False, "--strict",
+                                help="Stop validation at the first error per record."),
+    remap: bool = typer.Option(True, "--remap/--no-remap",
+                               help="Remap title-keyed DH records to slot-name keys before validating."),
+    log: Path | None = typer.Option(None, "--log", help="Optional log file (stderr is always used)."),
 ) -> None:
-    """Validate records against the schema (required fields, enums, types).
+    """Validate DataHarmonizer records against the schema via linkml.validator.
 
-    Exits non-zero if any record fails validation. Prints all messages.
+    Exits non-zero if any record produces a validation ERROR or FATAL.
     """
+    setup_logging(log)
     data = json.loads(input_file.read_text())
     s = io.load_yaml(schema_file)
     records = _records_from_dh(data)
-    is_valid, messages = dh_data.validate(records, s)
-    for msg in messages:
-        typer.echo(msg)
-    raise typer.Exit(0 if is_valid else 1)
+    if remap:
+        records = dh_data.remap_titles_to_names(records, s)
+
+    logger.info("Validating %d record(s) against %s", len(records), schema_file)
+    try:
+        report = dh_data.validate(records, s, target_class=target_class, strict=strict)
+    except ValueError as exc:
+        logger.error("%s", exc)
+        raise typer.Exit(2)
+
+    errors = 0
+    for r in report.results:
+        level = logging.ERROR if r.severity.value in ("ERROR", "FATAL") else logging.WARNING
+        logger.log(level, "%s [%s]: %s", r.severity.value, r.instantiates, r.message)
+        if r.severity.value in ("ERROR", "FATAL"):
+            errors += 1
+
+    if errors:
+        logger.error("Validation FAILED: %d error(s) across %d record(s)", errors, len(records))
+        raise typer.Exit(1)
+    logger.info("Validation PASSED (%d record(s))", len(records))
 
 
 # ---------------------------------------------------------------------------

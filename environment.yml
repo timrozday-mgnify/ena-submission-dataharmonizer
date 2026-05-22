@@ -7,6 +7,7 @@ dependencies:
   - linkml-runtime>=1.8
   - pip
   - pip:
+      - linkml>=1.7
       - textual>=1.0
       - rich>=13.0
       - typer>=0.9
