@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ena-dh-scripts"
+version = "0.1.0"
+description = "ENA sample/study submission scripts shared with mimicc-ena-submission-assistant."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+  { name = "MIMICC contributors" }
+]
+dependencies = [
+  "httpx>=0.27",
+  "pendulum",
+]
+
+[tool.setuptools]
+py-modules = ["ena_common", "submit_sample", "submit_study", "prepare_dh_output"]
+
+[tool.setuptools.package-dir]
+"" = "scripts"
