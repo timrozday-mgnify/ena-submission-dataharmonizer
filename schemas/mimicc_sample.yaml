@@ -1,0 +1,1305 @@
+id: https://github.com/timrozday/ena-submission-dataharmonizer/MIMICC_Sample
+name: MIMICC_Sample
+title: MIMICC Sample Submission
+description: >-
+  Schema for MIMICC sample metadata submission to ENA. Filtered from
+  mimicc_sample_experiment.yaml down to the ERC000025/ENA.sample/ENA.project/MIMICC.custom
+  -scoped slots (via scripts/dh_schema.py filter-data's SQL-WHERE-on-slot-metadata
+  mechanism, applied to schema slots rather than export data: source IN ('ERC000025',
+  'MIMICC.custom', 'ENA.sample', 'ENA.project')). Covers ERC000025 sample metadata and
+  MIMICC-specific culture and perturbation attributes. Does not include experiment/library
+  metadata (see mimicc_experiment.yaml) or study metadata.
+version: 1.0.0
+imports:
+- linkml:types
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ENA: https://www.ebi.ac.uk/ena/browser/view/
+default_range: string
+classes:
+  dh_interface:
+    annotations:
+      id: dh_interface
+    description: A DataHarmonizer interface
+    from_schema: https://github.com/timrozday/ena-submission-dataharmonizer/MIMICC_Sample
+  MIMICC_Sample:
+    annotations:
+      id: MIMICC_Sample
+    title: MIMICC sample submission
+    description: >-
+      Sequencing-experiment metadata is entered separately (see mimicc_experiment.yaml);
+      this class covers only sample collection, culture, and perturbation metadata.
+    is_a: dh_interface
+    slots:
+    - alias
+    - SAMPLE_TITLE
+    - source_material_identifiers
+    - collection_date
+    - fermenter_run_id
+    - fermenter_tank
+    - time_from_inoculation_h
+    - perturbation_type
+    - perturbation_value
+    - perturbation_start_time_h
+    - turbidity_OD600
+    - redox_potential
+    - dilution_rate
+    - temperature
+    - ph
+    - isolation_and_growth_condition
+    - environmental_medium
+    - syncom_id
+    - amount_or_size_of_sample_collected
+    - sample_collection_device
+    - sample_collection_method
+    - sample_material_processing
+    - sample_storage_location
+    - sample_storage_temperature
+    - nucleic_acid_extraction
+    - nucleic_acid_amplification
+    - library_construction_method
+    - pcr_conditions
+    - pcr_primers
+    - sample_volume_or_weight_for_dna_extraction
+    - library_size
+    - adapters
+    - project_name
+    - TAXON_ID
+    - SCIENTIFIC_NAME
+    - geographic_location_country_andor_sea
+    - geographic_location_latitude
+    - geographic_location_longitude
+    - geographic_location_region_and_locality
+    - broadscale_environmental_context
+    - local_environmental_context
+    - COMMON_NAME
+    - STRAIN
+    - ISOLATE
+    slot_usage:
+      alias:
+        rank: 1
+        slot_group: Identifiers
+      SAMPLE_TITLE:
+        rank: 2
+        slot_group: Identifiers
+      source_material_identifiers:
+        rank: 3
+        slot_group: Identifiers
+      collection_date:
+        rank: 4
+        slot_group: Experimental factors
+      fermenter_run_id:
+        rank: 5
+        slot_group: Experimental factors
+      fermenter_tank:
+        rank: 6
+        slot_group: Experimental factors
+      time_from_inoculation_h:
+        rank: 7
+        slot_group: Experimental factors
+      perturbation_type:
+        rank: 8
+        slot_group: Experimental factors
+      perturbation_value:
+        rank: 9
+        slot_group: Experimental factors
+      perturbation_start_time_h:
+        rank: 10
+        slot_group: Experimental factors
+      turbidity_OD600:
+        rank: 11
+        slot_group: Experimental factors
+      redox_potential:
+        rank: 12
+        slot_group: Experimental factors
+      dilution_rate:
+        rank: 13
+        slot_group: Experimental factors
+      temperature:
+        rank: 14
+        slot_group: Experimental factors
+      ph:
+        rank: 15
+        slot_group: Experimental factors
+      isolation_and_growth_condition:
+        rank: 16
+        slot_group: Experimental factors
+      environmental_medium:
+        rank: 17
+        slot_group: Experimental factors
+      syncom_id:
+        rank: 18
+        slot_group: Experimental factors
+      amount_or_size_of_sample_collected:
+        rank: 19
+        slot_group: Sample collection
+      sample_collection_device:
+        rank: 20
+        slot_group: Sample collection
+      sample_collection_method:
+        rank: 21
+        slot_group: Sample collection
+      sample_material_processing:
+        rank: 22
+        slot_group: Sample collection
+      sample_storage_location:
+        rank: 23
+        slot_group: Sample collection
+      sample_storage_temperature:
+        rank: 24
+        slot_group: Sample collection
+      nucleic_acid_extraction:
+        rank: 25
+        slot_group: DNA extraction
+      nucleic_acid_amplification:
+        rank: 26
+        slot_group: DNA extraction
+      library_construction_method:
+        rank: 27
+        slot_group: DNA extraction
+      pcr_conditions:
+        rank: 28
+        slot_group: DNA extraction
+      pcr_primers:
+        rank: 29
+        slot_group: DNA extraction
+      sample_volume_or_weight_for_dna_extraction:
+        rank: 30
+        slot_group: DNA extraction
+      library_size:
+        rank: 31
+        slot_group: DNA sequencing
+      adapters:
+        rank: 32
+        slot_group: DNA extraction
+      project_name:
+        rank: 33
+        slot_group: Study information
+      TAXON_ID:
+        rank: 34
+        slot_group: Study information
+      SCIENTIFIC_NAME:
+        rank: 35
+        slot_group: Study information
+      geographic_location_country_andor_sea:
+        rank: 36
+        slot_group: Study information
+      geographic_location_latitude:
+        rank: 37
+        slot_group: Study information
+      geographic_location_longitude:
+        rank: 38
+        slot_group: Study information
+      geographic_location_region_and_locality:
+        rank: 39
+        slot_group: Study information
+      broadscale_environmental_context:
+        rank: 40
+        slot_group: Study information
+      local_environmental_context:
+        rank: 41
+        slot_group: Study information
+      COMMON_NAME:
+        rank: 42
+        slot_group: Other
+      STRAIN:
+        rank: 43
+        slot_group: Other
+      ISOLATE:
+        rank: 44
+        slot_group: Other
+slots:
+  alias:
+    annotations:
+      id: alias
+      source: ENA.sample
+    title: Sample alias (ENA sample alias)
+    description: Unique alias for the sample within this submission account. Used as a cross-reference key in experiment and
+      run objects. Auto-generated as {project_name}_{fermenter_run_id}_{fermenter_tank}_{time_from_inoculation_h} (e.g. MIMICC_Run1_A_48).
+    range: string
+    required: true
+    recommended: true
+    ifabsent: formula(=CONCATENATE({project_name}, "_", {fermenter_run_id}, "_", {fermenter_tank}, "_", {time_from_inoculation_h}))
+  SAMPLE_TITLE:
+    annotations:
+      id: SAMPLE_TITLE
+      source: ENA.sample
+    title: Sample title
+    description: Short human-readable title for the sample. Auto-generated as {project_name}_{fermenter_run_id}_{fermenter_tank}_{time_from_inoculation_h}
+      (e.g. MIMICC_Run1_A_48).
+    range: string
+    required: true
+    recommended: true
+    ifabsent: formula(=CONCATENATE({project_name}, "_", {fermenter_run_id}, "_", {fermenter_tank}, "_", {time_from_inoculation_h}))
+  source_material_identifiers:
+    annotations:
+      id: source material identifiers
+      source: ERC000025
+    title: Sample name (Source material identifiers)
+    description: A unique identifier assigned to a material sample (as defined by http://rs.tdwg.org/dwc/terms/materialSampleID)
+      used for extracting nucleic acids, and subsequent sequencing. The identifier can refer either to the original material
+      collected or to any derived sub-samples. For MIMICC, must be unique per sample. Auto-generated as {project_name}_{fermenter_run_id}_{fermenter_tank}_{time_from_inoculation_h}
+      (e.g. MIMICC_Run1_A_48).
+    range: string
+    required: true
+    recommended: true
+    ifabsent: formula(=CONCATENATE({project_name}, "_", {fermenter_run_id}, "_", {fermenter_tank}, "_", {time_from_inoculation_h}))
+  collection_date:
+    annotations:
+      id: collection date
+      source: ERC000025
+    title: Collection date
+    description: 'The date the sample was collected with the intention of sequencing, either as an instance (single point
+      in time) or interval. In case no exact time is available, the date/time can be right truncated i.e. all of these are
+      valid ISO8601 compliant times: 2008-01-23T19:23:10+00:00; 2008-01-23T19:23:10; 2008-01-23; 2008-01; 2008.'
+    range: date
+    required: true
+    recommended: true
+    pattern: '(^[12][0-9]{3}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01])(T[0-9]{2}:[0-9]{2}(:[0-9]{2})?Z?([+-][0-9]{1,2})?)?)?)?(/[0-9]{4}(-[0-9]{2}(-[0-9]{2}(T[0-9]{2}:[0-9]{2}(:[0-9]{2})?Z?([+-][0-9]{1,2})?)?)?)?)?$)|(^not
+      applicable$)|(^not collected$)|(^not provided$)|(^restricted access$)|(^missing: control sample$)|(^missing: sample
+      group$)|(^missing: synthetic construct$)|(^missing: lab stock$)|(^missing: third party data$)|(^missing: data agreement
+      established pre-2023$)|(^missing: endangered species$)|(^missing: human-identifiable$)|(^missing$)'
+  fermenter_run_id:
+    annotations:
+      id: fermenter_run_id
+      source: MIMICC.custom
+    title: Fermenter run ID
+    description: Identifier grouping all samples from one continuous culture run in a single physical fermenter vessel. Used
+      to aggregate longitudinal data across timepoints.
+    range: string
+    required: true
+    recommended: true
+  fermenter_tank:
+    annotations:
+      id: fermenter_tank
+      source: MIMICC.custom
+    title: Fermenter tank
+    description: Identifier for the specific tank within a multi-tank fermenter (e.g. A, B). Distinguishes parallel cultures
+      sharing the same setup but running side-by-side.
+    range: string
+    required: true
+    recommended: true
+  time_from_inoculation_h:
+    annotations:
+      id: time_from_inoculation_h
+      source: MIMICC.custom
+    title: Time from inoculation (h)
+    description: Hours elapsed since SynCom inoculation. Enables longitudinal alignment across culture runs.
+    range: float
+    required: true
+    recommended: true
+    comments:
+    - 'Allowed units: h'
+  perturbation_type:
+    annotations:
+      id: perturbation_type
+      source: MIMICC.custom
+    title: Perturbation type
+    description: Category of perturbation applied to the culture at or before sampling.
+    range: PerturbationTypeMenu
+    recommended: true
+    ifabsent: string(none)
+  perturbation_value:
+    annotations:
+      id: perturbation_value
+      source: MIMICC.custom
+    title: Perturbation value
+    description: Magnitude or direction of the perturbation applied.
+    range: string
+    recommended: true
+    comments:
+    - 'Examples: +2C, -2C, phage ATCC 51477-B1'
+  perturbation_start_time_h:
+    annotations:
+      id: perturbation_start_time_h
+      source: MIMICC.custom
+    title: Perturbation start time (h)
+    description: Hours from inoculation when the perturbation began.
+    range: float
+    recommended: true
+    comments:
+    - 'Allowed units: h'
+  turbidity_OD600:
+    annotations:
+      id: turbidity_OD600
+      source: MIMICC.custom
+    title: Turbidity OD600
+    description: Optical density at 600 nm measured at the time of sampling. Direct readout from the Multifors2 sensor.
+    range: float
+    required: false
+    recommended: true
+  redox_potential:
+    annotations:
+      id: redox_potential
+      source: MIMICC.custom
+    title: Redox potential
+    description: Oxidation-reduction potential of the culture medium at the time of sampling, measured by the Multifors2 sensor.
+      Typical steady-state values in anaerobic culture range from approximately -474 to -538 mV; values may range more widely
+      from around -250 mV during early culture phases.
+    range: float
+    recommended: true
+    comments:
+    - 'Allowed units: mV'
+  dilution_rate:
+    annotations:
+      id: dilution_rate
+      source: MIMICC.custom
+    title: Dilution rate
+    description: Continuous-culture dilution rate; the primary independent variable in dilution-rate titration experiments.
+      Calculated as feed flow rate divided by working volume (D = F/V). A feed flow of 250 mL/24 h with a 200 mL working volume
+      gives D = 0.052 h^-1.
+    range: float
+    required: true
+    recommended: true
+    ifabsent: float(0.052)
+    comments:
+    - 'Allowed units: h^-1'
+  temperature:
+    annotations:
+      id: temperature
+      source: ERC000025
+    title: Temperature
+    description: Temperature of the culture at the time of sampling. MIMICC baseline is 37 ºC (continuously controlled). Temperature
+      perturbation experiments use ±2 ºC shifts (35 ºC or 39 ºC).
+    range: string
+    required: true
+    recommended: true
+    pattern: '[+-]?(0|((0\.)|([1-9][0-9]*\.?))[0-9]*)([Ee][+-]?[0-9]+)?'
+    comments:
+    - 'Allowed units: ºC'
+    ifabsent: string(37)
+  ph:
+    annotations:
+      id: pH
+      source: ERC000025
+    title: pH
+    description: pH of the culture medium at sampling. MIMICC baseline is 7.3 (continuously monitored). pH may drift slightly
+      during culture; pH perturbation experiments use pH shifts as the independent variable.
+    range: string
+    required: true
+    recommended: true
+    pattern: (0|((0\.)|([1-9][0-9]*\.?))[0-9]*)([Ee][+-]?[0-9]+)?
+    ifabsent: string(7.3)
+  isolation_and_growth_condition:
+    annotations:
+      id: isolation and growth condition
+      source: ERC000025
+    title: Isolation and growth condition
+    description: Publication reference in the form of pubmed ID (pmid), digital object identifier (doi) or url for isolation
+      and growth condition specifications of the organism/material. Mandatory for MIGS and MIMARKS Specimen. For MIMICC, this
+      field may be left empty if the continuous culture protocol is not yet published; add a DOI or URL when the protocol
+      paper becomes available.
+    range: string
+    required: true
+    recommended: true
+    ifabsent: string(DOI TBD)
+  environmental_medium:
+    annotations:
+      id: environmental medium
+      source: ERC000025
+    title: Environmental medium
+    description: Report the environmental material(s) immediately surrounding the sample or specimen at the time of sampling.
+      We recommend using subclasses of environmental material (http://purl.obolibrary.org/obo/ENVO_00010483). For MIMICC continuous
+      culture samples, this is modified Gifu Anaerobic Medium Broth (mGAM; Nissui Pharmaceutical); add a DOI or URL when the
+      protocol paper is published.
+    range: string
+    required: true
+    recommended: true
+    ifabsent: string(modified Gifu Anaerobic Medium Broth (mGAM) [doi.org/10.1038/s41564-018-0123-9])
+  syncom_id:
+    annotations:
+      id: syncom_id
+      source: MIMICC.custom
+    title: SynCom ID
+    description: Identifier for the synthetic community variant being cultured.
+    range: string
+    required: true
+    recommended: true
+    ifabsent: string(20HM)
+    comments:
+    - 'Examples: 20HM, 20HM+Pv-PC510, 20HM+M.smithii-DSM2374, 20HM+phage-ATCC-51477-B1'
+  amount_or_size_of_sample_collected:
+    annotations:
+      id: amount or size of sample collected
+      source: ERC000025
+    title: Amount or size of sample collected
+    description: The total amount or size (volume (ml), mass (g) or area (m2)) of sample collected.
+    range: string
+    ifabsent: string(1 mL)
+    pattern: (0|((0\.)|([1-9][0-9]*\.?))[0-9]*)([Ee][+-]?[0-9]+)?
+    comments:
+    - 'Allowed units: m2'
+    - m3
+    - g
+    - L
+    - kg
+  sample_collection_device:
+    annotations:
+      id: sample collection device
+      source: ERC000025
+    title: Sample collection device
+    description: The device used to collect an environmental sample. It is recommended to use terms listed under environmental
+      sampling device (http://purl.obolibrary.org/obo/ENVO) and/or terms listed under specimen collection device (http://purl.obolibrary.org/obo/GENEPIO_0002094).
+    range: string
+    required: true
+    ifabsent: string(sterile pipette tip)
+  sample_collection_method:
+    annotations:
+      id: sample collection method
+      source: ERC000025
+    title: Sample collection method
+    description: The method employed for collecting the sample. Can be provided in the form of a PMID, DOI, url or text.
+    range: string
+    required: true
+    recommended: true
+    ifabsent: string(aseptic withdrawal from bioreactor sampling port)
+  sample_material_processing:
+    annotations:
+      id: sample material processing
+      source: ERC000025
+    title: Sample material processing
+    description: A brief description of any processing applied to the sample during or after retrieving the sample from environment,
+      or a link to the relevant protocol(s) performed.
+    range: string
+    recommended: true
+    ifabsent: string(centrifuged; pellet flash-frozen)
+  sample_storage_location:
+    annotations:
+      id: sample storage location
+      source: ERC000025
+    title: Sample storage location
+    description: Location at which sample was stored, usually name of a specific freezer/room. Indicate the location name.
+    range: string
+    ifabsent: string(CAU Kiel -80 freezer)
+  sample_storage_temperature:
+    annotations:
+      id: sample storage temperature
+      source: ERC000025
+    title: Sample storage temperature
+    description: temperature at which sample was stored, e.g. -80
+    range: string
+    ifabsent: string(-80)
+    pattern: '[+-]?(0|((0\.)|([1-9][0-9]*\.?))[0-9]*)([Ee][+-]?[0-9]+)?'
+    comments:
+    - 'Allowed units: °C'
+  nucleic_acid_extraction:
+    annotations:
+      id: nucleic acid extraction
+      source: ERC000025
+    title: Nucleic acid extraction
+    description: A link to a literature reference, electronic resource or a standard operating procedure (SOP), that describes
+      the material separation to recover the nucleic acid fraction from a sample
+    range: string
+    required: true
+    recommended: true
+    ifabsent: string(protocol DOI TBD)
+  nucleic_acid_amplification:
+    annotations:
+      id: nucleic acid amplification
+      source: ERC000025
+    title: Nucleic acid amplification
+    description: A link to a literature reference, electronic resource or a standard operating procedure (SOP), that describes
+      the enzymatic amplification (PCR, TMA, NASBA) of specific nucleic acids (e.g. V4 16S rRNA PCR (Illumina), full-length
+      16S (ONT))
+    range: string
+    required: true
+    recommended: true
+    ifabsent: string(V3-V4 16S rRNA PCR (Illumina))
+  library_construction_method:
+    annotations:
+      id: library construction method
+      source: ERC000025
+    title: Library construction method
+    description: Library construction method used for clone libraries (e.g. Illumina Nextera XT (short-read) or ONT ligation
+      kit SQK-LSK114 (long-read))
+    range: string
+    recommended: true
+    ifabsent: string(Illumina Nextera XT)
+  pcr_conditions:
+    annotations:
+      id: pcr conditions
+      source: ERC000025
+    title: PCR conditions
+    description: Description of reaction conditions and components for PCR in the form of 'initial denaturation:94degC_1.5min;
+      annealing=...'
+    range: string
+    recommended: true
+    ifabsent: string(standard 16S protocol (cite DOI))
+  pcr_primers:
+    annotations:
+      id: pcr primers
+      source: ERC000025
+    title: PCR primers
+    description: PCR primers that were used to amplify the sequence of the targeted gene, locus or subfragment. This field
+      should contain all the primers used for a single PCR reaction if multiple forward or reverse primers are present in
+      a single PCR reaction. The primer sequence should be reported in uppercase letters (e.g. V3-V4 341F/805R (short-read);
+      27F/1492R (ONT long-read))
+    range: string
+    recommended: true
+    ifabsent: 'string(V3-V4: 341F/805R)'
+  sample_volume_or_weight_for_dna_extraction:
+    annotations:
+      id: sample volume or weight for DNA extraction
+      source: ERC000025
+      mimicc_default_unit: mg
+    title: Sample volume or weight for DNA extraction
+    description: 'Volume (ml) or mass (g) of total collected sample processed for DNA extraction. Note: total sample collected
+      should be entered under the term sample size.'
+    range: string
+    recommended: true
+    ifabsent: string(200)
+    pattern: (0|((0\.)|([1-9][0-9]*\.?))[0-9]*)([Ee][+-]?[0-9]+)?
+    comments:
+    - 'Allowed units: g'
+    - ng
+    - mg
+    - mL
+  library_size:
+    annotations:
+      id: library size
+      source: ERC000025
+    title: Library size
+    description: Total number of clones in the library prepared for the project
+    range: string
+    ifabsent: string(not applicable)
+  adapters:
+    annotations:
+      id: adapters
+      source: ERC000025
+    title: Adapters
+    description: Adapters provide priming sequences for both amplification and sequencing of the sample-library fragments.
+      Both adapters should be reported; in uppercase letters (e.g. Illumina Nextera adapters or ONT barcode adapters)
+    range: string
+    recommended: true
+    ifabsent: string(Illumina Nextera adapters)
+  project_name:
+    annotations:
+      id: project name
+      source: ERC000025
+    title: Project name
+    description: Name of the project within which the sequencing was organized
+    range: string
+    required: true
+    ifabsent: string(MIMICC)
+  TAXON_ID:
+    annotations:
+      id: TAXON_ID
+      source: ENA.project
+    title: Taxon ID
+    description: NCBI taxonomy identifier for the sample organism.
+    range: integer
+    required: true
+    ifabsent: int(1235509)
+    comments:
+    - Default 1235509 = synthetic metagenome (for SynCom samples). Use species-level taxid for isolate WGS.
+  SCIENTIFIC_NAME:
+    annotations:
+      id: SCIENTIFIC_NAME
+      source: ENA.project
+    title: Scientific name
+    description: Scientific name matching TAXON_ID exactly.
+    range: string
+    required: true
+    ifabsent: string(synthetic metagenome)
+    comments:
+    - Default pairs with taxid 1235509. Switch to species-level name for isolate WGS.
+  geographic_location_country_andor_sea:
+    annotations:
+      id: geographic location (country and/or sea)
+      source: ERC000025
+    title: Geographic location (country and/or sea)
+    description: The geographical origin of where the sample was collected from, with the intention of sequencing, as defined
+      by the country or sea name. Country or sea names should be chosen from the INSDC country list (http://insdc.org/country.html).
+    range: GeographicLocationCountryAndorSeaMenu
+    required: true
+    ifabsent: string(Germany)
+  geographic_location_latitude:
+    annotations:
+      id: geographic location (latitude)
+      source: ERC000025
+    title: Geographic location (latitude)
+    description: The geographical origin of the sample as defined by latitude. The values should be reported in decimal degrees
+      and in WGS84 system
+    range: string
+    required: true
+    ifabsent: string(54.3324)
+    pattern: '(^[+-]?[0-9]+.?[0-9]{0,8}$)|(^not applicable$)|(^not collected$)|(^not provided$)|(^restricted access$)|(^missing:
+      control sample$)|(^missing: sample group$)|(^missing: synthetic construct$)|(^missing: lab stock$)|(^missing: third
+      party data$)|(^missing: data agreement established pre-2023$)|(^missing: endangered species$)|(^missing: human-identifiable$)|(^missing$)'
+    comments:
+    - 'Allowed units: DD'
+  geographic_location_longitude:
+    annotations:
+      id: geographic location (longitude)
+      source: ERC000025
+    title: Geographic location (longitude)
+    description: The geographical origin of the sample as defined by longitude. The values should be reported in decimal degrees
+      and in WGS84 system
+    range: string
+    required: true
+    ifabsent: string(10.1212)
+    pattern: '(^[+-]?[0-9]+.?[0-9]{0,8}$)|(^not applicable$)|(^not collected$)|(^not provided$)|(^restricted access$)|(^missing:
+      control sample$)|(^missing: sample group$)|(^missing: synthetic construct$)|(^missing: lab stock$)|(^missing: third
+      party data$)|(^missing: data agreement established pre-2023$)|(^missing: endangered species$)|(^missing: human-identifiable$)|(^missing$)'
+    comments:
+    - 'Allowed units: DD'
+  geographic_location_region_and_locality:
+    annotations:
+      id: geographic location (region and locality)
+      source: ERC000025
+    title: Geographic location (region and locality)
+    description: The geographical origin of the sample as defined by the specific region name followed by the locality name.
+    range: string
+    ifabsent: string(Kiel, Schleswig-Holstein, Germany)
+  broadscale_environmental_context:
+    annotations:
+      id: broad-scale environmental context
+      source: ERC000025
+    title: Broad-scale environmental context
+    description: 'Report the major environmental system the sample or specimen came from. The system(s) identified should
+      have a coarse spatial grain, to provide the general environmental context of where the sampling was done (e.g. in the
+      desert or a rainforest). We recommend using subclasses of EnvO biome class: http://purl.obolibrary.org/obo/ENVO_00000428.'
+    range: string
+    required: true
+    ifabsent: string(laboratory environment [ENVO:01001384])
+  local_environmental_context:
+    annotations:
+      id: local environmental context
+      source: ERC000025
+    title: Local environmental context
+    description: Report the entity or entities which are in the sample or specimen's local vicinity and which you believe
+      have significant causal influences on your sample or specimen. We recommend using EnvO terms which are of smaller spatial
+      grain than your entry for broad-scale environmental context.
+    range: string
+    required: true
+    ifabsent: string(bioreactor [ENVO:03501336])
+  COMMON_NAME:
+    annotations:
+      id: COMMON_NAME
+      source: ENA.project
+    title: Common name
+    description: Common name for the organism. Usually omitted for metagenomes.
+    range: string
+  STRAIN:
+    annotations:
+      id: STRAIN
+      source: ENA.project
+    title: Strain
+    description: Strain identifier. Use only when sequencing a single isolate.
+    range: string
+  ISOLATE:
+    annotations:
+      id: ISOLATE
+      source: ENA.project
+    title: Isolate
+    description: Isolate label. Use only when sequencing a single isolate.
+    range: string
+enums:
+  GeographicLocationCountryAndorSeaMenu:
+    annotations:
+      id: GeographicLocationCountryAndorSeaMenu
+    permissible_values:
+      Afghanistan:
+        text: Afghanistan
+      Albania:
+        text: Albania
+      Algeria:
+        text: Algeria
+      American Samoa:
+        text: American Samoa
+      Andorra:
+        text: Andorra
+      Angola:
+        text: Angola
+      Anguilla:
+        text: Anguilla
+      Antarctica:
+        text: Antarctica
+      Antigua and Barbuda:
+        text: Antigua and Barbuda
+      Arctic Ocean:
+        text: Arctic Ocean
+      Argentina:
+        text: Argentina
+      Armenia:
+        text: Armenia
+      Aruba:
+        text: Aruba
+      Ashmore and Cartier Islands:
+        text: Ashmore and Cartier Islands
+      Atlantic Ocean:
+        text: Atlantic Ocean
+      Australia:
+        text: Australia
+      Austria:
+        text: Austria
+      Azerbaijan:
+        text: Azerbaijan
+      Bahamas:
+        text: Bahamas
+      Bahrain:
+        text: Bahrain
+      Baker Island:
+        text: Baker Island
+      Baltic Sea:
+        text: Baltic Sea
+      Bangladesh:
+        text: Bangladesh
+      Barbados:
+        text: Barbados
+      Bassas da India:
+        text: Bassas da India
+      Belarus:
+        text: Belarus
+      Belgium:
+        text: Belgium
+      Belize:
+        text: Belize
+      Benin:
+        text: Benin
+      Bermuda:
+        text: Bermuda
+      Bhutan:
+        text: Bhutan
+      Bolivia:
+        text: Bolivia
+      Borneo:
+        text: Borneo
+      Bosnia and Herzegovina:
+        text: Bosnia and Herzegovina
+      Botswana:
+        text: Botswana
+      Bouvet Island:
+        text: Bouvet Island
+      Brazil:
+        text: Brazil
+      British Virgin Islands:
+        text: British Virgin Islands
+      Brunei:
+        text: Brunei
+      Bulgaria:
+        text: Bulgaria
+      Burkina Faso:
+        text: Burkina Faso
+      Burundi:
+        text: Burundi
+      Cambodia:
+        text: Cambodia
+      Cameroon:
+        text: Cameroon
+      Canada:
+        text: Canada
+      Cape Verde:
+        text: Cape Verde
+      Cayman Islands:
+        text: Cayman Islands
+      Central African Republic:
+        text: Central African Republic
+      Chad:
+        text: Chad
+      Chile:
+        text: Chile
+      China:
+        text: China
+      Christmas Island:
+        text: Christmas Island
+      Clipperton Island:
+        text: Clipperton Island
+      Cocos Islands:
+        text: Cocos Islands
+      Colombia:
+        text: Colombia
+      Comoros:
+        text: Comoros
+      Cook Islands:
+        text: Cook Islands
+      Coral Sea Islands:
+        text: Coral Sea Islands
+      Costa Rica:
+        text: Costa Rica
+      Cote d'Ivoire:
+        text: Cote d'Ivoire
+      Croatia:
+        text: Croatia
+      Cuba:
+        text: Cuba
+      Curacao:
+        text: Curacao
+      Cyprus:
+        text: Cyprus
+      Czechia:
+        text: Czechia
+      Czech Republic:
+        text: Czech Republic
+      Democratic Republic of the Congo:
+        text: Democratic Republic of the Congo
+      Denmark:
+        text: Denmark
+      Djibouti:
+        text: Djibouti
+      Dominica:
+        text: Dominica
+      Dominican Republic:
+        text: Dominican Republic
+      Ecuador:
+        text: Ecuador
+      Egypt:
+        text: Egypt
+      El Salvador:
+        text: El Salvador
+      Equatorial Guinea:
+        text: Equatorial Guinea
+      Eritrea:
+        text: Eritrea
+      Estonia:
+        text: Estonia
+      Eswatini:
+        text: Eswatini
+      Ethiopia:
+        text: Ethiopia
+      Europa Island:
+        text: Europa Island
+      Falkland Islands (Islas Malvinas):
+        text: Falkland Islands (Islas Malvinas)
+      Faroe Islands:
+        text: Faroe Islands
+      Fiji:
+        text: Fiji
+      Finland:
+        text: Finland
+      France:
+        text: France
+      French Guiana:
+        text: French Guiana
+      French Polynesia:
+        text: French Polynesia
+      French Southern and Antarctic Lands:
+        text: French Southern and Antarctic Lands
+      Gabon:
+        text: Gabon
+      Gambia:
+        text: Gambia
+      Gaza Strip:
+        text: Gaza Strip
+      Georgia:
+        text: Georgia
+      Germany:
+        text: Germany
+      Ghana:
+        text: Ghana
+      Gibraltar:
+        text: Gibraltar
+      Glorioso Islands:
+        text: Glorioso Islands
+      Greece:
+        text: Greece
+      Greenland:
+        text: Greenland
+      Grenada:
+        text: Grenada
+      Guadeloupe:
+        text: Guadeloupe
+      Guam:
+        text: Guam
+      Guatemala:
+        text: Guatemala
+      Guernsey:
+        text: Guernsey
+      Guinea:
+        text: Guinea
+      Guinea-Bissau:
+        text: Guinea-Bissau
+      Guyana:
+        text: Guyana
+      Haiti:
+        text: Haiti
+      Heard Island and McDonald Islands:
+        text: Heard Island and McDonald Islands
+      Honduras:
+        text: Honduras
+      Hong Kong:
+        text: Hong Kong
+      Howland Island:
+        text: Howland Island
+      Hungary:
+        text: Hungary
+      Iceland:
+        text: Iceland
+      India:
+        text: India
+      Indian Ocean:
+        text: Indian Ocean
+      Indonesia:
+        text: Indonesia
+      Iran:
+        text: Iran
+      Iraq:
+        text: Iraq
+      Ireland:
+        text: Ireland
+      Isle of Man:
+        text: Isle of Man
+      Israel:
+        text: Israel
+      Italy:
+        text: Italy
+      Jamaica:
+        text: Jamaica
+      Jan Mayen:
+        text: Jan Mayen
+      Japan:
+        text: Japan
+      Jarvis Island:
+        text: Jarvis Island
+      Jersey:
+        text: Jersey
+      Johnston Atoll:
+        text: Johnston Atoll
+      Jordan:
+        text: Jordan
+      Juan de Nova Island:
+        text: Juan de Nova Island
+      Kazakhstan:
+        text: Kazakhstan
+      Kenya:
+        text: Kenya
+      Kerguelen Archipelago:
+        text: Kerguelen Archipelago
+      Kingman Reef:
+        text: Kingman Reef
+      Kiribati:
+        text: Kiribati
+      Kosovo:
+        text: Kosovo
+      Kuwait:
+        text: Kuwait
+      Kyrgyzstan:
+        text: Kyrgyzstan
+      Laos:
+        text: Laos
+      Latvia:
+        text: Latvia
+      Lebanon:
+        text: Lebanon
+      Lesotho:
+        text: Lesotho
+      Liberia:
+        text: Liberia
+      Libya:
+        text: Libya
+      Liechtenstein:
+        text: Liechtenstein
+      Line Islands:
+        text: Line Islands
+      Lithuania:
+        text: Lithuania
+      Luxembourg:
+        text: Luxembourg
+      Macau:
+        text: Macau
+      Madagascar:
+        text: Madagascar
+      Malawi:
+        text: Malawi
+      Malaysia:
+        text: Malaysia
+      Maldives:
+        text: Maldives
+      Mali:
+        text: Mali
+      Malta:
+        text: Malta
+      Marshall Islands:
+        text: Marshall Islands
+      Martinique:
+        text: Martinique
+      Mauritania:
+        text: Mauritania
+      Mauritius:
+        text: Mauritius
+      Mayotte:
+        text: Mayotte
+      Mediterranean Sea:
+        text: Mediterranean Sea
+      Mexico:
+        text: Mexico
+      Micronesia, Federated States of:
+        text: Micronesia, Federated States of
+      Midway Islands:
+        text: Midway Islands
+      Moldova:
+        text: Moldova
+      Monaco:
+        text: Monaco
+      Mongolia:
+        text: Mongolia
+      Montenegro:
+        text: Montenegro
+      Montserrat:
+        text: Montserrat
+      Morocco:
+        text: Morocco
+      Mozambique:
+        text: Mozambique
+      Myanmar:
+        text: Myanmar
+      Namibia:
+        text: Namibia
+      Nauru:
+        text: Nauru
+      Navassa Island:
+        text: Navassa Island
+      Nepal:
+        text: Nepal
+      Netherlands:
+        text: Netherlands
+      New Caledonia:
+        text: New Caledonia
+      New Zealand:
+        text: New Zealand
+      Nicaragua:
+        text: Nicaragua
+      Niger:
+        text: Niger
+      Nigeria:
+        text: Nigeria
+      Niue:
+        text: Niue
+      Norfolk Island:
+        text: Norfolk Island
+      North Korea:
+        text: North Korea
+      North Macedonia:
+        text: North Macedonia
+      North Sea:
+        text: North Sea
+      Northern Mariana Islands:
+        text: Northern Mariana Islands
+      Norway:
+        text: Norway
+      Oman:
+        text: Oman
+      Pacific Ocean:
+        text: Pacific Ocean
+      Pakistan:
+        text: Pakistan
+      Palau:
+        text: Palau
+      Palmyra Atoll:
+        text: Palmyra Atoll
+      Panama:
+        text: Panama
+      Papua New Guinea:
+        text: Papua New Guinea
+      Paracel Islands:
+        text: Paracel Islands
+      Paraguay:
+        text: Paraguay
+      Peru:
+        text: Peru
+      Philippines:
+        text: Philippines
+      Pitcairn Islands:
+        text: Pitcairn Islands
+      Poland:
+        text: Poland
+      Portugal:
+        text: Portugal
+      Puerto Rico:
+        text: Puerto Rico
+      Qatar:
+        text: Qatar
+      Republic of the Congo:
+        text: Republic of the Congo
+      Reunion:
+        text: Reunion
+      Romania:
+        text: Romania
+      Ross Sea:
+        text: Ross Sea
+      Russia:
+        text: Russia
+      Rwanda:
+        text: Rwanda
+      Saint Barthelemy:
+        text: Saint Barthelemy
+      Saint Helena:
+        text: Saint Helena
+      Saint Kitts and Nevis:
+        text: Saint Kitts and Nevis
+      Saint Lucia:
+        text: Saint Lucia
+      Saint Pierre and Miquelon:
+        text: Saint Pierre and Miquelon
+      Saint Vincent and the Grenadines:
+        text: Saint Vincent and the Grenadines
+      Samoa:
+        text: Samoa
+      San Marino:
+        text: San Marino
+      Saint Martin:
+        text: Saint Martin
+      Sao Tome and Principe:
+        text: Sao Tome and Principe
+      Saudi Arabia:
+        text: Saudi Arabia
+      Senegal:
+        text: Senegal
+      Serbia:
+        text: Serbia
+      Seychelles:
+        text: Seychelles
+      Sierra Leone:
+        text: Sierra Leone
+      Singapore:
+        text: Singapore
+      Sint Maarten:
+        text: Sint Maarten
+      Slovakia:
+        text: Slovakia
+      Slovenia:
+        text: Slovenia
+      Solomon Islands:
+        text: Solomon Islands
+      Somalia:
+        text: Somalia
+      South Africa:
+        text: South Africa
+      South Georgia and the South Sandwich Islands:
+        text: South Georgia and the South Sandwich Islands
+      South Korea:
+        text: South Korea
+      South Sudan:
+        text: South Sudan
+      Southern Ocean:
+        text: Southern Ocean
+      Spain:
+        text: Spain
+      Spratly Islands:
+        text: Spratly Islands
+      Sri Lanka:
+        text: Sri Lanka
+      State of Palestine:
+        text: State of Palestine
+      Sudan:
+        text: Sudan
+      Suriname:
+        text: Suriname
+      Svalbard:
+        text: Svalbard
+      Sweden:
+        text: Sweden
+      Switzerland:
+        text: Switzerland
+      Syria:
+        text: Syria
+      Taiwan:
+        text: Taiwan
+      Tajikistan:
+        text: Tajikistan
+      Tanzania:
+        text: Tanzania
+      Tasman Sea:
+        text: Tasman Sea
+      Thailand:
+        text: Thailand
+      Timor-Leste:
+        text: Timor-Leste
+      Togo:
+        text: Togo
+      Tokelau:
+        text: Tokelau
+      Tonga:
+        text: Tonga
+      Trinidad and Tobago:
+        text: Trinidad and Tobago
+      Tromelin Island:
+        text: Tromelin Island
+      Tunisia:
+        text: Tunisia
+      Turkey:
+        text: Turkey
+      Turkmenistan:
+        text: Turkmenistan
+      Turks and Caicos Islands:
+        text: Turks and Caicos Islands
+      Tuvalu:
+        text: Tuvalu
+      USA:
+        text: USA
+      Uganda:
+        text: Uganda
+      Ukraine:
+        text: Ukraine
+      United Arab Emirates:
+        text: United Arab Emirates
+      United Kingdom:
+        text: United Kingdom
+      Uruguay:
+        text: Uruguay
+      Uzbekistan:
+        text: Uzbekistan
+      Vanuatu:
+        text: Vanuatu
+      Venezuela:
+        text: Venezuela
+      Viet Nam:
+        text: Viet Nam
+      Wake Island:
+        text: Wake Island
+      Virgin Islands:
+        text: Virgin Islands
+      Wallis and Futuna:
+        text: Wallis and Futuna
+      West Bank:
+        text: West Bank
+      Western Sahara:
+        text: Western Sahara
+      Yemen:
+        text: Yemen
+      Zambia:
+        text: Zambia
+      Zimbabwe:
+        text: Zimbabwe
+      missing:
+        text: missing
+      'missing: control sample':
+        text: 'missing: control sample'
+      'missing: data agreement established pre-2023':
+        text: 'missing: data agreement established pre-2023'
+      'missing: endangered species':
+        text: 'missing: endangered species'
+      'missing: human-identifiable':
+        text: 'missing: human-identifiable'
+      'missing: lab stock':
+        text: 'missing: lab stock'
+      'missing: sample group':
+        text: 'missing: sample group'
+      'missing: synthetic construct':
+        text: 'missing: synthetic construct'
+      'missing: third party data':
+        text: 'missing: third party data'
+      not applicable:
+        text: not applicable
+      not collected:
+        text: not collected
+      not provided:
+        text: not provided
+      restricted access:
+        text: restricted access
+  PerturbationTypeMenu:
+    annotations:
+      id: PerturbationTypeMenu
+    permissible_values:
+      none:
+        text: none
+      temperature_shift:
+        text: temperature_shift
+      phage_introduction:
+        text: phage_introduction
+      strain_addition:
+        text: strain_addition
+      pH_shift:
+        text: pH_shift
+      chemical:
+        text: chemical

@@ -1,0 +1,653 @@
+id: https://github.com/timrozday/ena-submission-dataharmonizer/MIMICC_Experiment
+name: MIMICC_Experiment
+title: MIMICC Experiment Submission
+description: >-
+  Schema for MIMICC sequencing-experiment metadata submission to ENA. Filtered from
+  mimicc_sample_experiment.yaml down to the SRA-experiment-scoped slots (via
+  scripts/dh_schema.py filter), with PLATFORM/INSTRUMENT added (absent from the source
+  schema) and slot titles/names aligned to the mimicc-ena-submission-assistant app's
+  webin-cli manifest contract (see that app's README "Experiment metadata schema").
+  Does not include sample metadata (covered by mimicc_sample_experiment.yaml) or the
+  read-file/sample-pairing decision (covered by that app's own pairing table) — only
+  the per-run sequencing/library metadata.
+version: 1.0.0
+imports:
+- linkml:types
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ENA: https://www.ebi.ac.uk/ena/browser/view/
+default_range: string
+classes:
+  dh_interface:
+    annotations:
+      id: dh_interface
+    description: A DataHarmonizer interface
+    from_schema: https://github.com/timrozday/ena-submission-dataharmonizer/MIMICC_Experiment
+  MIMICC_Experiment:
+    annotations:
+      id: MIMICC_Experiment
+    title: MIMICC experiment submission
+    description: >-
+      Schema for MIMICC sequencing-experiment metadata submission to ENA via webin-cli.
+      One row per run; NAME/SAMPLE are kept in sync with the pairing table in
+      mimicc-ena-submission-assistant's Reads tab.
+    is_a: dh_interface
+    slots:
+    - experiment_name
+    - sample_alias
+    - PLATFORM
+    - INSTRUMENT
+    - LIBRARY_SOURCE
+    - LIBRARY_SELECTION
+    - LIBRARY_STRATEGY
+    - locus_name
+    - INSERT_SIZE
+    - LIBRARY_NAME
+    - DESCRIPTION
+    - LIBRARY_CONSTRUCTION_PROTOCOL
+    slot_usage:
+      experiment_name:
+        rank: 1
+        slot_group: Identifiers
+      sample_alias:
+        rank: 2
+        slot_group: Identifiers
+      PLATFORM:
+        rank: 3
+        slot_group: Sequencing
+      INSTRUMENT:
+        rank: 4
+        slot_group: Sequencing
+      locus_name:
+        rank: 5
+        slot_group: Sequencing
+      INSERT_SIZE:
+        rank: 6
+        slot_group: Sequencing
+      LIBRARY_NAME:
+        rank: 7
+        slot_group: Sequencing
+      LIBRARY_SOURCE:
+        rank: 8
+        slot_group: Library
+      LIBRARY_SELECTION:
+        rank: 9
+        slot_group: Library
+      LIBRARY_STRATEGY:
+        rank: 10
+        slot_group: Library
+      LIBRARY_CONSTRUCTION_PROTOCOL:
+        rank: 11
+        slot_group: Library
+      DESCRIPTION:
+        rank: 12
+        slot_group: Library
+slots:
+  experiment_name:
+    annotations:
+      id: experiment_name
+      source: SRA.experiment
+    title: Experiment name
+    description: >-
+      Unique name for this run within the submission, matching the pairing table's read
+      group name (mimicc-ena-submission-assistant's Reads tab keeps this column in sync
+      automatically — do not edit it here).
+    range: string
+    required: true
+  sample_alias:
+    annotations:
+      id: sample_alias
+      source: ENA.sample
+    title: Sample alias
+    description: >-
+      ENA sample alias this run belongs to, matching the pairing table's SAMPLE column
+      (kept in sync automatically — do not edit it here).
+    range: string
+    required: true
+  PLATFORM:
+    annotations:
+      id: PLATFORM
+      source: SRA.experiment
+    title: Platform
+    description: The sequencing platform used to generate the reads.
+    range: PlatformMenu
+    required: true
+    ifabsent: string(ILLUMINA)
+  INSTRUMENT:
+    annotations:
+      id: INSTRUMENT
+      source: SRA.experiment
+    title: Instrument
+    description: The specific sequencing instrument model used.
+    range: InstrumentModelMenu
+    required: true
+    ifabsent: string(Illumina MiSeq)
+  LIBRARY_SOURCE:
+    annotations:
+      id: LIBRARY_SOURCE
+      source: SRA.experiment
+    title: Library source
+    description: The type of source material that is being sequenced.
+    range: LibrarySourceMenu
+    required: true
+    ifabsent: string(METAGENOMIC)
+  LIBRARY_SELECTION:
+    annotations:
+      id: LIBRARY_SELECTION
+      source: SRA.experiment
+    title: Library selection
+    description: Method used to enrich the target in the sequence library preparation.
+    range: LibrarySelectionMenu
+    required: true
+    ifabsent: string(PCR)
+  LIBRARY_STRATEGY:
+    annotations:
+      id: LIBRARY_STRATEGY
+      source: SRA.experiment
+    title: Library strategy
+    description: Sequencing technique intended for this library.
+    range: LibraryStrategyMenu
+    required: true
+    ifabsent: string(AMPLICON)
+  locus_name:
+    annotations:
+      id: locus_name
+      source: SRA.experiment
+    title: Locus name
+    description: The locus targeted for amplification (amplicon studies only).
+    range: LocusNameMenu
+    recommended: true
+    ifabsent: string(16S rRNA)
+  INSERT_SIZE:
+    annotations:
+      id: INSERT_SIZE
+      source: SRA.experiment
+    title: Insert size
+    description: The average insert size for paired-end libraries.
+    range: integer
+    recommended: true
+    ifabsent: int(300)
+  LIBRARY_NAME:
+    annotations:
+      id: LIBRARY_NAME
+      source: SRA.experiment
+    title: Library name
+    description: >-
+      The submitter's name for this library. Must be unique per library. Auto-generated
+      as {experiment_name}_{locus_name} (e.g. MIMICC_Run1_A_48_16S rRNA).
+    range: string
+    recommended: true
+    ifabsent: 'formula(=CONCATENATE({experiment_name}, "_", {locus_name}))'
+  DESCRIPTION:
+    annotations:
+      id: DESCRIPTION
+      source: SRA.experiment
+    title: Description
+    description: Goal and setup of the individual library including how the library was constructed.
+    range: string
+    recommended: true
+    ifabsent: 'string(Continuous culture longitudinal metabarcoding of MIMICC synthetic community)'
+  LIBRARY_CONSTRUCTION_PROTOCOL:
+    annotations:
+      id: LIBRARY_CONSTRUCTION_PROTOCOL
+      source: SRA.experiment
+    title: Library construction protocol
+    description: >-
+      Free form text describing the protocol by which the sequencing library was
+      constructed.
+    range: string
+    recommended: true
+    ifabsent: 'string(16S rRNA V4 amplicon; primers 515-YF and 806-BR; at EMBL Heidelberg)'
+enums:
+  PlatformMenu:
+    annotations:
+      id: PlatformMenu
+    permissible_values:
+      LS454:
+        text: LS454
+        description: Roche 454 GS / GS FLX / GS FLX Titanium / GS Junior.
+      ILLUMINA:
+        text: ILLUMINA
+        description: Illumina sequencing platforms (HiSeq, MiSeq, NextSeq, NovaSeq, iSeq, …).
+      HELICOS:
+        text: HELICOS
+        description: Helicos Biosciences HeliScope.
+      ABI_SOLID:
+        text: ABI_SOLID
+        description: Applied Biosystems SOLiD.
+      COMPLETE_GENOMICS:
+        text: COMPLETE_GENOMICS
+        description: Complete Genomics sequencing platform.
+      BGISEQ:
+        text: BGISEQ
+        description: BGI BGISEQ sequencing platform.
+      DNBSEQ:
+        text: DNBSEQ
+        description: MGI/BGI DNBSEQ sequencing platform.
+      OXFORD_NANOPORE:
+        text: OXFORD_NANOPORE
+        description: Oxford Nanopore Technologies (MinION, GridION, PromethION).
+      PACBIO_SMRT:
+        text: PACBIO_SMRT
+        description: Pacific Biosciences Single Molecule Real-Time sequencing.
+      ION_TORRENT:
+        text: ION_TORRENT
+        description: Thermo Fisher Ion Torrent sequencing platform.
+      CAPILLARY:
+        text: CAPILLARY
+        description: Capillary (Sanger) sequencing.
+      OTHER:
+        text: OTHER
+        description: Platform not listed.
+  InstrumentModelMenu:
+    annotations:
+      id: InstrumentModelMenu
+    permissible_values:
+      Illumina Genome Analyzer:
+        text: Illumina Genome Analyzer
+      Illumina Genome Analyzer II:
+        text: Illumina Genome Analyzer II
+      Illumina Genome Analyzer IIx:
+        text: Illumina Genome Analyzer IIx
+      Illumina HiSeq 1000:
+        text: Illumina HiSeq 1000
+      Illumina HiSeq 1500:
+        text: Illumina HiSeq 1500
+      Illumina HiSeq 2000:
+        text: Illumina HiSeq 2000
+      Illumina HiSeq 2500:
+        text: Illumina HiSeq 2500
+      Illumina HiSeq 3000:
+        text: Illumina HiSeq 3000
+      Illumina HiSeq 4000:
+        text: Illumina HiSeq 4000
+      Illumina HiScanSQ:
+        text: Illumina HiScanSQ
+      HiSeq X Five:
+        text: HiSeq X Five
+      HiSeq X Ten:
+        text: HiSeq X Ten
+      Illumina iSeq 100:
+        text: Illumina iSeq 100
+      Illumina MiniSeq:
+        text: Illumina MiniSeq
+      Illumina MiSeq:
+        text: Illumina MiSeq
+      Illumina NovaSeq 6000:
+        text: Illumina NovaSeq 6000
+      Illumina NovaSeq X:
+        text: Illumina NovaSeq X
+      NextSeq 500:
+        text: NextSeq 500
+      NextSeq 550:
+        text: NextSeq 550
+      NextSeq 1000:
+        text: NextSeq 1000
+      NextSeq 2000:
+        text: NextSeq 2000
+      MinION:
+        text: MinION
+      GridION:
+        text: GridION
+      PromethION:
+        text: PromethION
+      PacBio RS:
+        text: PacBio RS
+      PacBio RS II:
+        text: PacBio RS II
+      Sequel:
+        text: Sequel
+      Sequel II:
+        text: Sequel II
+      Sequel IIe:
+        text: Sequel IIe
+      Revio:
+        text: Revio
+      Ion Torrent PGM:
+        text: Ion Torrent PGM
+      Ion Torrent Proton:
+        text: Ion Torrent Proton
+      Ion Torrent S5:
+        text: Ion Torrent S5
+      Ion Torrent S5 XL:
+        text: Ion Torrent S5 XL
+      BGISEQ-500:
+        text: BGISEQ-500
+      DNBSEQ-G400:
+        text: DNBSEQ-G400
+      DNBSEQ-T7:
+        text: DNBSEQ-T7
+      unspecified:
+        text: unspecified
+  LibraryStrategyMenu:
+    annotations:
+      id: LibraryStrategyMenu
+    permissible_values:
+      WGS:
+        text: WGS
+        description: Whole Genome Sequencing - random sequencing of the whole genome (see pubmed 10731132 for details)
+      WGA:
+        text: WGA
+        description: Whole Genome Amplification followed by random sequencing. (see pubmed 1631067,8962113 for details)
+      WXS:
+        text: WXS
+        description: Random sequencing of exonic regions selected from the genome. (see pubmed 20111037 for details)
+      RNA-Seq:
+        text: RNA-Seq
+        description: >-
+          Random sequencing of whole transcriptome, also known as Whole Transcriptome Shotgun Sequencing, or WTSS).
+          (see pubmed 18611170 for details)
+      ssRNA-seq:
+        text: ssRNA-seq
+        description: Strand-specific RNA sequencing.
+      snRNA-seq:
+        text: snRNA-seq
+        description: Single nucleus RNA sequencing is a method for profiling gene expression in cells which are difficult to isolate.
+      miRNA-Seq:
+        text: miRNA-Seq
+        description: >-
+          Micro RNA sequencing strategy designed to capture post-transcriptional RNA elements and include non-coding
+          functional elements. (see pubmed 21787409 for details)
+      ncRNA-Seq:
+        text: ncRNA-Seq
+        description: >-
+          Capture of other non-coding RNA types, including post-translation modification types such as snRNA (small
+          nuclear RNA) or snoRNA (small nucleolar RNA), or expression regulation types such as siRNA (small interfering
+          RNA) or piRNA/piwi/RNA (piwi-interacting RNA).
+      FL-cDNA:
+        text: FL-cDNA
+        description: Full-length sequencing of cDNA templates
+      EST:
+        text: EST
+        description: Single pass sequencing of cDNA templates
+      Hi-C:
+        text: Hi-C
+        description: >-
+          Chromosome Conformation Capture technique where a biotin-labeled nucleotide is incorporated at the ligation
+          junction, enabling selective purification of chimeric DNA ligation junctions followed by deep sequencing.
+      ATAC-seq:
+        text: ATAC-seq
+        description: >-
+          Assay for Transposase-Accessible Chromatin (ATAC) strategy is used to study genome-wide chromatin
+          accessibility. alternative method to DNase-seq that uses an engineered Tn5 transposase to cleave DNA and to
+          integrate primer DNA sequences into the cleaved genomic DNA.
+      WCS:
+        text: WCS
+        description: Random sequencing of a whole chromosome or other replicon isolated from a genome.
+      RAD-Seq:
+        text: RAD-Seq
+        description: Restriction site associated DNA marker.
+      CLONE:
+        text: CLONE
+        description: Genomic clone based (hierarchical) sequencing.
+      POOLCLONE:
+        text: POOLCLONE
+        description: Shotgun of pooled clones (usually BACs and Fosmids).
+      AMPLICON:
+        text: AMPLICON
+        description: >-
+          Sequencing of overlapping or distinct PCR or RT-PCR products. For example, metagenomic community profiling
+          using SSU rRNA.
+      CLONEEND:
+        text: CLONEEND
+        description: Clone end (5', 3', or both) sequencing.
+      FINISHING:
+        text: FINISHING
+        description: Sequencing intended to finish (close) gaps in existing coverage.
+      ChIP-Seq:
+        text: ChIP-Seq
+        description: >-
+          ChIP-seq, Chromatin ImmunoPrecipitation, reveals binding sites of specific proteins, typically transcription
+          factors (TFs) using antibodies to extract DNA fragments bound to the target protein.
+      MNase-Seq:
+        text: MNase-Seq
+        description: >-
+          Identifies well-positioned nucleosomes. uses Micrococcal Nuclease (MNase) is an endo-exonuclease that
+          processively digests DNA until an obstruction, such as a nucleosome, is reached.
+      DNase-Hypersensitivity:
+        text: DNase-Hypersensitivity
+        description: Sequencing of hypersensitive sites, or segments of open chromatin that are more readily cleaved by DNaseI.
+      Bisulfite-Seq:
+        text: Bisulfite-Seq
+        description: >-
+          MethylC-seq. Sequencing following treatment of DNA with bisulfite to convert cytosine residues to uracil
+          depending on methylation status.
+      CTS:
+        text: CTS
+        description: Concatenated Tag Sequencing
+      MRE-Seq:
+        text: MRE-Seq
+        description: Methylation-Sensitive Restriction Enzyme Sequencing.
+      MeDIP-Seq:
+        text: MeDIP-Seq
+        description: Methylated DNA Immunoprecipitation Sequencing.
+      MBD-Seq:
+        text: MBD-Seq
+        description: Methyl CpG Binding Domain Sequencing.
+      Tn-Seq:
+        text: Tn-Seq
+        description: >-
+          Quantitatively determine fitness of bacterial genes based on how many times a purposely seeded transposon
+          gets inserted into each gene of a colony after some time.
+      VALIDATION:
+        text: VALIDATION
+        description: 'CGHub special request: Independent experiment to re-evaluate putative variants.'
+      FAIRE-seq:
+        text: FAIRE-seq
+        description: Formaldehyde Assisted Isolation of Regulatory Elements. Reveals regions of open chromatin.
+      SELEX:
+        text: SELEX
+        description: Systematic Evolution of Ligands by Exponential enrichment
+      RIP-Seq:
+        text: RIP-Seq
+        description: Direct sequencing of RNA immunoprecipitates (includes CLIP-Seq, HITS-CLIP and PAR-CLIP).
+      ChIA-PET:
+        text: ChIA-PET
+        description: Direct sequencing of proximity-ligated chromatin immunoprecipitates.
+      Synthetic-Long-Read:
+        text: Synthetic-Long-Read
+        description: binning and barcoding of large DNA fragments to facilitate assembly of the fragment
+      Targeted-Capture:
+        text: Targeted-Capture
+        description: Enrichment of a targeted subset of loci.
+      Tethered Chromatin Conformation Capture:
+        text: Tethered Chromatin Conformation Capture
+        description: Tethered Chromatin Conformation Capture.
+      NOMe-Seq:
+        text: NOMe-Seq
+        description: Nucleosome Occupancy and Methylome sequencing.
+      ChM-Seq:
+        text: ChM-Seq
+        description: >-
+          ChIPmentation combines chromatin immunoprecipitation with sequencing library preparation by Tn5 transposase
+          (see pubmed 26280331 for details)
+      GBS:
+        text: GBS
+        description: Genotyping by sequencing is a method to discover single nucleotide polymorphisms for genotyping studies.
+      Ribo-Seq:
+        text: Ribo-Seq
+        description: >-
+          Ribosome profiling (also named ribosome footprinting) that uses specialized messenger RNA (mRNA) sequencing
+          to determine which mRNAs are being actively translated.
+      OTHER:
+        text: OTHER
+        description: Library strategy not listed.
+  LibrarySourceMenu:
+    annotations:
+      id: LibrarySourceMenu
+    permissible_values:
+      GENOMIC:
+        text: GENOMIC
+        description: Genomic DNA (includes PCR products from genomic DNA).
+      GENOMIC SINGLE CELL:
+        text: GENOMIC SINGLE CELL
+        description: Genomic DNA from a single cell.
+      TRANSCRIPTOMIC:
+        text: TRANSCRIPTOMIC
+        description: Transcription products or non genomic DNA (EST, cDNA, RT-PCR, screened libraries).
+      TRANSCRIPTOMIC SINGLE CELL:
+        text: TRANSCRIPTOMIC SINGLE CELL
+        description: Transcriptomic products from a single cell.
+      METAGENOMIC:
+        text: METAGENOMIC
+        description: Mixed material from metagenome.
+      METATRANSCRIPTOMIC:
+        text: METATRANSCRIPTOMIC
+        description: Transcription products from community targets
+      SYNTHETIC:
+        text: SYNTHETIC
+        description: Synthetic DNA.
+      VIRAL RNA:
+        text: VIRAL RNA
+        description: Viral RNA.
+      OTHER:
+        text: OTHER
+        description: Other, unspecified, or unknown library source material.
+  LibrarySelectionMenu:
+    annotations:
+      id: LibrarySelectionMenu
+    permissible_values:
+      RANDOM:
+        text: RANDOM
+        description: No Selection or Random selection
+      PCR:
+        text: PCR
+        description: target enrichment via PCR
+      RANDOM PCR:
+        text: RANDOM PCR
+        description: Source material was selected by randomly generated primers.
+      RT-PCR:
+        text: RT-PCR
+        description: target enrichment via RT-PCR
+      HMPR:
+        text: HMPR
+        description: Hypo-methylated partial restriction digest
+      MF:
+        text: MF
+        description: Methyl Filtrated
+      repeat fractionation:
+        text: repeat fractionation
+        description: >-
+          Selection for less repetitive (and more gene rich) sequence through Cot filtration (CF) or other
+          fractionation techniques based on DNA kinetics.
+      size fractionation:
+        text: size fractionation
+        description: Physical selection of size appropriate targets.
+      MSLL:
+        text: MSLL
+        description: Methylation Spanning Linking Library
+      cDNA:
+        text: cDNA
+        description: PolyA selection or enrichment for messenger RNA (mRNA); synonymize with PolyA
+      cDNA_randomPriming:
+        text: cDNA_randomPriming
+        description: random primers typically used to prime mRNAs.
+      cDNA_oligo_dT:
+        text: cDNA_oligo_dT
+        description: priming by annealing to PolyA tails of eukaryotic mRNAs.
+      PolyA:
+        text: PolyA
+        description: PolyA selection or enrichment for messenger RNA (mRNA); should replace cDNA enumeration.
+      Oligo-dT:
+        text: Oligo-dT
+        description: enrichment of messenger RNA (mRNA) by hybridization to Oligo-dT.
+      Inverse rRNA:
+        text: Inverse rRNA
+        description: depletion of ribosomal RNA by oligo hybridization.
+      Inverse rRNA selection:
+        text: Inverse rRNA selection
+        description: depletion of ribosomal RNA by inverse oligo hybridization.
+      ChIP:
+        text: ChIP
+        description: Chromatin immunoprecipitation
+      ChIP-Seq:
+        text: ChIP-Seq
+        description: >-
+          Chromatin immunoPrecipitation, reveals binding sites of specific proteins, typically transcription factors
+          (TFs) using antibodies to extract DNA fragments bound to the target protein.
+      MNase:
+        text: MNase
+        description: >-
+          Identifies well-positioned nucleosomes. uses Micrococcal Nuclease (MNase) is an endo-exonuclease that
+          processively digests DNA until an obstruction, such as a nucleosome, is reached.
+      DNase:
+        text: DNase
+        description: >-
+          DNase I endonuclease digestion and size selection reveals regions of chromatin where the DNA is highly
+          sensitive to DNase I.
+      Hybrid Selection:
+        text: Hybrid Selection
+        description: Selection by hybridization in array or solution.
+      Reduced Representation:
+        text: Reduced Representation
+        description: >-
+          Reproducible genomic subsets, often generated by restriction fragment size selection, containing a
+          manageable number of loci to facilitate re-sampling.
+      Restriction Digest:
+        text: Restriction Digest
+        description: DNA fractionation using restriction enzymes.
+      5-methylcytidine antibody:
+        text: 5-methylcytidine antibody
+        description: >-
+          Selection of methylated DNA fragments using an antibody raised against 5-methylcytosine or 5-methylcytidine
+          (m5C).
+      MBD2 protein methyl-CpG binding domain:
+        text: MBD2 protein methyl-CpG binding domain
+        description: Enrichment by methyl-CpG binding domain.
+      CAGE:
+        text: CAGE
+        description: Cap-analysis gene expression.
+      RACE:
+        text: RACE
+        description: Rapid Amplification of cDNA Ends.
+      MDA:
+        text: MDA
+        description: >-
+          Multiple Displacement Amplification, a non-PCR based DNA amplification technique that amplifies a minute
+          quantifies of DNA to levels suitable for genomic analysis.
+      padlock probes capture method:
+        text: padlock probes capture method
+        description: Targeted sequence capture protocol covering an arbitrary set of nonrepetitive genomics targets.
+      other:
+        text: other
+        description: Other library enrichment, screening, or selection process.
+      unspecified:
+        text: unspecified
+        description: Library enrichment, screening, or selection is not specified.
+  LocusNameMenu:
+    annotations:
+      id: LocusNameMenu
+    permissible_values:
+      16S rRNA:
+        text: 16S rRNA
+        description: >-
+          Bacterial small subunit ribosomal RNA, a locus used for phylogenetic studies of bacteria and as a target
+          for random target PCR in environmental biodiversity screening.
+      18S rRNA:
+        text: 18S rRNA
+        description: >-
+          Eukaryotic small subunit ribosomal RNA, a locus used for phylogenetic studies of eukaryotes and as a target
+          for random target PCR in environmental biodiversity screening.
+      28S rRNA:
+        text: 28S rRNA
+        description: Structural ribosomal RNA for the large component, or large subunit (LSU) of eukaryotic cytoplasmic ribosomes.
+      RBCL:
+        text: RBCL
+        description: >-
+          RuBisCO large subunit: ribulose-1,5-bisphosphate carboxylase/oxygenase large subunit, a locus used for
+          phylogenetic studies of plants.
+      matK:
+        text: matK
+        description: Maturase K gene, a locus used for phylogenetic studies of plants.
+      COX1:
+        text: COX1
+        description: Mitochondrial cytochrome c oxidase 1 gene, a locus used for phylogenetic studies of animals
+      ITS1-5.8S-ITS2:
+        text: ITS1-5.8S-ITS2
+        description: Internal transcribed spacers 1 and 2 plus 5.8S rRNA region, a locus used for phylogenetic studies of fungi.
+      exome:
+        text: exome
+        description: All exonic regions of the genome.
+      other:
+        text: other
+        description: Other locus, please describe.
